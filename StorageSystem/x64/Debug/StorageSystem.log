@@ -1,0 +1,85 @@
+﻿  storage_system.cpp
+  test_storage.cpp
+E:\SQL实训\storage_system.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+E:\SQL实训\test_storage.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+E:\SQL实训\storage_system.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  (编译源文件“test_storage.cpp”)
+  
+E:\SQL实训\storage_system.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  (编译源文件“storage_system.cpp”)
+  
+E:\SQL实训\test_storage.cpp(27,5): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\SQL实训\test_storage.cpp(28,5): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\SQL实训\test_storage.cpp(80,47): error C2001: 常量中有换行符
+E:\SQL实训\test_storage.cpp(81,9): error C2143: 语法错误: 缺少“;”(在“}”的前面)
+E:\SQL实训\test_storage.cpp(66,9): error C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\SQL实训\test_storage.cpp(117,21): error C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\SQL实训\test_storage.cpp(99,9): error C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\SQL实训\test_storage.cpp(200,9): error C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\SQL实训\test_storage.cpp(241,9): error C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\SQL实训\storage_system.cpp(27,38): error C2001: 常量中有换行符
+E:\SQL实训\storage_system.cpp(28,9): error C2143: 语法错误: 缺少“)”(在“}”的前面)
+E:\SQL实训\storage_system.cpp(28,9): error C2143: 语法错误: 缺少“;”(在“}”的前面)
+E:\SQL实训\storage_system.cpp(250,34): error C2001: 常量中有换行符
+E:\SQL实训\storage_system.cpp(251,9): error C2146: 语法错误: 缺少“)”(在标识符“free_list”的前面)
+E:\SQL实训\storage_system.cpp(251,9): error C2146: 语法错误: 缺少“;”(在标识符“free_list”的前面)
+E:\SQL实训\storage_system.cpp(373,37): error C2665: “std::lock_guard<std::mutex>::lock_guard”: 没有重载函数可以转换所有参数类型
+      E:\Visual Studio\VC\Tools\MSVC\14.41.34120\include\mutex(464,5):
+      可能是“std::lock_guard<std::mutex>::lock_guard(const std::lock_guard<std::mutex> &)”
+          E:\SQL实训\storage_system.cpp(373,37):
+          “std::lock_guard<std::mutex>::lock_guard(const std::lock_guard<std::mutex> &)”: 无法将参数 1 从“const std::mutex”转换为“const std::lock_guard<std::mutex> &”
+              E:\SQL实训\storage_system.cpp(373,38):
+              原因如下: 无法从“const std::mutex”转换为“const std::lock_guard<std::mutex>”
+              E:\SQL实训\storage_system.cpp(373,38):
+              没有可用于执行该转换的用户定义的转换运算符，或者无法调用该运算符
+      E:\Visual Studio\VC\Tools\MSVC\14.41.34120\include\mutex(453,5):
+      或    “std::lock_guard<std::mutex>::lock_guard(_Mutex &)”
+          with
+          [
+              _Mutex=std::mutex
+          ]
+          E:\SQL实训\storage_system.cpp(373,37):
+          “std::lock_guard<std::mutex>::lock_guard(_Mutex &)”: 无法将参数 1 从“const std::mutex”转换为“_Mutex &”
+          with
+          [
+              _Mutex=std::mutex
+          ]
+              E:\SQL实训\storage_system.cpp(373,38):
+              转换丢失限定符
+      E:\SQL实训\storage_system.cpp(373,37):
+      尝试匹配参数列表“(const std::mutex)”时
+  
+E:\SQL实训\storage_system.cpp(378,37): error C2665: “std::lock_guard<std::mutex>::lock_guard”: 没有重载函数可以转换所有参数类型
+      E:\Visual Studio\VC\Tools\MSVC\14.41.34120\include\mutex(464,5):
+      可能是“std::lock_guard<std::mutex>::lock_guard(const std::lock_guard<std::mutex> &)”
+          E:\SQL实训\storage_system.cpp(378,37):
+          “std::lock_guard<std::mutex>::lock_guard(const std::lock_guard<std::mutex> &)”: 无法将参数 1 从“const std::mutex”转换为“const std::lock_guard<std::mutex> &”
+              E:\SQL实训\storage_system.cpp(378,38):
+              原因如下: 无法从“const std::mutex”转换为“const std::lock_guard<std::mutex>”
+              E:\SQL实训\storage_system.cpp(378,38):
+              没有可用于执行该转换的用户定义的转换运算符，或者无法调用该运算符
+      E:\Visual Studio\VC\Tools\MSVC\14.41.34120\include\mutex(453,5):
+      或    “std::lock_guard<std::mutex>::lock_guard(_Mutex &)”
+          with
+          [
+              _Mutex=std::mutex
+          ]
+          E:\SQL实训\storage_system.cpp(378,37):
+          “std::lock_guard<std::mutex>::lock_guard(_Mutex &)”: 无法将参数 1 从“const std::mutex”转换为“_Mutex &”
+          with
+          [
+              _Mutex=std::mutex
+          ]
+              E:\SQL实训\storage_system.cpp(378,38):
+              转换丢失限定符
+      E:\SQL实训\storage_system.cpp(378,37):
+      尝试匹配参数列表“(const std::mutex)”时
+  
+E:\SQL实训\storage_system.cpp(467,18): error C2001: 常量中有换行符
+E:\SQL实训\storage_system.cpp(468,1): error C2143: 语法错误: 缺少“;”(在“}”的前面)
+E:\SQL实训\storage_system.cpp(545,38): warning C4267: “+=”: 从“size_t”转换到“int”，可能丢失数据
+E:\SQL实训\storage_system.cpp(582,44): error C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\SQL实训\storage_system.cpp(590,44): error C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\SQL实训\storage_system.cpp(598,44): error C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\SQL实训\storage_system.cpp(607,44): error C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+E:\SQL实训\storage_system.cpp(615,44): error C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
