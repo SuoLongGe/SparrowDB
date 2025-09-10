@@ -1,0 +1,17 @@
+# Table Metadata
+TABLE_NAME=__system_constraints__
+COLUMN_COUNT=7
+COLUMN=table_name:VARCHAR:255
+COLUMN=constraint_name:VARCHAR:255
+COLUMN=constraint_type:VARCHAR:50
+COLUMN=columns:VARCHAR:1000
+COLUMN=referenced_table:VARCHAR:255
+COLUMN=referenced_columns:VARCHAR:1000
+COLUMN=default_value:VARCHAR:255
+# End Metadata
+PAGE:1
+referenced_columns=null|constraint_type=PRIMARY_KEY|constraint_name=pk_student|columns=id|default_value=null|referenced_table=null|table_name=students
+referenced_columns=null|constraint_type=PRIMARY_KEY|constraint_name=pk_course|columns=course_id|default_value=null|referenced_table=null|table_name=courses
+referenced_columns=null|constraint_type=PRIMARY_KEY|constraint_name=pk_course|columns=course_id|default_value=null|referenced_table=null|table_name=courses
+referenced_columns=null|constraint_type=PRIMARY_KEY|constraint_name=pk_student|columns=id|default_value=null|referenced_table=null|table_name=students
+

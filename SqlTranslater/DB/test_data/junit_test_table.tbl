@@ -1,0 +1,10 @@
+# Table Metadata
+TABLE_NAME=junit_test_table
+COLUMN_COUNT=3
+COLUMN=id:INT:null
+COLUMN=name:VARCHAR:50
+COLUMN=age:INT:null
+# End Metadata
+PAGE:1
+name=JUnit测试用户|id=1|age=25
+

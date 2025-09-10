@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.database.engine.DatabaseEngineTest" time="0.201" tests="4" errors="0" skipped="0" failures="0">
+  <properties>
+    <property name="java.specification.version" value="17"/>
+    <property name="sun.cpu.isalist" value="amd64"/>
+    <property name="sun.jnu.encoding" value="GBK"/>
+    <property name="java.class.path" value="D:\subject\大三上各科作业信息\实训\shixun\SparrowDB\SqlTranslater\DB\target\test-classes;D:\subject\大三上各科作业信息\实训\shixun\SparrowDB\SqlTranslater\DB\target\classes;C:\Users\29728\.m2\repository\org\junit\jupiter\junit-jupiter\5.9.2\junit-jupiter-5.9.2.jar;C:\Users\29728\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.9.2\junit-jupiter-api-5.9.2.jar;C:\Users\29728\.m2\repository\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar;C:\Users\29728\.m2\repository\org\junit\platform\junit-platform-commons\1.9.2\junit-platform-commons-1.9.2.jar;C:\Users\29728\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\29728\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.9.2\junit-jupiter-params-5.9.2.jar;C:\Users\29728\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.9.2\junit-jupiter-engine-5.9.2.jar;C:\Users\29728\.m2\repository\org\junit\platform\junit-platform-engine\1.9.2\junit-platform-engine-1.9.2.jar;"/>
+    <property name="java.vm.vendor" value="Oracle Corporation"/>
+    <property name="sun.arch.data.model" value="64"/>
+    <property name="user.variant" value=""/>
+    <property name="java.vendor.url" value="https://java.oracle.com/"/>
+    <property name="user.timezone" value="GMT+08:00"/>
+    <property name="os.name" value="Windows 11"/>
+    <property name="java.vm.specification.version" value="17"/>
+    <property name="sun.java.launcher" value="SUN_STANDARD"/>
+    <property name="user.country" value="CN"/>
+    <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-17\bin"/>
+    <property name="sun.java.command" value="C:\Users\29728\AppData\Local\Temp\surefire6228037998201018142\surefirebooter-20250910164322667_3.jar C:\Users\29728\AppData\Local\Temp\surefire6228037998201018142 2025-09-10T16-43-22_475-jvmRun1 surefire-20250910164322667_1tmp surefire_0-20250910164322667_2tmp"/>
+    <property name="jdk.debug" value="release"/>
+    <property name="test" value="DatabaseEngineTest"/>
+    <property name="surefire.test.class.path" value="D:\subject\大三上各科作业信息\实训\shixun\SparrowDB\SqlTranslater\DB\target\test-classes;D:\subject\大三上各科作业信息\实训\shixun\SparrowDB\SqlTranslater\DB\target\classes;C:\Users\29728\.m2\repository\org\junit\jupiter\junit-jupiter\5.9.2\junit-jupiter-5.9.2.jar;C:\Users\29728\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.9.2\junit-jupiter-api-5.9.2.jar;C:\Users\29728\.m2\repository\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar;C:\Users\29728\.m2\repository\org\junit\platform\junit-platform-commons\1.9.2\junit-platform-commons-1.9.2.jar;C:\Users\29728\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\29728\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.9.2\junit-jupiter-params-5.9.2.jar;C:\Users\29728\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.9.2\junit-jupiter-engine-5.9.2.jar;C:\Users\29728\.m2\repository\org\junit\platform\junit-platform-engine\1.9.2\junit-platform-engine-1.9.2.jar;"/>
+    <property name="sun.cpu.endian" value="little"/>
+    <property name="user.home" value="C:\Users\29728"/>
+    <property name="user.language" value="zh"/>
+    <property name="java.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.version.date" value="2025-01-21"/>
+    <property name="java.home" value="C:\Program Files\Java\jdk-17"/>
+    <property name="file.separator" value="\"/>
+    <property name="basedir" value="D:\subject\大三上各科作业信息\实训\shixun\SparrowDB\SqlTranslater\DB"/>
+    <property name="java.vm.compressedOopsMode" value="Zero based"/>
+    <property name="line.separator" value="&#10;"/>
+    <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+    <property name="java.specification.name" value="Java Platform API Specification"/>
+    <property name="surefire.real.class.path" value="C:\Users\29728\AppData\Local\Temp\surefire6228037998201018142\surefirebooter-20250910164322667_3.jar"/>
+    <property name="user.script" value=""/>
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
+    <property name="java.runtime.version" value="17.0.14+8-LTS-191"/>
+    <property name="user.name" value="29728"/>
+    <property name="path.separator" value=";"/>
+    <property name="os.version" value="10.0"/>
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment"/>
+    <property name="file.encoding" value="GBK"/>
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM"/>
+    <property name="localRepository" value="C:\Users\29728\.m2\repository"/>
+    <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
+    <property name="java.io.tmpdir" value="C:\Users\29728\AppData\Local\Temp\"/>
+    <property name="java.version" value="17.0.14"/>
+    <property name="user.dir" value="D:\subject\大三上各科作业信息\实训\shixun\SparrowDB\SqlTranslater\DB"/>
+    <property name="os.arch" value="amd64"/>
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+    <property name="sun.os.patch.level" value=""/>
+    <property name="native.encoding" value="GBK"/>
+    <property name="java.library.path" value="C:\Program Files\Java\jdk-17\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;d:\cursor\resources\app\bin;C:\Program Files\Java\jdk-17\bin;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\VMware\VMware Workstation\bin\;C:\Program Files (x86)\Common Files\Oracle\Java\java8path;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files\Microsoft\jdk-11.0.16.101-hotspot\bin;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0\;C:\windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Users\Administrator\AppData\Local\Microsoft\WindowsApps;C:\Program Files\HP\OMEN-Broadcast\Common;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\dotnet\;C:\Program Files\Git\cmd;C:\Strawberry\c\bin;C:\Program Files\Java\jdk-17\jre\bin;C:\Program Files\apache-tomcat-8.5.35\apache-tomcat-8.5.35\lib;C:\Program Files\apache-tomcat-8.5.35\apache-tomcat-8.5.35\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;D:\NodeJS\;C:\Program Files\NVIDIA Corporation\NVIDIA app\NvDLISR;D:\mysql-8.0.16-winx64\bin;C:\Program Files\apache-maven-3.9.9\bin;D:\Python\Scripts\;D:\Python\;C:\Users\29728\AppData\Local\Microsoft\WindowsApps;C:\Users\29728\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\29728\.dotnet\tools;C:\Users\29728\OneDrive\桌面\IntelliJ IDEA 2023.2.3\bin;D:\cursor\resources\app\bin;D:\ComputerArchitecture\iverilog\bin;D:\ComputerArchitecture\iverilog\gtkwave\bin;C:\Users\29728\AppData\Roaming\npm;C:\Users\29728\AppData\Local\GitHubDesktop\bin;."/>
+    <property name="java.vm.info" value="mixed mode, sharing"/>
+    <property name="java.vendor" value="Oracle Corporation"/>
+    <property name="java.vm.version" value="17.0.14+8-LTS-191"/>
+    <property name="java.specification.maintenance.version" value="1"/>
+    <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
+    <property name="java.class.version" value="61.0"/>
+  </properties>
+  <testcase name="testCreateTable" classname="com.database.engine.DatabaseEngineTest" time="0.054">
+    <system-out><![CDATA[=== 开始数据库引擎测试 ===
+数据库引擎初始化完成
+
+测试1: 创建表
+   ✓ 表创建成功
+]]></system-out>
+  </testcase>
+  <testcase name="testInsertData" classname="com.database.engine.DatabaseEngineTest" time="0.016">
+    <system-out><![CDATA[
+测试2: 插入数据
+   ✓ 数据插入成功
+]]></system-out>
+  </testcase>
+  <testcase name="testSelectData" classname="com.database.engine.DatabaseEngineTest" time="0.021">
+    <system-out><![CDATA[
+测试3: 查询数据
+   ✓ 数据查询成功，返回 1 行数据
+   查询结果: {name=JUnit测试用户, id=1, age=25}
+]]></system-out>
+  </testcase>
+  <testcase name="testErrorHandling" classname="com.database.engine.DatabaseEngineTest" time="0.001">
+    <system-out><![CDATA[
+测试4: 错误处理
+   ✓ 错误处理正常: 表 nonexistent_table 不存在
+]]></system-out>
+  </testcase>
+</testsuite>

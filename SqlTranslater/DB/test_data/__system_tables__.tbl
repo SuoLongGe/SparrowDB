@@ -1,0 +1,12 @@
+# Table Metadata
+TABLE_NAME=__system_tables__
+COLUMN_COUNT=4
+COLUMN=table_name:VARCHAR:255
+COLUMN=create_time:BIGINT:8
+COLUMN=column_count:INT:4
+COLUMN=constraint_count:INT:4
+# End Metadata
+PAGE:1
+create_time=1757493907853|constraint_count=0|column_count=3|table_name=junit_test_table
+create_time=1757493907896|constraint_count=0|column_count=3|table_name=junit_test_table
+

@@ -1,0 +1,14 @@
+# Table Metadata
+TABLE_NAME=students
+COLUMN_COUNT=4
+COLUMN=id:INT:4
+COLUMN=name:VARCHAR:50
+COLUMN=age:INT:4
+COLUMN=grade:DECIMAL:10
+# End Metadata
+PAGE:1
+grade=85.5|name=张三|id=1|age=20
+grade=92.0|name=李四|id=2|age=21
+grade=78.5|name=王五|id=3|age=19
+grade=90.0|name=重复ID|id=1|age=25
+
