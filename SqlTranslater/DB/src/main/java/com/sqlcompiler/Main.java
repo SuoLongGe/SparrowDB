@@ -19,7 +19,34 @@ public class Main {
         
         while (true) {
             System.out.print("SQL> ");
+<<<<<<< HEAD
             String input = scanner.nextLine().trim();
+=======
+            StringBuilder inputBuilder = new StringBuilder();
+            String line;
+            
+            // 读取多行输入，直到遇到分号或空行
+            while (scanner.hasNextLine()) {
+                line = scanner.nextLine().trim();
+                if (line.isEmpty() && inputBuilder.length() == 0) {
+                    continue;
+                }
+                
+                inputBuilder.append(line).append(" ");
+                
+                // 如果行以分号结尾，说明SQL语句结束
+                if (line.endsWith(";")) {
+                    break;
+                }
+                
+                // 如果输入为空且已有内容，也结束输入
+                if (line.isEmpty() && inputBuilder.length() > 0) {
+                    break;
+                }
+            }
+            
+            String input = inputBuilder.toString().trim();
+>>>>>>> 62d958b6bcc46722dfbc5dd2897cfc16d17ca1d3
             
             if (input.isEmpty()) {
                 continue;
