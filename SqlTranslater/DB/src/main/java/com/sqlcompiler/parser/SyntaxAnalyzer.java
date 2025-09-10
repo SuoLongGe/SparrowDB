@@ -145,9 +145,17 @@ public class SyntaxAnalyzer {
      */
     private boolean isConstraint() {
         TokenType type = currentToken().getType();
+<<<<<<< HEAD
         return type == TokenType.PRIMARY || type == TokenType.FOREIGN ||
                type == TokenType.UNIQUE || type == TokenType.NOT_NULL ||
                type == TokenType.DEFAULT || type == TokenType.AUTO_INCREMENT;
+=======
+        return type == TokenType.PRIMARY || type == TokenType.PRIMARY_KEY ||
+               type == TokenType.FOREIGN || type == TokenType.FOREIGN_KEY ||
+               type == TokenType.UNIQUE || type == TokenType.NOT_NULL ||
+               type == TokenType.DEFAULT || type == TokenType.AUTO_INCREMENT ||
+               type == TokenType.CHECK;
+>>>>>>> 62d958b6bcc46722dfbc5dd2897cfc16d17ca1d3
     }
     
     /**
@@ -163,6 +171,22 @@ public class SyntaxAnalyzer {
                 expect(TokenType.KEY);
                 return new Constraint(Constraint.ConstraintType.PRIMARY_KEY, null, 
                                     List.of(), null, null, null, startPos);
+<<<<<<< HEAD
+=======
+            case PRIMARY_KEY:
+                nextToken();
+                return new Constraint(Constraint.ConstraintType.PRIMARY_KEY, null, 
+                                    List.of(), null, null, null, startPos);
+            case FOREIGN:
+                nextToken();
+                expect(TokenType.KEY);
+                return new Constraint(Constraint.ConstraintType.FOREIGN_KEY, null, 
+                                    List.of(), null, null, null, startPos);
+            case FOREIGN_KEY:
+                nextToken();
+                return new Constraint(Constraint.ConstraintType.FOREIGN_KEY, null, 
+                                    List.of(), null, null, null, startPos);
+>>>>>>> 62d958b6bcc46722dfbc5dd2897cfc16d17ca1d3
             case UNIQUE:
                 nextToken();
                 return new Constraint(Constraint.ConstraintType.UNIQUE, null, 
@@ -180,6 +204,16 @@ public class SyntaxAnalyzer {
                 nextToken();
                 return new Constraint(Constraint.ConstraintType.AUTO_INCREMENT, null, 
                                     List.of(), null, null, null, startPos);
+<<<<<<< HEAD
+=======
+            case CHECK:
+                nextToken();
+                expect(TokenType.LEFT_PAREN);
+                Expression checkCondition = parseExpression();
+                expect(TokenType.RIGHT_PAREN);
+                return new Constraint(Constraint.ConstraintType.CHECK, null, 
+                                    List.of(), null, null, null, startPos);
+>>>>>>> 62d958b6bcc46722dfbc5dd2897cfc16d17ca1d3
             default:
                 throw new SyntaxException("未知的约束类型", currentToken().getPosition());
         }
