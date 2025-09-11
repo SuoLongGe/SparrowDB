@@ -96,12 +96,14 @@ public class LexicalAnalyzer {
         keywordMap.put("IN", TokenType.IN);
         keywordMap.put("BETWEEN", TokenType.BETWEEN);
         
+
         // 排序关键字
         keywordMap.put("ASC", TokenType.ASC);
         keywordMap.put("DESC", TokenType.DESC);
 
         // 约束关键字
         keywordMap.put("CHECK", TokenType.CHECK);
+
 
         return keywordMap;
     }
@@ -175,8 +177,8 @@ public class LexicalAnalyzer {
         if (type != null) {
 
             // 处理特殊关键字
-
             // 处理特殊关键字组合
+
 
             if (value.toUpperCase().equals("NOT") && 
                 currentPos < source.length() && 
@@ -191,7 +193,6 @@ public class LexicalAnalyzer {
                                        new Position(startLine, startColumn)));
                     return;
                 }
-
 
             } else if (value.toUpperCase().equals("PRIMARY") && 
                        currentPos < source.length() && 
