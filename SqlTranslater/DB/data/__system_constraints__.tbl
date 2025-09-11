@@ -9,9 +9,4 @@ COLUMN=referenced_table:VARCHAR:255
 COLUMN=referenced_columns:VARCHAR:1000
 COLUMN=default_value:VARCHAR:255
 # End Metadata
-PAGE:1
-referenced_columns=null|constraint_type=PRIMARY_KEY|constraint_name=pk_student|columns=id|default_value=null|referenced_table=null|table_name=students
-referenced_columns=null|constraint_type=PRIMARY_KEY|constraint_name=pk_course|columns=course_id|default_value=null|referenced_table=null|table_name=courses
-referenced_columns=null|constraint_type=PRIMARY_KEY|constraint_name=pk_course|columns=course_id|default_value=null|referenced_table=null|table_name=courses
-referenced_columns=null|constraint_type=PRIMARY_KEY|constraint_name=pk_student|columns=id|default_value=null|referenced_table=null|table_name=students
 

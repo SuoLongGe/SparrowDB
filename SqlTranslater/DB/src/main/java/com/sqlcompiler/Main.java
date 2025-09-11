@@ -19,9 +19,6 @@ public class Main {
         
         while (true) {
             System.out.print("SQL> ");
-<<<<<<< HEAD
-            String input = scanner.nextLine().trim();
-=======
             StringBuilder inputBuilder = new StringBuilder();
             String line;
             
@@ -46,7 +43,6 @@ public class Main {
             }
             
             String input = inputBuilder.toString().trim();
->>>>>>> 62d958b6bcc46722dfbc5dd2897cfc16d17ca1d3
             
             if (input.isEmpty()) {
                 continue;
