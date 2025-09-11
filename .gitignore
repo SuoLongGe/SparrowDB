@@ -1,5 +1,10 @@
 # Compiled class files
 *.class
+**/out/
+**/Debug/
+**/Release/
+**/*.pdb
+**/*.idb
 
 # Log files
 *.log

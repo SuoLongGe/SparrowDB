@@ -12,12 +12,31 @@ if %errorlevel% neq 0 (
 
 echo Compilation successful!
 echo.
-echo Running Storage System Test...
-echo =====================================
+echo Choose what to run:
+echo 1. Storage System Test
+echo 2. B+ Tree Index Test
+echo 3. B+ Tree Demo
 echo.
+set /p choice="Enter your choice (1-3): "
 
-REM 运行测试程序
-java StorageSystemTest
+if "%choice%"=="1" (
+    echo Running Storage System Test...
+    echo =====================================
+    echo.
+    java StorageSystemTest
+) else if "%choice%"=="2" (
+    echo Running B+ Tree Index Test...
+    echo =====================================
+    echo.
+    java BPlusTreeTest
+) else if "%choice%"=="3" (
+    echo Running B+ Tree Demo...
+    echo =====================================
+    echo.
+    java BPlusTreeDemo
+) else (
+    echo Invalid choice!
+)
 
 echo.
 echo =====================================
