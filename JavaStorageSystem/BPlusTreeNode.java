@@ -338,6 +338,13 @@ class BPlusTreeLeafNode extends BPlusTreeNode {
         for (int i = 0; i < keys.size(); i++) {
             BPlusTreeKey key = keys.get(i);
             byte[] keyBytes = key.toBytes();
+            
+            // Check if we have enough space
+            if (offset + keyBytes.length + PAGE_ID_SIZE > Page.PAGE_SIZE) {
+                // Truncate the data if it exceeds page size
+                break;
+            }
+            
             System.arraycopy(keyBytes, 0, data, offset, keyBytes.length);
             offset += keyBytes.length;
             
