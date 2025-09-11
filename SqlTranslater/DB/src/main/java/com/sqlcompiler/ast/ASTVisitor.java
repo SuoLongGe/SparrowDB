@@ -10,6 +10,7 @@ public interface ASTVisitor<T> {
     T visit(CreateTableStatement node) throws CompilationException;
     T visit(InsertStatement node) throws CompilationException;
     T visit(SelectStatement node) throws CompilationException;
+    T visit(UpdateStatement node) throws CompilationException;
     T visit(DeleteStatement node) throws CompilationException;
     T visit(ColumnDefinition node) throws CompilationException;
     T visit(Expression node) throws CompilationException;
@@ -18,6 +19,8 @@ public interface ASTVisitor<T> {
     T visit(LiteralExpression node) throws CompilationException;
     T visit(IdentifierExpression node) throws CompilationException;
     T visit(FunctionCallExpression node) throws CompilationException;
+    T visit(InExpression node) throws CompilationException;
+    T visit(SubqueryExpression node) throws CompilationException;
     T visit(ColumnReference node) throws CompilationException;
     T visit(TableReference node) throws CompilationException;
     T visit(JoinClause node) throws CompilationException;

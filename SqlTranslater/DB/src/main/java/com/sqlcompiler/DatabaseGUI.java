@@ -76,7 +76,7 @@ public class DatabaseGUI extends JFrame {
         executeButton = new JButton("执行SQL");
         executeButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
         executeButton.setBackground(new Color(76, 175, 80));
-        executeButton.setForeground(Color.WHITE);
+        executeButton.setForeground(Color.BLACK);
         
         clearButton = new JButton("清空");
         clearButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));

@@ -6,6 +6,7 @@ import com.sqlcompiler.lexer.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * SQL语法分析器
@@ -32,7 +33,11 @@ public class SyntaxAnalyzer {
         
         // 检查是否还有未处理的token
         if (currentToken().getType() != TokenType.EOF) {
-            throw new SyntaxException("语句解析不完整", currentToken().getPosition());
+            throw new SyntaxException(
+                String.format("语句解析不完整，在 '%s' 处停止", currentToken().getValue()),
+                currentToken().getPosition(),
+                "语句结束符 ';' 或语句结束"
+            );
         }
         
         return statement;
@@ -51,11 +56,16 @@ public class SyntaxAnalyzer {
                 return parseInsertStatement();
             case SELECT:
                 return parseSelectStatement();
+            case UPDATE:
+                return parseUpdateStatement();
             case DELETE:
                 return parseDeleteStatement();
             default:
-                throw new SyntaxException("不支持的语句类型: " + token.getValue(), 
-                                        token.getPosition(), "CREATE, INSERT, SELECT, DELETE");
+                throw new SyntaxException(
+                    String.format("不支持的语句类型 '%s'", token.getValue()),
+                    token.getPosition(),
+                    "CREATE TABLE, INSERT INTO, SELECT, UPDATE, DELETE FROM"
+                );
         }
     }
     
@@ -128,6 +138,14 @@ public class SyntaxAnalyzer {
         if (currentToken().getType() == TokenType.LEFT_PAREN) {
             nextToken();
             length = Integer.parseInt(expectNumber());
+            
+            // 对于DECIMAL类型，可能有第二个参数（精度）
+            if (currentToken().getType() == TokenType.COMMA) {
+                nextToken();
+                // 暂时忽略第二个参数，只使用第一个参数作为长度
+                expectNumber();
+            }
+            
             expect(TokenType.RIGHT_PAREN);
         }
         
@@ -397,27 +415,41 @@ public class SyntaxAnalyzer {
     private List<Expression> parseSelectList() throws SyntaxException {
         List<Expression> selectList = new ArrayList<>();
         
-        // 检查是否为 * 通配符
-        if (currentToken().getType() == TokenType.MULTIPLY) {
-            // 创建特殊的标识符表达式来表示 *
-            selectList.add(new IdentifierExpression("*", currentToken().getPosition()));
-            nextToken();
-        } else {
-            selectList.add(parseExpression());
-        }
+        selectList.add(parseSelectItem());
         
         while (currentToken().getType() == TokenType.COMMA) {
             nextToken();
-            // 检查是否为 * 通配符
-            if (currentToken().getType() == TokenType.MULTIPLY) {
-                selectList.add(new IdentifierExpression("*", currentToken().getPosition()));
-                nextToken();
-            } else {
-                selectList.add(parseExpression());
-            }
+            selectList.add(parseSelectItem());
         }
         
         return selectList;
+    }
+    
+    /**
+     * 解析选择项（支持AS别名）
+     */
+    private Expression parseSelectItem() throws SyntaxException {
+        Expression expr;
+        
+        // 检查是否为 * 通配符
+        if (currentToken().getType() == TokenType.MULTIPLY) {
+            expr = new IdentifierExpression("*", currentToken().getPosition());
+            nextToken();
+        } else {
+            expr = parseExpression();
+        }
+        
+        // 检查是否有AS别名
+        if (currentToken().getType() == TokenType.AS) {
+            nextToken();
+            String alias = expectIdentifier();
+            // 对于有别名的情况，我们暂时返回原表达式
+            // 在实际实现中，可能需要创建一个带别名的表达式类型
+            return expr;
+        }
+        // 注意：我们不处理没有AS关键字的别名，因为这可能与FROM子句冲突
+        
+        return expr;
     }
     
     /**
@@ -613,6 +645,60 @@ public class SyntaxAnalyzer {
     }
     
     /**
+     * 解析UPDATE语句
+     */
+    private UpdateStatement parseUpdateStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+        
+        // UPDATE
+        expect(TokenType.UPDATE);
+        
+        // 表名
+        String tableName = expectIdentifier();
+        
+        // SET子句
+        expect(TokenType.SET);
+        Map<String, Expression> setClause = parseSetClause();
+        
+        // WHERE子句（可选）
+        WhereClause whereClause = null;
+        if (currentToken().getType() == TokenType.WHERE) {
+            whereClause = parseWhereClause();
+        }
+        
+        // 可选的分号
+        if (currentToken().getType() == TokenType.SEMICOLON) {
+            nextToken();
+        }
+        
+        return new UpdateStatement(tableName, setClause, whereClause, startPos);
+    }
+    
+    /**
+     * 解析SET子句
+     */
+    private Map<String, Expression> parseSetClause() throws SyntaxException {
+        Map<String, Expression> setClause = new java.util.HashMap<>();
+        
+        // 解析第一个赋值
+        String column = expectIdentifier();
+        expect(TokenType.EQUALS);
+        Expression value = parseExpression();
+        setClause.put(column, value);
+        
+        // 解析更多赋值
+        while (currentToken().getType() == TokenType.COMMA) {
+            nextToken();
+            column = expectIdentifier();
+            expect(TokenType.EQUALS);
+            value = parseExpression();
+            setClause.put(column, value);
+        }
+        
+        return setClause;
+    }
+    
+    /**
      * 解析DELETE语句
      */
     private DeleteStatement parseDeleteStatement() throws SyntaxException {
@@ -705,15 +791,111 @@ public class SyntaxAnalyzer {
         while (currentToken().getType() == TokenType.LESS_THAN ||
                currentToken().getType() == TokenType.GREATER_THAN ||
                currentToken().getType() == TokenType.LESS_EQUAL ||
-               currentToken().getType() == TokenType.GREATER_EQUAL) {
+               currentToken().getType() == TokenType.GREATER_EQUAL ||
+               currentToken().getType() == TokenType.IN) {
             Position pos = currentToken().getPosition();
             TokenType operator = currentToken().getType();
             nextToken();
-            Expression right = parseAdditiveExpression();
-            left = new BinaryExpression(left, operator, right, pos);
+            
+            if (operator == TokenType.IN) {
+                // 处理IN子查询
+                left = parseInExpression(left, pos);
+            } else {
+                Expression right = parseAdditiveExpression();
+                left = new BinaryExpression(left, operator, right, pos);
+            }
         }
         
         return left;
+    }
+    
+    /**
+     * 解析IN表达式
+     */
+    private Expression parseInExpression(Expression left, Position pos) throws SyntaxException {
+        expect(TokenType.LEFT_PAREN);
+        
+        // 检查是否为子查询（以SELECT开头）
+        if (currentToken().getType() == TokenType.SELECT) {
+            // 解析子查询
+            SelectStatement subquery = parseSubquery();
+            expect(TokenType.RIGHT_PAREN);
+            return new InExpression(left, subquery, pos);
+        } else {
+            // 解析值列表
+            List<Expression> values = new ArrayList<>();
+            values.add(parseExpression());
+            
+            while (currentToken().getType() == TokenType.COMMA) {
+                nextToken();
+                values.add(parseExpression());
+            }
+            
+            expect(TokenType.RIGHT_PAREN);
+            return new InExpression(left, values, pos);
+        }
+    }
+    
+    /**
+     * 解析子查询（不包含分号）
+     */
+    private SelectStatement parseSubquery() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+        
+        // SELECT
+        expect(TokenType.SELECT);
+        
+        // DISTINCT（可选）
+        boolean distinct = false;
+        if (currentToken().getType() == TokenType.DISTINCT) {
+            nextToken();
+            distinct = true;
+        }
+        
+        // 选择列表
+        List<Expression> selectList = parseSelectList();
+        
+        // FROM子句
+        List<TableReference> fromClause = null;
+        if (currentToken().getType() == TokenType.FROM) {
+            nextToken();
+            fromClause = parseFromClause();
+        }
+        
+        // WHERE子句
+        WhereClause whereClause = null;
+        if (currentToken().getType() == TokenType.WHERE) {
+            whereClause = parseWhereClause();
+        }
+        
+        // GROUP BY子句
+        GroupByClause groupByClause = null;
+        if (currentToken().getType() == TokenType.GROUP) {
+            groupByClause = parseGroupByClause();
+        }
+        
+        // HAVING子句
+        HavingClause havingClause = null;
+        if (currentToken().getType() == TokenType.HAVING) {
+            havingClause = parseHavingClause();
+        }
+        
+        // ORDER BY子句
+        OrderByClause orderByClause = null;
+        if (currentToken().getType() == TokenType.ORDER) {
+            orderByClause = parseOrderByClause();
+        }
+        
+        // LIMIT子句
+        LimitClause limitClause = null;
+        if (currentToken().getType() == TokenType.LIMIT) {
+            limitClause = parseLimitClause();
+        }
+        
+        // 注意：子查询不包含分号
+        
+        return new SelectStatement(distinct, selectList, fromClause, whereClause,
+                                 groupByClause, havingClause, orderByClause, limitClause, startPos);
     }
     
     /**
@@ -784,10 +966,46 @@ public class SyntaxAnalyzer {
                 return parseLiteralExpression();
             case LEFT_PAREN:
                 return parseParenthesizedExpression();
+            // 聚合函数
+            case COUNT:
+            case SUM:
+            case AVG:
+            case MAX:
+            case MIN:
+                return parseFunctionCallExpression();
             default:
                 throw new SyntaxException("意外的token: " + token.getValue(), 
-                                        token.getPosition(), "标识符、字面量或'('");
+                                        token.getPosition(), "标识符、字面量、'('或聚合函数");
         }
+    }
+    
+    /**
+     * 解析函数调用表达式
+     */
+    private Expression parseFunctionCallExpression() throws SyntaxException {
+        Position pos = currentToken().getPosition();
+        String functionName = currentToken().getValue();
+        nextToken(); // 消费函数名
+        
+        expect(TokenType.LEFT_PAREN);
+        List<Expression> arguments = new ArrayList<>();
+        
+        if (currentToken().getType() != TokenType.RIGHT_PAREN) {
+            // 特殊处理COUNT(*)
+            if (currentToken().getType() == TokenType.MULTIPLY) {
+                arguments.add(new IdentifierExpression("*", currentToken().getPosition()));
+                nextToken();
+            } else {
+                arguments.add(parseExpression());
+                while (currentToken().getType() == TokenType.COMMA) {
+                    nextToken();
+                    arguments.add(parseExpression());
+                }
+            }
+        }
+        
+        expect(TokenType.RIGHT_PAREN);
+        return new FunctionCallExpression(functionName, arguments, pos);
     }
     
     /**
@@ -831,9 +1049,19 @@ public class SyntaxAnalyzer {
      */
     private Expression parseParenthesizedExpression() throws SyntaxException {
         expect(TokenType.LEFT_PAREN);
-        Expression expr = parseExpression();
-        expect(TokenType.RIGHT_PAREN);
-        return expr;
+        
+        // 检查是否为子查询（以SELECT开头）
+        if (currentToken().getType() == TokenType.SELECT) {
+            // 解析子查询
+            SelectStatement subquery = parseSubquery();
+            expect(TokenType.RIGHT_PAREN);
+            return new SubqueryExpression(subquery, currentToken().getPosition());
+        } else {
+            // 解析普通表达式
+            Expression expr = parseExpression();
+            expect(TokenType.RIGHT_PAREN);
+            return expr;
+        }
     }
     
     /**
@@ -872,12 +1100,24 @@ public class SyntaxAnalyzer {
      */
     private String expectIdentifier() throws SyntaxException {
         Token token = currentToken();
-        if (token.getType() != TokenType.IDENTIFIER) {
+        // 允许某些关键字作为标识符使用（如别名）
+        if (token.getType() != TokenType.IDENTIFIER && 
+            !isKeywordAsIdentifier(token.getType())) {
             throw new SyntaxException("期望标识符，但得到 " + token.getValue(),
                                     token.getPosition(), "标识符");
         }
         nextToken();
         return token.getValue();
+    }
+    
+    /**
+     * 判断关键字是否可以作为标识符使用
+     */
+    private boolean isKeywordAsIdentifier(TokenType type) {
+        // 聚合函数关键字在某些上下文中可以作为标识符（如别名）
+        return type == TokenType.COUNT || type == TokenType.SUM || 
+               type == TokenType.AVG || type == TokenType.MAX || 
+               type == TokenType.MIN;
     }
     
     /**

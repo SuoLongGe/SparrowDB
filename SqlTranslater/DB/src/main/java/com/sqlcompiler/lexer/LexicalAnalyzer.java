@@ -98,6 +98,15 @@ public class LexicalAnalyzer {
         
         // 约束关键字
         keywordMap.put("CHECK", TokenType.CHECK);
+        keywordMap.put("ASC", TokenType.ASC);
+        keywordMap.put("DESC", TokenType.DESC);
+        
+        // 聚合函数
+        keywordMap.put("COUNT", TokenType.COUNT);
+        keywordMap.put("SUM", TokenType.SUM);
+        keywordMap.put("AVG", TokenType.AVG);
+        keywordMap.put("MAX", TokenType.MAX);
+        keywordMap.put("MIN", TokenType.MIN);
         
         return keywordMap;
     }

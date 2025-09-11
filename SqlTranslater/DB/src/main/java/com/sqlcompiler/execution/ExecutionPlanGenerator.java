@@ -6,6 +6,7 @@ import com.sqlcompiler.lexer.TokenType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 执行计划生成器
@@ -122,6 +123,23 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
     }
     
     @Override
+    public ExecutionPlan visit(UpdateStatement node) throws CompilationException {
+        // 转换SET子句
+        Map<String, ExpressionPlan> setClause = new java.util.HashMap<>();
+        for (Map.Entry<String, Expression> entry : node.getSetClause().entrySet()) {
+            setClause.put(entry.getKey(), convertExpression(entry.getValue()));
+        }
+        
+        // 转换WHERE子句
+        ExpressionPlan whereClause = null;
+        if (node.getWhereClause() != null) {
+            whereClause = convertExpression(node.getWhereClause().getCondition());
+        }
+        
+        return new UpdatePlan(node.getTableName(), setClause, whereClause);
+    }
+    
+    @Override
     public ExecutionPlan visit(DeleteStatement node) throws CompilationException {
         ExpressionPlan whereClause = null;
         
@@ -166,6 +184,16 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
     @Override
     public ExecutionPlan visit(FunctionCallExpression node) {
         return null; // 表达式不直接转换为ExecutionPlan
+    }
+    
+    @Override
+    public ExecutionPlan visit(InExpression node) {
+        return null; // IN表达式在WHERE子句中处理
+    }
+    
+    @Override
+    public ExecutionPlan visit(SubqueryExpression node) {
+        return null; // 子查询表达式在WHERE子句中处理
     }
     
     @Override
