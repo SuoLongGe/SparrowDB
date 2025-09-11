@@ -73,7 +73,7 @@ public class BufferPoolManager {
                 }
             }
 
-            // 从磁盘加载页面
+            // 从磁盘加载页面并且加入缓存池
             if (!diskManager.readPage(pageId, pages[targetFrame].getData())) {
                 System.err.println("Failed to read page " + pageId + " from disk"); // 输出错误信息
                 return null; // 返回null
@@ -139,7 +139,7 @@ public class BufferPoolManager {
     }
 
     /**
-     * 分配新页面
+     * 分配新页面，负责把磁盘上的page映射到内存中的 buffer frame，让上层逻辑可以直接用 Page 对象访问。
      */
     public Page newPage(int[] pageId) {
         bufferLock.writeLock().lock(); // 获取写锁
@@ -256,17 +256,35 @@ public class BufferPoolManager {
         }
     }
 
+
     /**
-     * 找到牺牲页面
+     * 根据替换策略找到牺牲页面
      */
     private int findVictimPage() {
-        for (int i = 0; i < poolSize; i++) {
-            if (pages[i].getPageId() != Page.INVALID_PAGE_ID && !pages[i].isPinned()) {
-                return i; // 返回第一个可牺牲的页面帧索引
+        if (replacementPolicy == ReplacementPolicy.LRU) {
+            // LRU: 从列表头开始找最久未使用的页面
+            for (Iterator<Integer> it = lruList.iterator(); it.hasNext(); ) {
+                int frameIndex = it.next();
+                if (!pages[frameIndex].isPinned()) {
+                    it.remove(); // 从LRU列表中移除
+                    return frameIndex;
+                }
+            }
+        } else if (replacementPolicy == ReplacementPolicy.FIFO) {
+            // FIFO: 从列表头开始找最早进入的页面
+            for (Iterator<Integer> it = fifoList.iterator(); it.hasNext(); ) {
+                int frameIndex = it.next();
+                if (!pages[frameIndex].isPinned()) {
+                    it.remove(); // 从FIFO列表中移除
+                    return frameIndex;
+                }
             }
         }
-        return -1; // 如果没有可牺牲的页面，返回-1
+
+        // 没有可替换的页面（都被 pin 住了）
+        return -1;
     }
+
 
     /**
      * 内部刷新页面
@@ -303,7 +321,7 @@ public class BufferPoolManager {
     }
 
     /**
-     * 从替换数据中移除
+     * 从替换数据中移除，当某个页面要从缓存池中彻底移除时（比如被淘汰、或者不再需要），需要把它从替换策略的数据结构（lruList 或 fifoList）里面删掉。
      */
     private void removeFromReplacementData(int frameIndex) {
         if (replacementPolicy == ReplacementPolicy.LRU) {

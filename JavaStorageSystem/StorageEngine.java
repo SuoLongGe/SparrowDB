@@ -6,12 +6,14 @@ import java.util.ArrayList;
  */
 public class StorageEngine {
     private final BufferPoolManager bufferPoolManager;
+    private final IndexManager indexManager;
     
     /**
      * 构造函数
      */
     public StorageEngine(int bufferPoolSize, String dbFilename, ReplacementPolicy policy) {
         this.bufferPoolManager = new BufferPoolManager(bufferPoolSize, dbFilename, policy);
+        this.indexManager = new IndexManager(this);
         System.out.println("Storage engine initialized");
     }
     
@@ -148,13 +150,89 @@ public class StorageEngine {
         return records;
     }
     
+    // ========== 索引管理方法 ==========
+    
     /**
-     * 关闭存储引擎
+     * 获取索引管理器
      */
-    public void close() {
-        if (bufferPoolManager != null) {
-            // 在关闭前刷新所有脏页面
-            bufferPoolManager.flushAllPages();
-        }
+    public IndexManager getIndexManager() {
+        return indexManager;
+    }
+    
+    /**
+     * 创建整数索引
+     */
+    public boolean createIntegerIndex(String indexName, int maxKeys) {
+        return indexManager.createIntegerIndex(indexName, maxKeys);
+    }
+    
+    /**
+     * 创建字符串索引
+     */
+    public boolean createStringIndex(String indexName, int maxKeys) {
+        return indexManager.createStringIndex(indexName, maxKeys);
+    }
+    
+    /**
+     * 删除索引
+     */
+    public boolean dropIndex(String indexName) {
+        return indexManager.dropIndex(indexName);
+    }
+    
+    /**
+     * 插入键值对到指定索引
+     */
+    public boolean insertToIndex(String indexName, Object key, int recordPageId) {
+        return indexManager.insert(indexName, key, recordPageId);
+    }
+    
+    /**
+     * 从指定索引删除键值
+     */
+    public boolean deleteFromIndex(String indexName, Object key) {
+        return indexManager.delete(indexName, key);
+    }
+    
+    /**
+     * 在指定索引中查找键值
+     */
+    public int searchIndex(String indexName, Object key) {
+        return indexManager.search(indexName, key);
+    }
+    
+    /**
+     * 范围查询
+     */
+    public List<Integer> rangeSearchIndex(String indexName, Object startKey, Object endKey) {
+        return indexManager.rangeSearch(indexName, startKey, endKey);
+    }
+    
+    /**
+     * 检查索引是否存在
+     */
+    public boolean hasIndex(String indexName) {
+        return indexManager.hasIndex(indexName);
+    }
+    
+    /**
+     * 打印所有索引信息
+     */
+    public void printAllIndexes() {
+        indexManager.printAllIndexes();
+    }
+    
+    /**
+     * 打印指定索引信息
+     */
+    public void printIndexInfo(String indexName) {
+        indexManager.printIndexInfo(indexName);
+    }
+    
+    /**
+     * 打印指定索引结构
+     */
+    public void printIndexStructure(String indexName) {
+        indexManager.printIndexStructure(indexName);
     }
 }
