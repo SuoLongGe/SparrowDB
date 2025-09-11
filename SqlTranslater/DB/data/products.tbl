@@ -1,0 +1,9 @@
+# Table Metadata
+TABLE_NAME=products
+COLUMN_COUNT=4
+COLUMN=id:INT:0
+COLUMN=name:VARCHAR:100
+COLUMN=price:DECIMAL:10
+COLUMN=category:VARCHAR:50
+# End Metadata
+

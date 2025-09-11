@@ -147,4 +147,14 @@ public class StorageEngine {
         releasePage(pageId, false);
         return records;
     }
+    
+    /**
+     * 关闭存储引擎
+     */
+    public void close() {
+        if (bufferPoolManager != null) {
+            // 在关闭前刷新所有脏页面
+            bufferPoolManager.flushAllPages();
+        }
+    }
 }

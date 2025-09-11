@@ -2,24 +2,40 @@ package com.database.engine;
 
 import com.sqlcompiler.execution.*;
 import com.sqlcompiler.catalog.*;
+import com.sqlcompiler.*;
 import java.util.*;
 import java.util.Arrays;
 
 /**
  * 数据库引擎主类 - 整合所有组件
+ * 统一整合SQL编译器、存储系统和执行引擎
  */
 public class DatabaseEngine {
     private final StorageEngine storageEngine;
     private final CatalogManager catalogManager;
     private final Executor executor;
+    private final SQLCompiler sqlCompiler;
     private final String databaseName;
+    private final String dataDirectory;
     private boolean initialized = false;
     
     public DatabaseEngine(String databaseName, String dataDirectory) {
         this.databaseName = databaseName;
+        this.dataDirectory = dataDirectory;
+        
+        // 初始化存储引擎（整合Java存储系统）
         this.storageEngine = new StorageEngine(dataDirectory);
+        
+        // 初始化目录管理器
         this.catalogManager = new CatalogManager(storageEngine);
-        this.executor = new Executor(storageEngine, catalogManager);
+        
+        // 初始化执行引擎
+        this.executor = new Executor(new StorageAdapter(dataDirectory), catalogManager);
+        
+        // 初始化SQL编译器 - 使用CatalogManager的Catalog实例
+        this.sqlCompiler = new SQLCompiler(catalogManager.getCatalog());
+        
+        System.out.println("数据库引擎 '" + databaseName + "' 已创建，数据目录: " + dataDirectory);
     }
     
     /**
@@ -38,7 +54,7 @@ public class DatabaseEngine {
     }
     
     /**
-     * 执行SQL语句
+     * 执行SQL语句 - 整合SQL编译器和执行引擎
      */
     public ExecutionResult executeSQL(String sql) {
         if (!initialized) {
@@ -46,17 +62,47 @@ public class DatabaseEngine {
         }
         
         try {
-            // 这里应该调用SQL编译器来解析SQL并生成执行计划
-            // 为了演示，我们创建一个简单的执行计划
-            ExecutionPlan plan = parseSQL(sql);
+            System.out.println("执行SQL: " + sql);
+            
+            // 使用SQL编译器解析SQL并生成执行计划
+            ExecutionPlan plan = null;
+            try {
+                SQLCompiler.CompilationResult result = sqlCompiler.compile(sql);
+                if (result.isSuccess()) {
+                    plan = result.getExecutionPlan();
+                } else {
+                    System.out.println("SQL编译失败: " + result.getErrors());
+                    // 如果SQL编译器失败，回退到简单解析
+                    System.out.println("SQL编译器不可用，使用简单解析: SQL编译失败");
+                    plan = parseSQL(sql);
+                }
+            } catch (Exception e) {
+                // 如果SQL编译器不可用，回退到简单解析
+                System.out.println("SQL编译器不可用，使用简单解析: " + e.getMessage());
+                plan = parseSQL(sql);
+            }
+            
             if (plan == null) {
                 return new ExecutionResult(false, "SQL解析失败", null);
             }
             
-            return executor.execute(plan);
+            // 执行计划
+            ExecutionResult result = executor.execute(plan);
+            
+            // 记录执行结果
+            if (result.isSuccess()) {
+                System.out.println("SQL执行成功");
+            } else {
+                System.out.println("SQL执行失败: " + result.getMessage());
+            }
+            
+            return result;
             
         } catch (Exception e) {
-            return new ExecutionResult(false, "执行SQL时发生错误: " + e.getMessage(), null);
+            String errorMsg = "执行SQL时发生错误: " + e.getMessage();
+            System.err.println(errorMsg);
+            e.printStackTrace();
+            return new ExecutionResult(false, errorMsg, null);
         }
     }
     
@@ -196,23 +242,185 @@ public class DatabaseEngine {
     }
     
     private ExecutionPlan parseCreateTable(String sql) {
-        // 简化的CREATE TABLE解析
-        // 实际实现应该使用完整的SQL编译器
+        try {
+            // 简单的CREATE TABLE解析
+            // 格式: CREATE TABLE table_name (column1 type1, column2 type2, ...)
+            String[] parts = sql.split("\\(", 2);
+            if (parts.length != 2) {
+                return null;
+            }
+            
+            String tableName = parts[0].replace("CREATE TABLE", "").trim().toLowerCase();
+            String columnsPart = parts[1].trim();
+            if (columnsPart.endsWith(")")) {
+                columnsPart = columnsPart.substring(0, columnsPart.length() - 1);
+            }
+            
+            String[] columnDefs = columnsPart.split(",");
+            List<ColumnPlan> columns = new ArrayList<>();
+            
+            for (String columnDef : columnDefs) {
+                String[] colParts = columnDef.trim().split("\\s+");
+                if (colParts.length >= 2) {
+                    String colName = colParts[0].trim();
+                    String colType = colParts[1].trim();
+                    boolean isPrimary = columnDef.toUpperCase().contains("PRIMARY KEY");
+                    
+                    columns.add(new ColumnPlan(
+                        colName.toLowerCase(),
+                        colType.toUpperCase(),
+                        100,  // 默认长度
+                        false,  // 不允许为空
+                        isPrimary,  // 是否主键
+                        false,  // 不自增
+                        null,  // 默认值
+                        false  // 不唯一
+                    ));
+                }
+            }
+            
+            return new CreateTablePlan(tableName, columns, new ArrayList<>());
+        } catch (Exception e) {
+            System.err.println("解析CREATE TABLE失败: " + e.getMessage());
         return null;
+        }
     }
     
     private ExecutionPlan parseInsert(String sql) {
-        // 简化的INSERT解析
+        try {
+            // 简单的INSERT解析
+            // 格式: INSERT INTO table_name VALUES (value1, value2, ...)
+            String[] parts = sql.split("VALUES");
+            if (parts.length != 2) {
+                return null;
+            }
+            
+            String tableName = parts[0].replace("INSERT INTO", "").trim().toLowerCase();
+            String valuesPart = parts[1].trim();
+            if (valuesPart.startsWith("(")) {
+                valuesPart = valuesPart.substring(1);
+            }
+            if (valuesPart.endsWith(")")) {
+                valuesPart = valuesPart.substring(0, valuesPart.length() - 1);
+            }
+            
+            List<String> values = new ArrayList<>();
+            StringBuilder currentValue = new StringBuilder();
+            boolean inString = false;
+            
+            for (char c : valuesPart.toCharArray()) {
+                if (c == '\'') {
+                    inString = !inString;
+                    currentValue.append(c);
+                } else if (c == ',' && !inString) {
+                    values.add(currentValue.toString().trim());
+                    currentValue = new StringBuilder();
+                } else {
+                    currentValue.append(c);
+                }
+            }
+            if (currentValue.length() > 0) {
+                values.add(currentValue.toString().trim());
+            }
+            
+            List<List<ExpressionPlan>> valuePlans = new ArrayList<>();
+            List<ExpressionPlan> rowValues = new ArrayList<>();
+            
+            for (String value : values) {
+                if (value.startsWith("'") && value.endsWith("'")) {
+                    // 字符串值
+                    rowValues.add(new LiteralExpressionPlan(value.substring(1, value.length() - 1), "STRING"));
+                } else {
+                    // 数字值
+                    rowValues.add(new LiteralExpressionPlan(value, "NUMBER"));
+                }
+            }
+            valuePlans.add(rowValues);
+            
+            return new InsertPlan(tableName, new ArrayList<>(), valuePlans);
+        } catch (Exception e) {
+            System.err.println("解析INSERT失败: " + e.getMessage());
         return null;
+        }
     }
     
     private ExecutionPlan parseSelect(String sql) {
-        // 简化的SELECT解析
+        try {
+            // 简单的SELECT解析
+            // 格式: SELECT column1, column2 FROM table_name [WHERE condition]
+            String[] parts = sql.split("FROM");
+            if (parts.length < 2) {
+                return null;
+            }
+            
+            String selectPart = parts[0].replace("SELECT", "").trim();
+            String[] remainingParts = parts[1].trim().split("WHERE");
+            String tableName = remainingParts[0].trim().toLowerCase();
+            
+            List<ExpressionPlan> selectList = new ArrayList<>();
+            for (String col : selectPart.split(",")) {
+                col = col.trim();
+                if (col.equals("*")) {
+                    selectList.add(new IdentifierExpressionPlan("*"));
+                } else {
+                    selectList.add(new IdentifierExpressionPlan(col.toLowerCase()));
+                }
+            }
+            
+            ExpressionPlan whereClause = null;
+            if (remainingParts.length > 1) {
+                String condition = remainingParts[1].trim();
+                whereClause = new BinaryExpressionPlan(
+                    new IdentifierExpressionPlan(condition.split("=")[0].trim()),
+                    "=",
+                    new LiteralExpressionPlan(condition.split("=")[1].trim(), "STRING")
+                );
+            }
+            
+            List<TablePlan> fromClause = Arrays.asList(new TablePlan(tableName, null, null));
+            return new SelectPlan(false, selectList, fromClause, whereClause, null, null, null, null);
+        } catch (Exception e) {
+            System.err.println("解析SELECT失败: " + e.getMessage());
         return null;
+        }
     }
     
     private ExecutionPlan parseDelete(String sql) {
-        // 简化的DELETE解析
+        try {
+            // 简单的DELETE解析
+            // 格式: DELETE FROM table_name [WHERE condition]
+            String[] parts = sql.split("WHERE");
+            String tablePart = parts[0].replace("DELETE FROM", "").trim();
+            String tableName = tablePart.toLowerCase();
+            
+            ExpressionPlan whereClause = null;
+            if (parts.length > 1) {
+                String condition = parts[1].trim();
+                whereClause = new BinaryExpressionPlan(
+                    new IdentifierExpressionPlan(condition.split("=")[0].trim()),
+                    "=",
+                    new LiteralExpressionPlan(condition.split("=")[1].trim(), "STRING")
+                );
+            }
+            
+            return new DeletePlan(tableName, whereClause);
+        } catch (Exception e) {
+            System.err.println("解析DELETE失败: " + e.getMessage());
         return null;
+    }
+}
+
+    /**
+     * 获取目录管理器
+     */
+    public CatalogManager getCatalogManager() {
+        return catalogManager;
+    }
+    
+    /**
+     * 获取SQL编译器
+     */
+    public SQLCompiler getSQLCompiler() {
+        return sqlCompiler;
     }
 }

@@ -96,12 +96,13 @@ public class LexicalAnalyzer {
         keywordMap.put("IN", TokenType.IN);
         keywordMap.put("BETWEEN", TokenType.BETWEEN);
         
-<<<<<<< HEAD
-=======
+        // 排序关键字
+        keywordMap.put("ASC", TokenType.ASC);
+        keywordMap.put("DESC", TokenType.DESC);
+
         // 约束关键字
         keywordMap.put("CHECK", TokenType.CHECK);
-        
->>>>>>> 62d958b6bcc46722dfbc5dd2897cfc16d17ca1d3
+
         return keywordMap;
     }
     
@@ -172,11 +173,11 @@ public class LexicalAnalyzer {
         TokenType type = keywords.get(value.toUpperCase());
         
         if (type != null) {
-<<<<<<< HEAD
+
             // 处理特殊关键字
-=======
+
             // 处理特殊关键字组合
->>>>>>> 62d958b6bcc46722dfbc5dd2897cfc16d17ca1d3
+
             if (value.toUpperCase().equals("NOT") && 
                 currentPos < source.length() && 
                 source.substring(currentPos).trim().toUpperCase().startsWith("NULL")) {
@@ -190,8 +191,8 @@ public class LexicalAnalyzer {
                                        new Position(startLine, startColumn)));
                     return;
                 }
-<<<<<<< HEAD
-=======
+
+
             } else if (value.toUpperCase().equals("PRIMARY") && 
                        currentPos < source.length() && 
                        source.substring(currentPos).trim().toUpperCase().startsWith("KEY")) {
@@ -222,9 +223,11 @@ public class LexicalAnalyzer {
                 // 处理 AUTO_INCREMENT
                 tokens.add(new Token(TokenType.AUTO_INCREMENT, value, new Position(startLine, startColumn)));
                 return;
->>>>>>> 62d958b6bcc46722dfbc5dd2897cfc16d17ca1d3
             }
+            
+            // 处理其他关键字（包括ASC、DESC等）
             tokens.add(new Token(type, value, new Position(startLine, startColumn)));
+            return;
         } else {
             tokens.add(new Token(TokenType.IDENTIFIER, value, new Position(startLine, startColumn)));
         }

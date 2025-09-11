@@ -13,12 +13,10 @@ public class Constraint extends ASTNode {
         UNIQUE,
         NOT_NULL,
         DEFAULT,
-<<<<<<< HEAD
-        AUTO_INCREMENT
-=======
+
         AUTO_INCREMENT,
         CHECK
->>>>>>> 62d958b6bcc46722dfbc5dd2897cfc16d17ca1d3
+
     }
     
     private final ConstraintType type;

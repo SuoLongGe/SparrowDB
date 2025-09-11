@@ -1,31 +1,38 @@
 package com.sqlcompiler.catalog;
 
-import java.util.List;
-
 /**
  * 列信息
  */
 public class ColumnInfo {
     private final String name;
     private final String dataType;
-    private final Integer length;
-    private final boolean notNull;
+    private final int length;
+    private final boolean nullable;
     private final boolean primaryKey;
     private final boolean unique;
-    private final String defaultValue;
     private final boolean autoIncrement;
+    private final String defaultValue;
+    private final boolean notNull;
     
-    public ColumnInfo(String name, String dataType, Integer length, 
-                     boolean notNull, boolean primaryKey, boolean unique,
-                     String defaultValue, boolean autoIncrement) {
+    public ColumnInfo(String name, String dataType, int length) {
+        this(name, dataType, length, true, false, false, false, null, false);
+    }
+    
+    public ColumnInfo(String name, String dataType, int length, boolean nullable, Object defaultValue) {
+        this(name, dataType, length, nullable, false, false, false, defaultValue != null ? defaultValue.toString() : null, false);
+    }
+    
+    public ColumnInfo(String name, String dataType, int length, boolean nullable, boolean primaryKey, 
+                     boolean unique, boolean autoIncrement, String defaultValue, boolean notNull) {
         this.name = name;
         this.dataType = dataType;
         this.length = length;
-        this.notNull = notNull;
+        this.nullable = nullable;
         this.primaryKey = primaryKey;
         this.unique = unique;
-        this.defaultValue = defaultValue;
         this.autoIncrement = autoIncrement;
+        this.defaultValue = defaultValue;
+        this.notNull = notNull;
     }
     
     public String getName() {
@@ -36,12 +43,12 @@ public class ColumnInfo {
         return dataType;
     }
     
-    public Integer getLength() {
+    public int getLength() {
         return length;
     }
     
-    public boolean isNotNull() {
-        return notNull;
+    public boolean isNullable() {
+        return nullable;
     }
     
     public boolean isPrimaryKey() {
@@ -52,20 +59,21 @@ public class ColumnInfo {
         return unique;
     }
     
-    public String getDefaultValue() {
-        return defaultValue;
-    }
-    
     public boolean isAutoIncrement() {
         return autoIncrement;
     }
     
-    /**
-     * 检查数据类型是否兼容
-     */
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+    
+    public boolean isNotNull() {
+        return notNull;
+    }
+    
     public boolean isCompatibleWith(String value) {
         if (value == null) {
-            return !notNull;
+            return nullable;
         }
         
         switch (dataType.toUpperCase()) {
@@ -79,8 +87,7 @@ public class ColumnInfo {
                 }
             case "VARCHAR":
             case "CHAR":
-            case "TEXT":
-                return true; // 字符串类型可以接受任何值
+                return value.length() <= length;
             case "DECIMAL":
             case "FLOAT":
             case "DOUBLE":
@@ -90,13 +97,6 @@ public class ColumnInfo {
                 } catch (NumberFormatException e) {
                     return false;
                 }
-            case "BOOLEAN":
-                return "true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value);
-            case "DATE":
-            case "TIME":
-            case "TIMESTAMP":
-                // 简单检查，实际应用中需要更复杂的日期格式验证
-                return value.matches("\\d{4}-\\d{2}-\\d{2}.*");
             default:
                 return true;
         }
@@ -106,14 +106,24 @@ public class ColumnInfo {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(name).append(" ").append(dataType);
-        if (length != null) {
+        if (length > 0) {
             sb.append("(").append(length).append(")");
         }
-        if (notNull) sb.append(" NOT NULL");
-        if (primaryKey) sb.append(" PRIMARY KEY");
-        if (unique) sb.append(" UNIQUE");
-        if (defaultValue != null) sb.append(" DEFAULT ").append(defaultValue);
-        if (autoIncrement) sb.append(" AUTO_INCREMENT");
+        if (!nullable) {
+            sb.append(" NOT NULL");
+        }
+        if (primaryKey) {
+            sb.append(" PRIMARY KEY");
+        }
+        if (unique) {
+            sb.append(" UNIQUE");
+        }
+        if (autoIncrement) {
+            sb.append(" AUTO_INCREMENT");
+        }
+        if (defaultValue != null) {
+            sb.append(" DEFAULT ").append(defaultValue);
+        }
         return sb.toString();
     }
 }

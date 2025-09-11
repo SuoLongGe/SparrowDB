@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 com\database\engine\CatalogManager.class
-=======
->>>>>>> main
 com\sqlcompiler\execution\ConstraintPlan$ConstraintType.class
 com\sqlcompiler\ast\SelectStatement.class
 com\sqlcompiler\catalog\ConstraintInfo.class
@@ -11,15 +8,12 @@ com\sqlcompiler\ast\CreateTableStatement.class
 com\sqlcompiler\ast\GroupByClause.class
 com\sqlcompiler\ast\IdentifierExpression.class
 com\sqlcompiler\execution\SelectPlan.class
+com\database\engine\StorageAdapter.class
 com\sqlcompiler\ast\OrderByClause$SortOrder.class
 com\sqlcompiler\execution\InsertPlan.class
-<<<<<<< HEAD
 com\database\engine\Executor$1.class
 com\sqlcompiler\catalog\ConstraintInfo$ConstraintType.class
 com\database\engine\ExecutionResult.class
-=======
-com\sqlcompiler\catalog\ConstraintInfo$ConstraintType.class
->>>>>>> main
 com\sqlcompiler\catalog\TableInfo.class
 com\sqlcompiler\ast\TableReference.class
 com\sqlcompiler\execution\CreateTablePlan.class
@@ -31,31 +25,25 @@ com\sqlcompiler\execution\DeletePlan.class
 com\sqlcompiler\execution\IdentifierExpressionPlan.class
 com\sqlcompiler\catalog\Catalog.class
 com\sqlcompiler\ast\Constraint.class
+com\sqlcompiler\catalog\CatalogManager.class
 com\sqlcompiler\ast\ColumnDefinition.class
 com\sqlcompiler\ast\OrderByClause.class
-<<<<<<< HEAD
 com\database\engine\StorageEngine$TableStorageInfo.class
 com\sqlcompiler\ast\ASTNode.class
 com\sqlcompiler\exception\CompilationException.class
 com\database\engine\StorageEngine.class
-=======
-com\sqlcompiler\ast\ASTNode.class
-com\sqlcompiler\exception\CompilationException.class
->>>>>>> main
 com\sqlcompiler\ast\Constraint$ConstraintType.class
 com\sqlcompiler\parser\SyntaxAnalyzer.class
 com\sqlcompiler\SQLCompiler.class
 com\sqlcompiler\semantic\SemanticAnalysisResult.class
-<<<<<<< HEAD
 com\database\engine\StorageEngine$TableStats.class
-=======
->>>>>>> main
 com\sqlcompiler\ast\HavingClause.class
 com\sqlcompiler\execution\OrderByItem.class
 com\sqlcompiler\lexer\TokenType.class
 com\sqlcompiler\ast\LimitClause.class
 com\sqlcompiler\ast\ColumnReference.class
 com\sqlcompiler\ast\InsertStatement.class
+com\sqlcompiler\ast\DotExpression.class
 com\sqlcompiler\execution\ExecutionPlanGenerator.class
 com\sqlcompiler\ast\ASTPrinter.class
 com\sqlcompiler\ast\FunctionCallExpression.class
@@ -66,33 +54,28 @@ com\sqlcompiler\ast\LiteralExpression.class
 com\sqlcompiler\ast\JoinClause$JoinType.class
 com\sqlcompiler\execution\LiteralExpressionPlan.class
 com\sqlcompiler\ast\WhereClause.class
-<<<<<<< HEAD
 com\database\engine\DatabaseEngine.class
-=======
->>>>>>> main
 com\sqlcompiler\ast\OrderByClause$OrderByItem.class
 com\sqlcompiler\ast\DeleteStatement.class
+com\database\engine\StorageAdapter$TableStats.class
 com\sqlcompiler\ast\BinaryExpression.class
 com\sqlcompiler\execution\BinaryExpressionPlan.class
-<<<<<<< HEAD
 com\database\engine\ManualTest.class
-=======
->>>>>>> main
 com\sqlcompiler\lexer\LexicalAnalyzer.class
 com\sqlcompiler\exception\SyntaxException.class
 com\sqlcompiler\execution\ExecutionPlanGenerator$1.class
 com\sqlcompiler\execution\JoinPlan.class
 com\sqlcompiler\lexer\Token.class
 com\sqlcompiler\semantic\SemanticAnalyzer$1.class
+com\database\engine\StorageAdapter$TableStorageInfo.class
 com\sqlcompiler\execution\ConstraintPlan.class
 com\sqlcompiler\ast\Expression.class
 com\sqlcompiler\exception\SemanticException.class
-<<<<<<< HEAD
 com\database\engine\Executor.class
-=======
->>>>>>> main
+com\database\SimpleSparrowDB.class
 com\sqlcompiler\execution\ColumnPlan.class
 com\sqlcompiler\ast\Statement.class
+com\database\SparrowDBApplication.class
 com\sqlcompiler\ast\JoinClause.class
 com\sqlcompiler\execution\ExecutionPlan.class
 com\sqlcompiler\semantic\SemanticAnalyzer.class

@@ -10,6 +10,7 @@ public class ConstraintInfo {
         PRIMARY_KEY,
         FOREIGN_KEY,
         UNIQUE,
+        CHECK,
         NOT_NULL,
         DEFAULT,
         AUTO_INCREMENT
@@ -20,16 +21,21 @@ public class ConstraintInfo {
     private final List<String> columns;
     private final String referencedTable;
     private final List<String> referencedColumns;
+    private final String checkCondition;
     private final String defaultValue;
     
-    public ConstraintInfo(String name, ConstraintType type, List<String> columns,
-                         String referencedTable, List<String> referencedColumns,
-                         String defaultValue) {
+    public ConstraintInfo(String name, ConstraintType type, List<String> columns) {
+        this(name, type, columns, null, null, null, null);
+    }
+    
+    public ConstraintInfo(String name, ConstraintType type, List<String> columns, 
+                         String referencedTable, List<String> referencedColumns, String checkCondition, String defaultValue) {
         this.name = name;
         this.type = type;
         this.columns = columns;
         this.referencedTable = referencedTable;
         this.referencedColumns = referencedColumns;
+        this.checkCondition = checkCondition;
         this.defaultValue = defaultValue;
     }
     
@@ -53,6 +59,10 @@ public class ConstraintInfo {
         return referencedColumns;
     }
     
+    public String getCheckCondition() {
+        return checkCondition;
+    }
+    
     public String getDefaultValue() {
         return defaultValue;
     }
@@ -60,24 +70,21 @@ public class ConstraintInfo {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(type.name());
+        sb.append(name).append(": ").append(type);
+        sb.append(" (").append(String.join(", ", columns)).append(")");
         
-        if (name != null) {
-            sb.append(" ").append(name);
-        }
-        
-        if (!columns.isEmpty()) {
-            sb.append(" (").append(String.join(", ", columns)).append(")");
-        }
-        
-        if (referencedTable != null) {
+        if (type == ConstraintType.FOREIGN_KEY && referencedTable != null) {
             sb.append(" REFERENCES ").append(referencedTable);
             if (referencedColumns != null && !referencedColumns.isEmpty()) {
-                sb.append(" (").append(String.join(", ", referencedColumns)).append(")");
+                sb.append("(").append(String.join(", ", referencedColumns)).append(")");
             }
         }
         
-        if (defaultValue != null) {
+        if (type == ConstraintType.CHECK && checkCondition != null) {
+            sb.append(" CHECK (").append(checkCondition).append(")");
+        }
+        
+        if (type == ConstraintType.DEFAULT && defaultValue != null) {
             sb.append(" DEFAULT ").append(defaultValue);
         }
         

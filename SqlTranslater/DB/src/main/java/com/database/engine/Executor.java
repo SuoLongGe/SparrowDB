@@ -7,13 +7,14 @@ import java.util.*;
 /**
  * 执行引擎 - 负责执行各种SQL操作
  * 支持 CreateTable、Insert、SeqScan、Filter、Project
+ * 现在使用StorageAdapter来支持更高级的存储系统
  */
 public class Executor {
-    private final StorageEngine storageEngine;
+    private final StorageAdapter storageAdapter;
     private final CatalogManager catalogManager;
     
-    public Executor(StorageEngine storageEngine, CatalogManager catalogManager) {
-        this.storageEngine = storageEngine;
+    public Executor(StorageAdapter storageAdapter, CatalogManager catalogManager) {
+        this.storageAdapter = storageAdapter;
         this.catalogManager = catalogManager;
     }
     
@@ -54,12 +55,13 @@ public class Executor {
                 ColumnInfo columnInfo = new ColumnInfo(
                     columnPlan.getName(),
                     columnPlan.getDataType(),
-                    columnPlan.getLength(),
-                    columnPlan.isNotNull(),
+                    columnPlan.getLength() != null ? columnPlan.getLength() : 0,
+                    !columnPlan.isNotNull(),
                     columnPlan.isPrimaryKey(),
                     columnPlan.isUnique(),
+                    columnPlan.isAutoIncrement(),
                     columnPlan.getDefaultValue(),
-                    columnPlan.isAutoIncrement()
+                    columnPlan.isNotNull()
                 );
                 tableInfo.addColumn(columnInfo);
             }
@@ -72,6 +74,7 @@ public class Executor {
                     constraintPlan.getColumns(),
                     constraintPlan.getReferencedTable(),
                     constraintPlan.getReferencedColumns(),
+                    null,
                     constraintPlan.getDefaultValue()
                 );
                 tableInfo.addConstraint(constraintInfo);
@@ -81,7 +84,7 @@ public class Executor {
             catalogManager.addTable(tableInfo);
             
             // 创建表存储
-            if (!storageEngine.createTableStorage(tableName, tableInfo)) {
+            if (!storageAdapter.createTable(tableName, tableInfo)) {
                 return new ExecutionResult(false, "创建表存储失败", null);
             }
             
@@ -107,21 +110,27 @@ public class Executor {
             TableInfo tableInfo = catalogManager.getTable(tableName);
             int insertedRows = 0;
             
+            // 确定要插入的列
+            List<String> insertColumns = plan.getColumns();
+            if (insertColumns.isEmpty()) {
+                // 如果没有指定列名，使用表的所有列
+                insertColumns = tableInfo.getColumnNames();
+                System.out.println("DEBUG: 表 " + tableName + " 的列名: " + insertColumns);
+                System.out.println("DEBUG: 表 " + tableName + " 的列信息: " + tableInfo.getColumns());
+            }
+            
             // 插入每一行数据
             for (List<ExpressionPlan> valueList : plan.getValues()) {
                 // 验证列数
-                if (valueList.size() != plan.getColumns().size()) {
+                if (valueList.size() != insertColumns.size()) {
                     return new ExecutionResult(false, 
-                        "列数不匹配，期望 " + plan.getColumns().size() + 
+                        "列数不匹配，期望 " + insertColumns.size() + 
                         " 列，实际 " + valueList.size() + " 列", null);
                 }
                 
-                // 构建记录数据
-                String recordData = buildRecordData(valueList, tableInfo);
-                
                 // 构建记录Map并插入
-                Map<String, Object> record = buildRecordMap(valueList, tableInfo);
-                if (!storageEngine.insertRecord(tableName, record)) {
+                Map<String, Object> record = buildRecordMap(valueList, insertColumns, tableInfo);
+                if (!storageAdapter.insertRecord(tableName, record)) {
                     return new ExecutionResult(false, "插入记录失败", null);
                 }
                 
@@ -157,7 +166,7 @@ public class Executor {
             TableInfo tableInfo = catalogManager.getTable(tableName);
             
             // 执行全表扫描
-            List<Map<String, Object>> allRecords = storageEngine.scanTable(tableName);
+            List<Map<String, Object>> allRecords = storageAdapter.scanTable(tableName);
             
             // 处理每一行
             for (Map<String, Object> row : allRecords) {
@@ -209,7 +218,7 @@ public class Executor {
             int deletedRows = 0;
             
             // 扫描所有记录
-            List<Map<String, Object>> allRecords = storageEngine.scanTable(tableName);
+            List<Map<String, Object>> allRecords = storageAdapter.scanTable(tableName);
             List<Map<String, Object>> recordsToDelete = new ArrayList<>();
             
             for (Map<String, Object> row : allRecords) {
@@ -229,7 +238,7 @@ public class Executor {
             
             // 执行删除
             for (Map<String, Object> record : recordsToDelete) {
-                storageEngine.deleteRecord(tableName, record);
+                storageAdapter.deleteRecord(tableName, record);
             }
             
             return new ExecutionResult(true, deletedRows + " 行已删除", null);
@@ -241,48 +250,18 @@ public class Executor {
     
     // 辅助方法
     
-    private Map<String, Object> buildRecordMap(List<ExpressionPlan> values, TableInfo tableInfo) {
+    private Map<String, Object> buildRecordMap(List<ExpressionPlan> values, List<String> columnNames, TableInfo tableInfo) {
         Map<String, Object> record = new HashMap<>();
-        List<ColumnInfo> columns = new ArrayList<>(tableInfo.getColumns());
-        for (int i = 0; i < values.size() && i < columns.size(); i++) {
+        for (int i = 0; i < values.size() && i < columnNames.size(); i++) {
             ExpressionPlan expr = values.get(i);
-            ColumnInfo column = columns.get(i);
+            String columnName = columnNames.get(i);
             if (expr instanceof LiteralExpressionPlan) {
-                record.put(column.getName(), ((LiteralExpressionPlan) expr).getValue());
+                record.put(columnName, ((LiteralExpressionPlan) expr).getValue());
             } else {
-                record.put(column.getName(), null);
+                record.put(columnName, null);
             }
         }
         return record;
-    }
-    
-    private String buildRecordData(List<ExpressionPlan> values, TableInfo tableInfo) {
-        StringBuilder record = new StringBuilder();
-        for (int i = 0; i < values.size(); i++) {
-            if (i > 0) record.append("|");
-            ExpressionPlan expr = values.get(i);
-            if (expr instanceof LiteralExpressionPlan) {
-                record.append(((LiteralExpressionPlan) expr).getValue());
-            } else {
-                record.append("NULL");
-            }
-        }
-        record.append("\0"); // 记录分隔符
-        return record.toString();
-    }
-    
-    
-    private Map<String, Object> parseRecord(String recordData, TableInfo tableInfo) {
-        Map<String, Object> row = new HashMap<>();
-        String[] values = recordData.split("\\|");
-        List<ColumnInfo> columns = new ArrayList<>(tableInfo.getColumns());
-        
-        for (int i = 0; i < Math.min(values.length, columns.size()); i++) {
-            ColumnInfo column = columns.get(i);
-            row.put(column.getName(), values[i]);
-        }
-        
-        return row;
     }
     
     private boolean evaluateWhereCondition(Map<String, Object> row, ExpressionPlan whereClause, TableInfo tableInfo) {
@@ -390,5 +369,4 @@ public class Executor {
                 throw new IllegalArgumentException("未知的约束类型: " + type);
         }
     }
-    
 }

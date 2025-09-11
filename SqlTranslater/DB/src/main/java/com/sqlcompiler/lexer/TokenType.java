@@ -58,22 +58,15 @@ public enum TokenType {
     // 约束关键字
     PRIMARY("PRIMARY"),
     KEY("KEY"),
-<<<<<<< HEAD
-    FOREIGN("FOREIGN"),
-=======
     PRIMARY_KEY("PRIMARY KEY"),
     FOREIGN("FOREIGN"),
     FOREIGN_KEY("FOREIGN KEY"),
->>>>>>> 62d958b6bcc46722dfbc5dd2897cfc16d17ca1d3
     REFERENCES("REFERENCES"),
     UNIQUE("UNIQUE"),
     NOT_NULL("NOT NULL"),
     DEFAULT("DEFAULT"),
     AUTO_INCREMENT("AUTO_INCREMENT"),
-<<<<<<< HEAD
-=======
     CHECK("CHECK"),
->>>>>>> 62d958b6bcc46722dfbc5dd2897cfc16d17ca1d3
     ASC("ASC"),
     DESC("DESC"),
     
@@ -142,14 +135,9 @@ public enum TokenType {
                this == INT || this == INTEGER || this == VARCHAR || this == CHAR ||
                this == TEXT || this == DECIMAL || this == FLOAT || this == DOUBLE ||
                this == BOOLEAN || this == DATE || this == TIME || this == TIMESTAMP ||
-<<<<<<< HEAD
-               this == PRIMARY || this == KEY || this == FOREIGN || this == REFERENCES ||
-               this == UNIQUE || this == NOT_NULL || this == DEFAULT || this == AUTO_INCREMENT ||
-=======
                this == PRIMARY || this == KEY || this == PRIMARY_KEY || this == FOREIGN || 
                this == FOREIGN_KEY || this == REFERENCES || this == UNIQUE || this == NOT_NULL || 
                this == DEFAULT || this == AUTO_INCREMENT || this == CHECK ||
->>>>>>> 62d958b6bcc46722dfbc5dd2897cfc16d17ca1d3
                this == LIKE || this == IN || this == BETWEEN;
     }
     
