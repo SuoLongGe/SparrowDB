@@ -5,7 +5,7 @@ import java.util.Stack;
 /**
  * B+树索引实现
  */
-public class BPlusTree {
+public class BPlusTree implements Index {
     private StorageEngine storageEngine;
     private int rootPageId;
     private int maxKeys;
@@ -704,8 +704,96 @@ public class BPlusTree {
         storageEngine.releasePage(0, true);
     }
     
+    // ========== Index接口实现 ==========
+    
+    @Override
+    public boolean insert(Object key, int recordPageId) {
+        BPlusTreeKey bPlusKey = createKey(key);
+        if (bPlusKey == null) {
+            return false;
+        }
+        return insert(bPlusKey, recordPageId);
+    }
+    
+    @Override
+    public boolean delete(Object key) {
+        BPlusTreeKey bPlusKey = createKey(key);
+        if (bPlusKey == null) {
+            return false;
+        }
+        return delete(bPlusKey);
+    }
+    
+    @Override
+    public int search(Object key) {
+        BPlusTreeKey bPlusKey = createKey(key);
+        if (bPlusKey == null) {
+            return -1;
+        }
+        return search(bPlusKey);
+    }
+    
+    @Override
+    public List<Integer> rangeSearch(Object startKey, Object endKey) {
+        BPlusTreeKey bPlusStartKey = createKey(startKey);
+        BPlusTreeKey bPlusEndKey = createKey(endKey);
+        if (bPlusStartKey == null || bPlusEndKey == null) {
+            return new ArrayList<>();
+        }
+        return rangeSearch(bPlusStartKey, bPlusEndKey);
+    }
+    
+    @Override
+    public String getIndexName() {
+        return indexName;
+    }
+    
+    @Override
+    public IndexType getIndexType() {
+        return IndexType.BPLUS_TREE;
+    }
+    
+    @Override
+    public void printInfo() {
+        System.out.println("\n=== B+ Tree Index Information: " + indexName + " ===");
+        System.out.println("Index Type: " + getIndexType().getDescription());
+        System.out.println("Root Page ID: " + rootPageId);
+        System.out.println("Max Keys: " + maxKeys);
+        System.out.println("Height: " + getHeight());
+        System.out.println("Node Count: " + getNodeCount());
+    }
+    
+    @Override
+    public void printStructure() {
+        System.out.println("\n=== B+ Tree Index Structure: " + indexName + " ===");
+        printTree();
+    }
+    
+    @Override
+    public boolean isEmpty() {
+        return rootPageId == -1;
+    }
+    
+    @Override
+    public int size() {
+        return getNodeCount();
+    }
+    
+    /**
+     * 创建BPlusTreeKey对象
+     */
+    private BPlusTreeKey createKey(Object key) {
+        if (key instanceof Integer) {
+            return new IntegerKey((Integer) key);
+        } else if (key instanceof String) {
+            return new StringKey((String) key);
+        } else {
+            System.err.println("Unsupported key type: " + key.getClass().getSimpleName());
+            return null;
+        }
+    }
+    
     // Getters
     public int getRootPageId() { return rootPageId; }
     public int getMaxKeys() { return maxKeys; }
-    public String getIndexName() { return indexName; }
 }
