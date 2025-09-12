@@ -1,6 +1,7 @@
 package com.database;
 
 import com.database.engine.*;
+import com.database.config.DatabaseConfig;
 import com.sqlcompiler.execution.*;
 import java.util.*;
 import java.util.Scanner;
@@ -32,10 +33,10 @@ public class SparrowDBApplication {
             dbName = "sparrow_db";
         }
         
-        System.out.print("请输入数据目录路径 (默认: ./data): ");
+        System.out.print("请输入数据目录路径 (默认: " + DatabaseConfig.DEFAULT_DATA_DIRECTORY + "): ");
         String dataDir = scanner.nextLine().trim();
         if (dataDir.isEmpty()) {
-            dataDir = "./data";
+            dataDir = DatabaseConfig.DEFAULT_DATA_DIRECTORY;
         }
         
         engine = new DatabaseEngine(dbName, dataDir);
@@ -44,6 +45,14 @@ public class SparrowDBApplication {
             System.err.println("数据库引擎初始化失败！");
             return;
         }
+        
+        // 添加关闭钩子以确保程序退出时保存数据
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("\n正在安全关闭数据库...");
+            if (engine != null) {
+                engine.shutdown();
+            }
+        }));
         
         System.out.println("数据库引擎初始化成功！");
         System.out.println("数据库: " + dbName + ", 数据目录: " + dataDir);
@@ -59,71 +68,98 @@ public class SparrowDBApplication {
     }
     
     private void setupExampleData() {
-        System.out.println("\n正在创建示例数据...");
+        System.out.println("\n检查是否需要创建示例数据...");
         
         try {
-            // 创建用户表
-            List<ColumnPlan> userColumns = Arrays.asList(
-                new ColumnPlan("id", "INT", 0, false, true, false, null, false),
-                new ColumnPlan("name", "VARCHAR", 50, false, false, false, null, false),
-                new ColumnPlan("email", "VARCHAR", 100, false, false, false, null, false),
-                new ColumnPlan("age", "INT", 0, false, false, false, null, false)
-            );
+            // 检查用户表是否已存在（包括磁盘上的数据文件）
+            List<String> existingTables = engine.listTables();
+            boolean hasUserTable = existingTables.contains("users") || hasTableDataFile("users");
+            boolean hasProductTable = existingTables.contains("products") || hasTableDataFile("products");
             
-            ExecutionResult result = engine.createTable("users", userColumns, new ArrayList<>());
-            if (result.isSuccess()) {
-                System.out.println("✓ 用户表创建成功");
+            if (!hasUserTable) {
+                System.out.println("创建用户表...");
+                // 创建用户表
+                List<ColumnPlan> userColumns = Arrays.asList(
+                    new ColumnPlan("id", "INT", 0, false, true, false, null, false),
+                    new ColumnPlan("name", "VARCHAR", 50, false, false, false, null, false),
+                    new ColumnPlan("email", "VARCHAR", 100, false, false, false, null, false),
+                    new ColumnPlan("age", "INT", 0, false, false, false, null, false)
+                );
                 
-                // 插入示例数据
-                String[] sampleUsers = {
-                    "INSERT INTO users VALUES (1, 'Alice Johnson', 'alice@example.com', 28)",
-                    "INSERT INTO users VALUES (2, 'Bob Smith', 'bob@example.com', 32)",
-                    "INSERT INTO users VALUES (3, 'Charlie Brown', 'charlie@example.com', 25)",
-                    "INSERT INTO users VALUES (4, 'Diana Wilson', 'diana@example.com', 29)",
-                    "INSERT INTO users VALUES (5, 'Eve Davis', 'eve@example.com', 35)"
-                };
-                
-                for (String sql : sampleUsers) {
-                    ExecutionResult insertResult = engine.executeSQL(sql);
-                    if (!insertResult.isSuccess()) {
-                        System.out.println("⚠ 插入数据失败: " + sql);
+                ExecutionResult result = engine.createTable("users", userColumns, new ArrayList<>());
+                if (result.isSuccess()) {
+                    System.out.println("✓ 用户表创建成功");
+                    
+                    // 插入示例数据
+                    String[] sampleUsers = {
+                        "INSERT INTO users VALUES (1, 'Alice Johnson', 'alice@example.com', 28)",
+                        "INSERT INTO users VALUES (2, 'Bob Smith', 'bob@example.com', 32)",
+                        "INSERT INTO users VALUES (3, 'Charlie Brown', 'charlie@example.com', 25)",
+                        "INSERT INTO users VALUES (4, 'Diana Wilson', 'diana@example.com', 29)",
+                        "INSERT INTO users VALUES (5, 'Eve Davis', 'eve@example.com', 35)"
+                    };
+                    
+                    for (String sql : sampleUsers) {
+                        ExecutionResult insertResult = engine.executeSQL(sql);
+                        if (!insertResult.isSuccess()) {
+                            System.out.println("⚠ 插入数据失败: " + sql);
+                        }
                     }
+                    System.out.println("✓ 示例用户数据插入完成");
+                } else {
+                    System.out.println("⚠ 用户表创建失败: " + result.getMessage());
                 }
-                System.out.println("✓ 示例用户数据插入完成");
             } else {
-                System.out.println("⚠ 用户表可能已存在: " + result.getMessage());
+                System.out.println("✓ 用户表已存在，跳过创建");
+                // 确保表元数据被加载到内存目录中
+                if (!existingTables.contains("users")) {
+                    loadTableFromDisk("users");
+                }
             }
             
-            // 创建产品表
-            List<ColumnPlan> productColumns = Arrays.asList(
-                new ColumnPlan("id", "INT", 0, false, true, false, null, false),
-                new ColumnPlan("name", "VARCHAR", 100, false, false, false, null, false),
-                new ColumnPlan("price", "DECIMAL", 10, false, false, false, null, false),
-                new ColumnPlan("category", "VARCHAR", 50, false, false, false, null, false)
-            );
-            
-            result = engine.createTable("products", productColumns, new ArrayList<>());
-            if (result.isSuccess()) {
-                System.out.println("✓ 产品表创建成功");
+            if (!hasProductTable) {
+                System.out.println("创建产品表...");
+                // 创建产品表
+                List<ColumnPlan> productColumns = Arrays.asList(
+                    new ColumnPlan("id", "INT", 0, false, true, false, null, false),
+                    new ColumnPlan("name", "VARCHAR", 100, false, false, false, null, false),
+                    new ColumnPlan("price", "DECIMAL", 10, false, false, false, null, false),
+                    new ColumnPlan("category", "VARCHAR", 50, false, false, false, null, false)
+                );
                 
-                // 插入示例产品
-                String[] sampleProducts = {
-                    "INSERT INTO products VALUES (1, 'Laptop', 1299.99, 'Electronics')",
-                    "INSERT INTO products VALUES (2, 'Coffee Mug', 12.50, 'Home')",
-                    "INSERT INTO products VALUES (3, 'Book: Database Systems', 89.99, 'Books')",
-                    "INSERT INTO products VALUES (4, 'Wireless Mouse', 29.99, 'Electronics')",
-                    "INSERT INTO products VALUES (5, 'Desk Lamp', 45.00, 'Home')"
-                };
-                
-                for (String sql : sampleProducts) {
-                    ExecutionResult insertResult = engine.executeSQL(sql);
-                    if (!insertResult.isSuccess()) {
-                        System.out.println("⚠ 插入产品数据失败: " + sql);
+                ExecutionResult result = engine.createTable("products", productColumns, new ArrayList<>());
+                if (result.isSuccess()) {
+                    System.out.println("✓ 产品表创建成功");
+                    
+                    // 插入示例产品
+                    String[] sampleProducts = {
+                        "INSERT INTO products VALUES (1, 'Laptop', 1299.99, 'Electronics')",
+                        "INSERT INTO products VALUES (2, 'Coffee Mug', 12.50, 'Home')",
+                        "INSERT INTO products VALUES (3, 'Book: Database Systems', 89.99, 'Books')",
+                        "INSERT INTO products VALUES (4, 'Wireless Mouse', 29.99, 'Electronics')",
+                        "INSERT INTO products VALUES (5, 'Desk Lamp', 45.00, 'Home')"
+                    };
+                    
+                    for (String sql : sampleProducts) {
+                        ExecutionResult insertResult = engine.executeSQL(sql);
+                        if (!insertResult.isSuccess()) {
+                            System.out.println("⚠ 插入产品数据失败: " + sql);
+                        }
                     }
+                    System.out.println("✓ 示例产品数据插入完成");
+                } else {
+                    System.out.println("⚠ 产品表创建失败: " + result.getMessage());
                 }
-                System.out.println("✓ 示例产品数据插入完成");
             } else {
-                System.out.println("⚠ 产品表可能已存在: " + result.getMessage());
+                System.out.println("✓ 产品表已存在，跳过创建");
+                // 确保表元数据被加载到内存目录中
+                if (!existingTables.contains("products")) {
+                    loadTableFromDisk("products");
+                }
+            }
+            
+            if (hasUserTable || hasProductTable) {
+                System.out.println("✓ 从持久化存储中加载了现有数据");
             }
             
         } catch (Exception e) {
@@ -154,6 +190,8 @@ public class SparrowDBApplication {
                 printHelp();
             } else if (command.equals("quit") || command.equals("exit") || command.equals("q")) {
                 running = false;
+                System.out.println("正在保存数据...");
+                cleanup();
                 System.out.println("再见！");
             } else if (command.equals("tables") || command.equals("show tables")) {
                 showTables();
@@ -342,6 +380,53 @@ public class SparrowDBApplication {
         }
         
         System.out.println("总计: " + results.size() + " 条记录");
+    }
+    
+    /**
+     * 检查指定表的数据文件是否存在
+     */
+    private boolean hasTableDataFile(String tableName) {
+        try {
+            // 使用引擎配置的数据目录而不是硬编码路径
+            String dataDir = engine != null ? engine.getDataDirectory() : DatabaseConfig.DEFAULT_DATA_DIRECTORY;
+            java.io.File tableFile = new java.io.File(dataDir + "/" + tableName + ".tbl");
+            return tableFile.exists() && tableFile.length() > 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    /**
+     * 从磁盘加载表元数据到内存目录
+     */
+    private void loadTableFromDisk(String tableName) {
+        try {
+            if ("users".equals(tableName)) {
+                // 直接创建TableInfo并添加到Catalog，不创建新的物理存储
+                com.sqlcompiler.catalog.TableInfo tableInfo = new com.sqlcompiler.catalog.TableInfo("users");
+                tableInfo.addColumn(new com.sqlcompiler.catalog.ColumnInfo("id", "INT", 0, false, true, false, false, null, false));
+                tableInfo.addColumn(new com.sqlcompiler.catalog.ColumnInfo("name", "VARCHAR", 50, false, false, false, false, null, false));
+                tableInfo.addColumn(new com.sqlcompiler.catalog.ColumnInfo("email", "VARCHAR", 100, false, false, false, false, null, false));
+                tableInfo.addColumn(new com.sqlcompiler.catalog.ColumnInfo("age", "INT", 0, false, false, false, false, null, false));
+                
+                // 直接添加到Catalog
+                engine.getCatalogManager().getCatalog().addTable(tableInfo);
+                System.out.println("✓ 用户表元数据已加载到内存");
+            } else if ("products".equals(tableName)) {
+                // 直接创建TableInfo并添加到Catalog，不创建新的物理存储
+                com.sqlcompiler.catalog.TableInfo tableInfo = new com.sqlcompiler.catalog.TableInfo("products");
+                tableInfo.addColumn(new com.sqlcompiler.catalog.ColumnInfo("id", "INT", 0, false, true, false, false, null, false));
+                tableInfo.addColumn(new com.sqlcompiler.catalog.ColumnInfo("name", "VARCHAR", 100, false, false, false, false, null, false));
+                tableInfo.addColumn(new com.sqlcompiler.catalog.ColumnInfo("price", "DECIMAL", 10, false, false, false, false, null, false));
+                tableInfo.addColumn(new com.sqlcompiler.catalog.ColumnInfo("category", "VARCHAR", 50, false, false, false, false, null, false));
+                
+                // 直接添加到Catalog
+                engine.getCatalogManager().getCatalog().addTable(tableInfo);
+                System.out.println("✓ 产品表元数据已加载到内存");
+            }
+        } catch (Exception e) {
+            System.err.println("加载表元数据失败: " + e.getMessage());
+        }
     }
     
     private void cleanup() {

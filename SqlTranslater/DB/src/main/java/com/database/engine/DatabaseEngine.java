@@ -3,6 +3,7 @@ package com.database.engine;
 import com.sqlcompiler.execution.*;
 import com.sqlcompiler.catalog.*;
 import com.sqlcompiler.*;
+import com.database.logging.*;
 import java.util.*;
 import java.util.Arrays;
 
@@ -15,6 +16,7 @@ public class DatabaseEngine {
     private final CatalogManager catalogManager;
     private final Executor executor;
     private final SQLCompiler sqlCompiler;
+    private final LogManager logManager;
     private final String databaseName;
     private final String dataDirectory;
     private boolean initialized = false;
@@ -35,6 +37,13 @@ public class DatabaseEngine {
         // 初始化SQL编译器 - 使用CatalogManager的Catalog实例
         this.sqlCompiler = new SQLCompiler(catalogManager.getCatalog());
         
+        // 初始化日志管理器
+        try {
+            this.logManager = new LogManager(dataDirectory);
+        } catch (Exception e) {
+            throw new RuntimeException("初始化日志管理器失败: " + e.getMessage(), e);
+        }
+        
         System.out.println("数据库引擎 '" + databaseName + "' 已创建，数据目录: " + dataDirectory);
     }
     
@@ -54,15 +63,23 @@ public class DatabaseEngine {
     }
     
     /**
-     * 执行SQL语句 - 整合SQL编译器和执行引擎
+     * 执行SQL语句 - 整合SQL编译器和执行引擎，并记录日志
      */
     public ExecutionResult executeSQL(String sql) {
         if (!initialized) {
             return new ExecutionResult(false, "数据库引擎未初始化", null);
         }
         
+        long transactionId = 0;
         try {
             System.out.println("执行SQL: " + sql);
+            
+            // 开始事务（用于日志记录）
+            transactionId = logManager.beginTransaction();
+            
+            // 记录SQL操作开始
+            String tableName = extractTableName(sql);
+            logManager.logSQLOperation(transactionId, sql, tableName, "SQL执行开始", null, null);
             
             // 使用SQL编译器解析SQL并生成执行计划
             ExecutionPlan plan = null;
@@ -83,6 +100,8 @@ public class DatabaseEngine {
             }
             
             if (plan == null) {
+                logManager.logSQLOperation(transactionId, sql, tableName, "SQL解析失败", null, null);
+                logManager.abortTransaction(transactionId);
                 return new ExecutionResult(false, "SQL解析失败", null);
             }
             
@@ -92,8 +111,13 @@ public class DatabaseEngine {
             // 记录执行结果
             if (result.isSuccess()) {
                 System.out.println("SQL执行成功");
+                logManager.logSQLOperation(transactionId, sql, tableName, "SQL执行成功", null, 
+                    result.getData() != null ? "返回 " + result.getData().size() + " 条记录" : "无数据返回");
+                logManager.commitTransaction(transactionId);
             } else {
                 System.out.println("SQL执行失败: " + result.getMessage());
+                logManager.logSQLOperation(transactionId, sql, tableName, "SQL执行失败", null, result.getMessage());
+                logManager.abortTransaction(transactionId);
             }
             
             return result;
@@ -102,6 +126,16 @@ public class DatabaseEngine {
             String errorMsg = "执行SQL时发生错误: " + e.getMessage();
             System.err.println(errorMsg);
             e.printStackTrace();
+            
+            // 记录错误日志
+            try {
+                String tableName = extractTableName(sql);
+                logManager.logSQLOperation(transactionId, sql, tableName, "SQL执行异常", null, errorMsg);
+                logManager.abortTransaction(transactionId);
+            } catch (Exception logException) {
+                System.err.println("记录错误日志失败: " + logException.getMessage());
+            }
+            
             return new ExecutionResult(false, errorMsg, null);
         }
     }
@@ -214,11 +248,121 @@ public class DatabaseEngine {
      */
     public void shutdown() {
         try {
+            // 创建检查点
+            logManager.createCheckpoint();
+            
             // 保存目录信息
             catalogManager.saveToStorage();
+            
+            // 关闭日志管理器
+            logManager.close();
+            
             initialized = false;
         } catch (Exception e) {
             System.err.println("关闭数据库引擎时发生错误: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 从SQL语句中提取表名
+     */
+    private String extractTableName(String sql) {
+        if (sql == null || sql.trim().isEmpty()) {
+            return null;
+        }
+        
+        String upperSql = sql.toUpperCase().trim();
+        
+        if (upperSql.startsWith("SELECT")) {
+            // SELECT * FROM table_name
+            String[] parts = upperSql.split("FROM");
+            if (parts.length > 1) {
+                String tablePart = parts[1].trim().split("\\s+")[0];
+                return tablePart.toLowerCase();
+            }
+        } else if (upperSql.startsWith("INSERT")) {
+            // INSERT INTO table_name
+            String[] parts = upperSql.split("INTO");
+            if (parts.length > 1) {
+                String tablePart = parts[1].trim().split("\\s+")[0];
+                return tablePart.toLowerCase();
+            }
+        } else if (upperSql.startsWith("UPDATE")) {
+            // UPDATE table_name
+            String[] parts = upperSql.split("\\s+");
+            if (parts.length > 1) {
+                return parts[1].toLowerCase();
+            }
+        } else if (upperSql.startsWith("DELETE")) {
+            // DELETE FROM table_name
+            String[] parts = upperSql.split("FROM");
+            if (parts.length > 1) {
+                String tablePart = parts[1].trim().split("\\s+")[0];
+                return tablePart.toLowerCase();
+            }
+        } else if (upperSql.startsWith("CREATE TABLE")) {
+            // CREATE TABLE table_name
+            String[] parts = upperSql.split("\\s+");
+            if (parts.length > 2) {
+                return parts[2].toLowerCase();
+            }
+        } else if (upperSql.startsWith("DROP TABLE")) {
+            // DROP TABLE table_name
+            String[] parts = upperSql.split("\\s+");
+            if (parts.length > 2) {
+                return parts[2].toLowerCase();
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 获取日志管理器
+     */
+    public LogManager getLogManager() {
+        return logManager;
+    }
+    
+    /**
+     * 显示日志统计信息
+     */
+    public void printLogStats() {
+        try {
+            Map<String, Object> stats = logManager.getLogStats();
+            System.out.println("\n=== 日志统计信息 ===");
+            System.out.println("下一个LSN: " + stats.get("nextLsn"));
+            System.out.println("活跃事务数: " + stats.get("activeTransactions"));
+            System.out.println("总日志条目数: " + stats.get("totalLogEntries"));
+            System.out.println("日志目录: " + stats.get("logDirectory"));
+            System.out.println("当前日志文件: " + stats.get("currentLogFile"));
+            System.out.println("当前日志文件大小: " + stats.get("currentLogFileSize") + " bytes");
+        } catch (Exception e) {
+            System.err.println("获取日志统计信息失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 创建检查点
+     */
+    public void createCheckpoint() {
+        try {
+            logManager.createCheckpoint();
+            System.out.println("检查点创建成功");
+        } catch (Exception e) {
+            System.err.println("创建检查点失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 清理已提交的事务日志
+     */
+    public void cleanupLogs() {
+        try {
+            logManager.cleanupCommittedTransactions();
+            System.out.println("日志清理完成");
+        } catch (Exception e) {
+            System.err.println("日志清理失败: " + e.getMessage());
         }
     }
     
@@ -422,5 +566,12 @@ public class DatabaseEngine {
      */
     public SQLCompiler getSQLCompiler() {
         return sqlCompiler;
+    }
+    
+    /**
+     * 获取数据目录路径
+     */
+    public String getDataDirectory() {
+        return dataDirectory;
     }
 }

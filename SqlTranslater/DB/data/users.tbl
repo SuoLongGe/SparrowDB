@@ -1,11 +1,12 @@
 # Table Metadata
 TABLE_NAME=users
-COLUMN_COUNT=6
-COLUMN=id:INT:100
-COLUMN=username:VARCHAR(50):100
-COLUMN=email:VARCHAR(100));:100
-COLUMN=email):VALUES:100
-COLUMN='alice@example.com');:INSERT:100
-COLUMN='bob@example.com');:SELECT:100
+COLUMN_COUNT=4
+COLUMN=id:INT:0
+COLUMN=name:VARCHAR:50
+COLUMN=email:VARCHAR:100
+COLUMN=age:INT:0
+
 # End Metadata
 
+RECORD:name=Test User|id=6|email=test@example.com|age=25
+RECORD:name=Another User|id=7|email=another@example.com|age=30

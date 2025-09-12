@@ -1,0 +1,6 @@
+sparrow_test
+data
+INSERT INTO users VALUES (6, 'Test User', 'test@example.com', 25)
+INSERT INTO users VALUES (7, 'Another User', 'another@example.com', 30)
+SELECT * FROM users
+quit

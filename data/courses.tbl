@@ -5,7 +5,6 @@ COLUMN=course_id:INT:4
 COLUMN=course_name:VARCHAR:50
 COLUMN=credits:INT:4
 # End Metadata
-PAGE:1
-course_id=101|course_name=鏁版嵁搴撳師鐞唡credits=3
-course_id=102|course_name=鏁版嵁缁撴瀯|credits=4
 
+RECORD:course_id=101|course_name=数据库原理|credits=3
+RECORD:course_id=102|course_name=数据结构|credits=4

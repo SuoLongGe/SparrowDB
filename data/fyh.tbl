@@ -1,0 +1,8 @@
+# Table Metadata
+TABLE_NAME=fyh
+COLUMN_COUNT=1
+COLUMN=name:char:10
+# End Metadata
+
+
+RECORD:name=fyh

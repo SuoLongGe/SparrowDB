@@ -2,8 +2,17 @@ package com.sqlcompiler;
 
 import com.database.engine.DatabaseEngine;
 import com.database.engine.ExecutionResult;
+
 import com.sqlcompiler.gui.SQLAutoComplete;
 import com.sqlcompiler.gui.SQLSyntaxHighlighter;
+
+import com.database.config.DatabaseConfig;
+import com.sqlcompiler.ast.ASTPrinter;
+import com.sqlcompiler.ast.Statement;
+import com.sqlcompiler.execution.ExecutionPlan;
+import com.sqlcompiler.lexer.Token;
+import com.sqlcompiler.lexer.TokenType;
+
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -213,22 +222,22 @@ public class DatabaseGUI extends JFrame {
      */
     private void initializeDatabase() {
         try {
-            compiler = new EnhancedSQLCompiler();
-            databaseEngine = new DatabaseEngine("SparrowDB", "data");
+            // 先初始化数据库引擎 - 使用自动检测的数据目录路径
+            String dataDirectory = DatabaseConfig.getAutoDetectedDataDirectory();
+            databaseEngine = new DatabaseEngine("SparrowDB", dataDirectory);
             
             if (databaseEngine.initialize()) {
-<<<<<<< Updated upstream
-=======
+
                 // 使用数据库引擎的目录管理器创建SQL编译器，确保目录同步
                 compiler = new EnhancedSQLCompiler(databaseEngine.getCatalogManager().getCatalog());
                 
                 // 初始化自动补全组件
                 autoComplete = new SQLAutoComplete(sqlInputArea, compiler.getCatalog());
                 
->>>>>>> Stashed changes
                 statusLabel.setText("数据库已连接");
                 statusLabel.setForeground(Color.GREEN);
                 appendToResult("数据库引擎初始化成功！\n");
+                appendToResult("使用简单文件存储系统\n");
                 appendToResult("支持的命令：CREATE TABLE、INSERT、SELECT、DELETE\n");
                 appendToResult("输入'exit'退出程序，输入'catalog'查看目录信息\n");
                 appendToResult("自动补全功能已启用：按Tab键或Ctrl+Space触发\n\n");
