@@ -115,8 +115,6 @@ public class Executor {
             if (insertColumns.isEmpty()) {
                 // 如果没有指定列名，使用表的所有列
                 insertColumns = tableInfo.getColumnNames();
-                System.out.println("DEBUG: 表 " + tableName + " 的列名: " + insertColumns);
-                System.out.println("DEBUG: 表 " + tableName + " 的列信息: " + tableInfo.getColumns());
             }
             
             // 插入每一行数据

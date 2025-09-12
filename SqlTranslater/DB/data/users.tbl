@@ -1,5 +1,6 @@
 # Table Metadata
 TABLE_NAME=users
+
 COLUMN_COUNT=6
 COLUMN=id:INT:100
 COLUMN=username:VARCHAR(50):100
@@ -7,5 +8,6 @@ COLUMN=email:VARCHAR(100));:100
 COLUMN=email):VALUES:100
 COLUMN='alice@example.com');:INSERT:100
 COLUMN='bob@example.com');:SELECT:100
+
 # End Metadata
 
