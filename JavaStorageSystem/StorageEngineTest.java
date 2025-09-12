@@ -3,7 +3,7 @@ public class StorageEngineTest {
         System.out.println("=== SparrowDB 存储引擎测试 ===");
         
         // 创建存储引擎
-        StorageEngine engine = new StorageEngine("test_db.db");
+        StorageEngine engine = new StorageEngine(10, "test_db.db", ReplacementPolicy.LRU);
         
         try {
             // 创建表
