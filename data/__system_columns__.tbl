@@ -1,3 +1,4 @@
+
 # Table Metadata
 TABLE_NAME=__system_columns__
 COLUMN_COUNT=9
@@ -29,4 +30,5 @@ auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|le
 auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=50|default_value=null|table_name=users|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=email|data_type=VARCHAR|length=100|default_value=null|table_name=users|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=age|data_type=INT|length=0|default_value=null|table_name=users|primary_key=false
+
 

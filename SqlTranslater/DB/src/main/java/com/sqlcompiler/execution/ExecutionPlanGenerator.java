@@ -18,7 +18,11 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
     public ExecutionPlan visit(Statement node) throws CompilationException {
         throw new CompilationException("不支持的语句类型", node.getPosition(), "执行计划生成错误");
     }
-    
+    @Override
+    public ExecutionPlan visit(BatchStatement node) throws CompilationException {
+        // 批量语句不直接转换为执行计划，需要分别处理每个语句
+        return null;
+    }
     @Override
     public ExecutionPlan visit(CreateTableStatement node) throws CompilationException {
         List<ColumnPlan> columns = new ArrayList<>();

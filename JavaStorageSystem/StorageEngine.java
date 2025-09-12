@@ -1,21 +1,30 @@
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * 存储引擎类 - 对外统一接口
  */
 public class StorageEngine {
     private final BufferPoolManager bufferPoolManager;
-    private final ExtendedIndexManager indexManager;
+    private final IndexManager indexManager;
+    private final WALManager walManager;
+    private final String dbFilePath;
     
     /**
      * 构造函数
      */
     public StorageEngine(int bufferPoolSize, String dbFilename, ReplacementPolicy policy) {
+        this.dbFilePath = dbFilename;
         this.bufferPoolManager = new BufferPoolManager(bufferPoolSize, dbFilename, policy);
-        // 使用扩展的索引管理器，支持B+树和哈希索引
-        this.indexManager = new ExtendedIndexManager(this);
-        System.out.println("Storage engine initialized with dual index support (B+ Tree and Hash)");
+        this.indexManager = new IndexManager(this);
+        
+        try {
+            this.walManager = new WALManager(dbFilename);
+            System.out.println("Storage engine initialized with WAL support");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize WAL Manager: " + e.getMessage(), e);
+        }
     }
     
     /**
@@ -156,50 +165,22 @@ public class StorageEngine {
     /**
      * 获取索引管理器
      */
-    public ExtendedIndexManager getIndexManager() {
+    public IndexManager getIndexManager() {
         return indexManager;
     }
     
     /**
-     * 创建整数B+树索引
+     * 创建整数索引
      */
     public boolean createIntegerIndex(String indexName, int maxKeys) {
-        return indexManager.createIntegerBPlusIndex(indexName, maxKeys);
+        return indexManager.createIntegerIndex(indexName, maxKeys);
     }
     
     /**
-     * 创建字符串B+树索引
+     * 创建字符串索引
      */
     public boolean createStringIndex(String indexName, int maxKeys) {
-        return indexManager.createStringBPlusIndex(indexName, maxKeys);
-    }
-    
-    /**
-     * 创建整数B+树索引（显式方法）
-     */
-    public boolean createIntegerBPlusIndex(String indexName, int maxKeys) {
-        return indexManager.createIntegerBPlusIndex(indexName, maxKeys);
-    }
-    
-    /**
-     * 创建字符串B+树索引（显式方法）
-     */
-    public boolean createStringBPlusIndex(String indexName, int maxKeys) {
-        return indexManager.createStringBPlusIndex(indexName, maxKeys);
-    }
-    
-    /**
-     * 创建整数哈希索引
-     */
-    public boolean createIntegerHashIndex(String indexName, int bucketCount) {
-        return indexManager.createIntegerHashIndex(indexName, bucketCount);
-    }
-    
-    /**
-     * 创建字符串哈希索引
-     */
-    public boolean createStringHashIndex(String indexName, int bucketCount) {
-        return indexManager.createStringHashIndex(indexName, bucketCount);
+        return indexManager.createStringIndex(indexName, maxKeys);
     }
     
     /**
@@ -266,23 +247,175 @@ public class StorageEngine {
     }
     
     /**
-     * 获取索引类型
+     * 关闭存储引擎
+     * 刷新所有页面并释放资源
      */
-    public IndexType getIndexType(String indexName) {
-        return indexManager.getIndexType(indexName);
+    public void close() {
+        try {
+            // 创建检查点
+            walManager.createCheckpoint();
+            
+            // 刷新所有页面到磁盘
+            flushAllPages();
+            
+            // 关闭WAL管理器
+            walManager.close();
+            
+            System.out.println("Storage engine closed successfully");
+        } catch (Exception e) {
+            System.err.println("Error closing storage engine: " + e.getMessage());
+        }
+    }
+    
+    // ========== WAL相关方法 ==========
+    
+    /**
+     * 开始事务
+     */
+    public long beginTransaction() {
+        try {
+            return walManager.beginTransaction();
+        } catch (Exception e) {
+            System.err.println("Error beginning transaction: " + e.getMessage());
+            e.printStackTrace();
+            return -1;
+        }
     }
     
     /**
-     * 按类型打印索引
+     * 提交事务
      */
-    public void printIndexesByType(IndexType type) {
-        indexManager.printIndexesByType(type);
+    public boolean commitTransaction(long transactionId) {
+        try {
+            walManager.commitTransaction(transactionId);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error committing transaction: " + e.getMessage());
+            return false;
+        }
     }
     
     /**
-     * 打印索引统计信息
+     * 回滚事务
      */
-    public void printIndexStatistics() {
-        indexManager.printStatistics();
+    public boolean abortTransaction(long transactionId) {
+        try {
+            walManager.abortTransaction(transactionId);
+            return true;
+        } catch (Exception e) {
+            System.err.println("Error aborting transaction: " + e.getMessage());
+            return false;
+        }
     }
+    
+    /**
+     * 带WAL的页面写入
+     */
+    public boolean writePageWithWAL(long transactionId, int pageId, int offset, byte[] newData) {
+        try {
+            // 获取旧数据用于WAL记录
+            Page page = getPage(pageId);
+            byte[] oldData = null;
+            if (page != null) {
+                byte[] pageData = page.getData();
+                if (offset + newData.length <= pageData.length) {
+                    oldData = new byte[newData.length];
+                    System.arraycopy(pageData, offset, oldData, 0, newData.length);
+                }
+            }
+            
+            // 先写WAL日志
+            walManager.logPageModification(transactionId, pageId, offset, oldData, newData);
+            
+            // 再写页面数据
+            if (page != null) {
+                System.arraycopy(newData, 0, page.getData(), offset, newData.length);
+                page.setDirty(true);
+                releasePage(pageId, true);
+                return true;
+            }
+            
+            return false;
+        } catch (Exception e) {
+            System.err.println("Error writing page with WAL: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 带WAL的记录写入
+     */
+    public boolean writeRecordWithWAL(long transactionId, int pageId, String recordData) {
+        try {
+            // 获取旧数据
+            Page page = getPage(pageId);
+            String oldData = page != null ? page.readString() : "";
+            
+            // 先写WAL日志
+            walManager.logPageModification(transactionId, pageId, 0, 
+                                         oldData.getBytes(), recordData.getBytes());
+            
+            // 再写页面数据
+            if (page != null) {
+                page.writeString(recordData);
+                releasePage(pageId, true);
+                return true;
+            }
+            
+            return false;
+        } catch (Exception e) {
+            System.err.println("Error writing record with WAL: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 创建检查点
+     */
+    public void createCheckpoint() {
+        try {
+            walManager.createCheckpoint();
+            System.out.println("Checkpoint created successfully");
+        } catch (Exception e) {
+            System.err.println("Error creating checkpoint: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 清理已提交的事务日志
+     */
+    public void cleanupWAL() {
+        try {
+            walManager.cleanupCommittedTransactions();
+            System.out.println("WAL cleanup completed");
+        } catch (Exception e) {
+            System.err.println("Error cleaning up WAL: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取WAL统计信息
+     */
+    public void printWALStats() {
+        try {
+            Map<String, Object> stats = walManager.getWALStats();
+            System.out.println("\n=== WAL Statistics ===");
+            System.out.println("Next LSN: " + stats.get("nextLsn"));
+            System.out.println("Current Position: " + stats.get("currentPosition"));
+            System.out.println("Active Transactions: " + stats.get("activeTransactions"));
+            System.out.println("Total Log Entries: " + stats.get("totalLogEntries"));
+            System.out.println("WAL File Size: " + stats.get("walFileSize") + " bytes");
+        } catch (Exception e) {
+            System.err.println("Error getting WAL stats: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取WAL管理器
+     */
+    public WALManager getWALManager() {
+        return walManager;
+    }
+
 }
+

@@ -45,7 +45,14 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         // 基类，不需要处理
         return null;
     }
-    
+    @Override
+    public Void visit(BatchStatement node) throws CompilationException {
+        // 验证批量语句中的每个语句
+        for (Statement stmt : node.getStatements()) {
+            stmt.accept(this);
+        }
+        return null;
+    }
     @Override
     public Void visit(CreateTableStatement node) throws CompilationException {
         String tableName = node.getTableName();
