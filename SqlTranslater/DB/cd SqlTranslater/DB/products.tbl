@@ -1,0 +1,14 @@
+# Table Metadata
+TABLE_NAME=products
+COLUMN_COUNT=4
+COLUMN=id:INT:0
+COLUMN=name:VARCHAR:100
+COLUMN=price:DECIMAL:10
+COLUMN=category:VARCHAR:50
+# End Metadata
+
+RECORD:price=1299.99|name=Laptop|id=1|category=Electronics
+RECORD:price=12.50|name=Coffee Mug|id=2|category=Home
+RECORD:price=89.99|name=Book: Database Systems|id=3|category=Books
+RECORD:price=29.99|name=Wireless Mouse|id=4|category=Electronics
+RECORD:price=45.00|name=Desk Lamp|id=5|category=Home

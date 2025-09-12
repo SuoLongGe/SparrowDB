@@ -1,0 +1,8 @@
+# Table Metadata
+TABLE_NAME=demo_table
+COLUMN_COUNT=3
+COLUMN=id:INT:4
+COLUMN=name:VARCHAR:100
+COLUMN=description:TEXT:0
+# End Metadata
+

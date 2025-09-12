@@ -296,6 +296,12 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
     }
     
     @Override
+    public Void visit(DotExpression node) throws CompilationException {
+        // 点号表达式在validateExpression中处理
+        return null;
+    }
+    
+    @Override
     public Void visit(FunctionCallExpression node) throws CompilationException {
         // 验证函数参数
         for (Expression arg : node.getArguments()) {
@@ -415,8 +421,9 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         }
         
         return new ColumnInfo(columnDef.getColumnName(), columnDef.getDataType(),
-                            columnDef.getLength(), notNull, primaryKey, unique,
-                            defaultValue, autoIncrement);
+                            columnDef.getLength() != null ? columnDef.getLength() : 0, 
+                            !notNull, primaryKey, unique,
+                            autoIncrement, defaultValue, notNull);
     }
     
     /**
@@ -428,6 +435,7 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
                                 constraint.getColumns(),
                                 constraint.getReferencedTable(),
                                 constraint.getReferencedColumns(),
+                                null,
                                 constraint.getDefaultValue());
     }
     

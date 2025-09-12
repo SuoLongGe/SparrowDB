@@ -18,6 +18,7 @@ public interface ASTVisitor<T> {
     T visit(UnaryExpression node) throws CompilationException;
     T visit(LiteralExpression node) throws CompilationException;
     T visit(IdentifierExpression node) throws CompilationException;
+    T visit(DotExpression node) throws CompilationException;
     T visit(FunctionCallExpression node) throws CompilationException;
     T visit(InExpression node) throws CompilationException;
     T visit(SubqueryExpression node) throws CompilationException;

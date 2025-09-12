@@ -95,9 +95,14 @@ public class LexicalAnalyzer {
         keywordMap.put("LIKE", TokenType.LIKE);
         keywordMap.put("IN", TokenType.IN);
         keywordMap.put("BETWEEN", TokenType.BETWEEN);
-        
+
+        // 排序关键字
+        keywordMap.put("ASC", TokenType.ASC);
+        keywordMap.put("DESC", TokenType.DESC);
+
         // 约束关键字
         keywordMap.put("CHECK", TokenType.CHECK);
+
         keywordMap.put("ASC", TokenType.ASC);
         keywordMap.put("DESC", TokenType.DESC);
         
@@ -108,6 +113,7 @@ public class LexicalAnalyzer {
         keywordMap.put("MAX", TokenType.MAX);
         keywordMap.put("MIN", TokenType.MIN);
         
+
         return keywordMap;
     }
     
@@ -178,7 +184,11 @@ public class LexicalAnalyzer {
         TokenType type = keywords.get(value.toUpperCase());
         
         if (type != null) {
+
+            // 处理特殊关键字
             // 处理特殊关键字组合
+
+
             if (value.toUpperCase().equals("NOT") && 
                 currentPos < source.length() && 
                 source.substring(currentPos).trim().toUpperCase().startsWith("NULL")) {
@@ -192,6 +202,7 @@ public class LexicalAnalyzer {
                                        new Position(startLine, startColumn)));
                     return;
                 }
+
             } else if (value.toUpperCase().equals("PRIMARY") && 
                        currentPos < source.length() && 
                        source.substring(currentPos).trim().toUpperCase().startsWith("KEY")) {
@@ -223,7 +234,10 @@ public class LexicalAnalyzer {
                 tokens.add(new Token(TokenType.AUTO_INCREMENT, value, new Position(startLine, startColumn)));
                 return;
             }
+            
+            // 处理其他关键字（包括ASC、DESC等）
             tokens.add(new Token(type, value, new Position(startLine, startColumn)));
+            return;
         } else {
             tokens.add(new Token(TokenType.IDENTIFIER, value, new Position(startLine, startColumn)));
         }

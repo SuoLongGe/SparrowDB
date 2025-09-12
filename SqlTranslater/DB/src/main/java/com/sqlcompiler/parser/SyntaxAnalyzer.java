@@ -1032,6 +1032,13 @@ public class SyntaxAnalyzer {
             return new FunctionCallExpression(name, arguments, pos);
         }
         
+        // 检查是否为点号分隔的标识符（如 u.name）
+        if (currentToken().getType() == TokenType.DOT) {
+            nextToken();
+            String fieldName = expectIdentifier();
+            return new DotExpression(name, fieldName, pos);
+        }
+        
         return new IdentifierExpression(name, pos);
     }
     

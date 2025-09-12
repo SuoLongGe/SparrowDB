@@ -214,6 +214,11 @@ public class ASTPrinter implements ASTVisitor<String> {
     }
     
     @Override
+    public String visit(DotExpression node) throws CompilationException {
+        return "DotExpression { tableName: \"" + node.getTableName() + "\", fieldName: \"" + node.getFieldName() + "\" }";
+    }
+    
+    @Override
     public String visit(FunctionCallExpression node) throws CompilationException {
         StringBuilder sb = new StringBuilder();
         sb.append("FunctionCallExpression {\n");

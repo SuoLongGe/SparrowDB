@@ -1,0 +1,49 @@
+# SparrowDB 自定义SQL语句测试报告
+
+## 📋 测试的SQL语句分类
+
+### ✅ 1. 基本SELECT查询语句 (4条)
+- SELECT * FROM users
+- SELECT * FROM products  
+- SELECT name, email FROM users
+- SELECT id, name, price FROM products
+
+### ✅ 2. CREATE TABLE语句 (2条)
+- CREATE TABLE test_employees (id INT PRIMARY KEY, name VARCHAR(50), department VARCHAR(30), salary DECIMAL(10))
+- CREATE TABLE test_orders (order_id INT PRIMARY KEY, user_id INT, product_id INT, quantity INT, order_date VARCHAR(20))
+
+### ✅ 3. INSERT INTO语句 (6条)
+- INSERT INTO test_employees VALUES (1, 'John Doe', 'Engineering', 75000.00)
+- INSERT INTO test_employees VALUES (2, 'Jane Smith', 'Marketing', 65000.00)
+- INSERT INTO test_employees VALUES (3, 'Mike Johnson', 'Sales', 55000.00)
+- INSERT INTO test_orders VALUES (101, 1, 1, 2, '2024-01-15')
+- INSERT INTO test_orders VALUES (102, 2, 3, 1, '2024-01-16')
+- INSERT INTO test_orders VALUES (103, 3, 2, 3, '2024-01-17')
+
+### ❓ 4. DELETE FROM语句 (2条) - 需要测试
+- DELETE FROM test_employees WHERE salary < 60000
+- DELETE FROM test_orders WHERE quantity > 2
+
+### ❓ 5. 复杂查询和WHERE条件 (3条) - 需要测试
+- SELECT * FROM users WHERE age > 30
+- SELECT * FROM products WHERE price < 50.00
+- SELECT name FROM users WHERE email LIKE '%example.com'
+
+### ❌ 6. 错误处理测试 (5条) - 预期失败
+- INSERT INTO non_existing_table VALUES (1, 'test')
+- INSERT INTO users VALUES (1, 'Too Few Columns')
+- SELECT * FROM another_non_existing_table
+- CREATE TABLE users (duplicate_table VARCHAR(50))
+- DELETE FROM non_existing_table WHERE id = 1
+
+## 📊 测试执行计划
+
+根据之前的运行日志，我们已经看到：
+- 基本SELECT查询 ✅ 工作正常
+- INSERT操作 ✅ 工作正常
+- CREATE TABLE ✅ 工作正常
+
+需要测试的功能：
+- DELETE操作
+- WHERE条件查询
+- 错误处理

@@ -1,0 +1,23 @@
+# Table Metadata
+TABLE_NAME=__system_columns__
+COLUMN_COUNT=9
+COLUMN=table_name:VARCHAR:255
+COLUMN=column_name:VARCHAR:255
+COLUMN=data_type:VARCHAR:50
+COLUMN=length:INT:4
+COLUMN=not_null:BOOLEAN:1
+COLUMN=primary_key:BOOLEAN:1
+COLUMN=unique:BOOLEAN:1
+COLUMN=default_value:VARCHAR:255
+COLUMN=auto_increment:BOOLEAN:1
+# End Metadata
+PAGE:1
+auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|length=0|default_value=null|table_name=users|primary_key=true
+auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=50|default_value=null|table_name=users|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=email|data_type=VARCHAR|length=100|default_value=null|table_name=users|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=age|data_type=INT|length=0|default_value=null|table_name=users|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|length=0|default_value=null|table_name=products|primary_key=true
+auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=100|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=price|data_type=DECIMAL|length=10|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=category|data_type=VARCHAR|length=50|default_value=null|table_name=products|primary_key=false
+
