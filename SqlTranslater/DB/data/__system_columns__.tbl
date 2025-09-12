@@ -11,4 +11,13 @@ COLUMN=unique:BOOLEAN:1
 COLUMN=default_value:VARCHAR:255
 COLUMN=auto_increment:BOOLEAN:1
 # End Metadata
+PAGE:1
+auto_increment=false|not_null=false|unique=false|column_name=ID|data_type=INT|length=0|default_value=null|table_name=smx|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|length=0|default_value=null|table_name=users|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=0|default_value=null|table_name=users|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=age|data_type=INT|length=0|default_value=null|table_name=users|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=product_id|data_type=INT|length=0|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=product_name|data_type=VARCHAR|length=0|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=price|data_type=DOUBLE|length=0|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=in_stock|data_type=BOOLEAN|length=0|default_value=null|table_name=products|primary_key=false
 

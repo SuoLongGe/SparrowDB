@@ -187,13 +187,17 @@ public class DatabaseGUI extends JFrame {
      */
     private void initializeDatabase() {
         try {
-            compiler = new EnhancedSQLCompiler();
+            // 先初始化数据库引擎
             databaseEngine = new DatabaseEngine("SparrowDB", "data");
             
             if (databaseEngine.initialize()) {
+                // 使用数据库引擎的目录管理器创建SQL编译器，确保目录同步
+                compiler = new EnhancedSQLCompiler(databaseEngine.getCatalogManager().getCatalog());
+                
                 statusLabel.setText("数据库已连接");
                 statusLabel.setForeground(Color.GREEN);
                 appendToResult("数据库引擎初始化成功！\n");
+                appendToResult("使用简单文件存储系统\n");
                 appendToResult("支持的命令：CREATE TABLE、INSERT、SELECT、DELETE\n");
                 appendToResult("输入'exit'退出程序，输入'catalog'查看目录信息\n\n");
             } else {
