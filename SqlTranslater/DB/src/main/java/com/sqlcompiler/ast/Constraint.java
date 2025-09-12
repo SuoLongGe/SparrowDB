@@ -15,6 +15,7 @@ public class Constraint extends ASTNode {
         DEFAULT,
         AUTO_INCREMENT,
         CHECK
+
     }
     
     private final ConstraintType type;

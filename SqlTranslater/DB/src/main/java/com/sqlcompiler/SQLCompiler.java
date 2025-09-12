@@ -33,6 +33,14 @@ public class SQLCompiler {
         this.executionPlanGenerator = new ExecutionPlanGenerator();
     }
     
+    public SQLCompiler(Catalog catalog) {
+        this.catalog = catalog;
+        this.lexicalAnalyzer = null; // 将在编译时创建
+        this.syntaxAnalyzer = null; // 将在编译时创建
+        this.semanticAnalyzer = new SemanticAnalyzer(catalog);
+        this.executionPlanGenerator = new ExecutionPlanGenerator();
+    }
+    
     /**
      * 编译SQL语句
      */
@@ -143,5 +151,12 @@ public class SQLCompiler {
         public List<String> getErrors() {
             return errors;
         }
+    }
+    
+    /**
+     * 获取目录对象
+     */
+    public Catalog getCatalog() {
+        return catalog;
     }
 }

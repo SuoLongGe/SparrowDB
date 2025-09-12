@@ -164,6 +164,11 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
     }
     
     @Override
+    public ExecutionPlan visit(DotExpression node) {
+        return null; // 表达式不直接转换为ExecutionPlan
+    }
+    
+    @Override
     public ExecutionPlan visit(FunctionCallExpression node) {
         return null; // 表达式不直接转换为ExecutionPlan
     }
@@ -227,6 +232,10 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
             UnaryExpression unary = (UnaryExpression) expr;
             ExpressionPlan operand = convertExpression(unary.getOperand());
             return new BinaryExpressionPlan(null, unary.getOperator().getValue(), operand);
+        } else if (expr instanceof DotExpression) {
+            DotExpression dot = (DotExpression) expr;
+            // 将点号表达式转换为表名.字段名的字符串形式
+            return new IdentifierExpressionPlan(dot.getTableName() + "." + dot.getFieldName());
         } else if (expr instanceof FunctionCallExpression) {
             FunctionCallExpression func = (FunctionCallExpression) expr;
             // 简化处理：将函数调用转换为标识符表达式

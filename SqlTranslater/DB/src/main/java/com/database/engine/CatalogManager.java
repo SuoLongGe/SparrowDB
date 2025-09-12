@@ -6,6 +6,7 @@ import java.io.*;
 
 /**
  * 系统目录管理器 - 维护元数据，作为特殊表存储
+ * 现在使用StorageAdapter来支持更高级的存储系统
  */
 public class CatalogManager {
     private final Catalog catalog;
@@ -62,6 +63,13 @@ public class CatalogManager {
      */
     public String getCatalogSummary() {
         return catalog.getSummary();
+    }
+    
+    /**
+     * 获取内部Catalog实例
+     */
+    public Catalog getCatalog() {
+        return catalog;
     }
     
     /**
@@ -176,34 +184,34 @@ public class CatalogManager {
     private void initializeSystemTables() {
         // 创建系统表表
         TableInfo systemTablesInfo = new TableInfo(systemTableName);
-        systemTablesInfo.addColumn(new ColumnInfo("table_name", "VARCHAR", 255, true, true, false, null, false));
-        systemTablesInfo.addColumn(new ColumnInfo("create_time", "BIGINT", 8, false, false, false, null, false));
-        systemTablesInfo.addColumn(new ColumnInfo("column_count", "INT", 4, false, false, false, null, false));
-        systemTablesInfo.addColumn(new ColumnInfo("constraint_count", "INT", 4, false, false, false, null, false));
+        systemTablesInfo.addColumn(new ColumnInfo("table_name", "VARCHAR", 255, true, true, false, false, null, false));
+        systemTablesInfo.addColumn(new ColumnInfo("create_time", "BIGINT", 8, false, false, false, false, null, false));
+        systemTablesInfo.addColumn(new ColumnInfo("column_count", "INT", 4, false, false, false, false, null, false));
+        systemTablesInfo.addColumn(new ColumnInfo("constraint_count", "INT", 4, false, false, false, false, null, false));
         catalog.addTable(systemTablesInfo);
         
         // 创建系统列表
         TableInfo systemColumnsInfo = new TableInfo(systemColumnsName);
-        systemColumnsInfo.addColumn(new ColumnInfo("table_name", "VARCHAR", 255, true, false, false, null, false));
-        systemColumnsInfo.addColumn(new ColumnInfo("column_name", "VARCHAR", 255, true, false, false, null, false));
-        systemColumnsInfo.addColumn(new ColumnInfo("data_type", "VARCHAR", 50, false, false, false, null, false));
-        systemColumnsInfo.addColumn(new ColumnInfo("length", "INT", 4, false, false, false, null, false));
-        systemColumnsInfo.addColumn(new ColumnInfo("not_null", "BOOLEAN", 1, false, false, false, "false", false));
-        systemColumnsInfo.addColumn(new ColumnInfo("primary_key", "BOOLEAN", 1, false, false, false, "false", false));
-        systemColumnsInfo.addColumn(new ColumnInfo("unique", "BOOLEAN", 1, false, false, false, "false", false));
-        systemColumnsInfo.addColumn(new ColumnInfo("default_value", "VARCHAR", 255, false, false, false, null, false));
-        systemColumnsInfo.addColumn(new ColumnInfo("auto_increment", "BOOLEAN", 1, false, false, false, "false", false));
+        systemColumnsInfo.addColumn(new ColumnInfo("table_name", "VARCHAR", 255, true, false, false, false, null, false));
+        systemColumnsInfo.addColumn(new ColumnInfo("column_name", "VARCHAR", 255, true, false, false, false, null, false));
+        systemColumnsInfo.addColumn(new ColumnInfo("data_type", "VARCHAR", 50, false, false, false, false, null, false));
+        systemColumnsInfo.addColumn(new ColumnInfo("length", "INT", 4, false, false, false, false, null, false));
+        systemColumnsInfo.addColumn(new ColumnInfo("not_null", "BOOLEAN", 1, false, false, false, false, "false", false));
+        systemColumnsInfo.addColumn(new ColumnInfo("primary_key", "BOOLEAN", 1, false, false, false, false, "false", false));
+        systemColumnsInfo.addColumn(new ColumnInfo("unique", "BOOLEAN", 1, false, false, false, false, "false", false));
+        systemColumnsInfo.addColumn(new ColumnInfo("default_value", "VARCHAR", 255, false, false, false, false, null, false));
+        systemColumnsInfo.addColumn(new ColumnInfo("auto_increment", "BOOLEAN", 1, false, false, false, false, "false", false));
         catalog.addTable(systemColumnsInfo);
         
         // 创建系统约束表
         TableInfo systemConstraintsInfo = new TableInfo(systemConstraintsName);
-        systemConstraintsInfo.addColumn(new ColumnInfo("table_name", "VARCHAR", 255, true, false, false, null, false));
-        systemConstraintsInfo.addColumn(new ColumnInfo("constraint_name", "VARCHAR", 255, true, false, false, null, false));
-        systemConstraintsInfo.addColumn(new ColumnInfo("constraint_type", "VARCHAR", 50, false, false, false, null, false));
-        systemConstraintsInfo.addColumn(new ColumnInfo("columns", "VARCHAR", 1000, false, false, false, null, false));
-        systemConstraintsInfo.addColumn(new ColumnInfo("referenced_table", "VARCHAR", 255, false, false, false, null, false));
-        systemConstraintsInfo.addColumn(new ColumnInfo("referenced_columns", "VARCHAR", 1000, false, false, false, null, false));
-        systemConstraintsInfo.addColumn(new ColumnInfo("default_value", "VARCHAR", 255, false, false, false, null, false));
+        systemConstraintsInfo.addColumn(new ColumnInfo("table_name", "VARCHAR", 255, true, false, false, false, null, false));
+        systemConstraintsInfo.addColumn(new ColumnInfo("constraint_name", "VARCHAR", 255, true, false, false, false, null, false));
+        systemConstraintsInfo.addColumn(new ColumnInfo("constraint_type", "VARCHAR", 50, false, false, false, false, null, false));
+        systemConstraintsInfo.addColumn(new ColumnInfo("columns", "VARCHAR", 1000, false, false, false, false, null, false));
+        systemConstraintsInfo.addColumn(new ColumnInfo("referenced_table", "VARCHAR", 255, false, false, false, false, null, false));
+        systemConstraintsInfo.addColumn(new ColumnInfo("referenced_columns", "VARCHAR", 1000, false, false, false, false, null, false));
+        systemConstraintsInfo.addColumn(new ColumnInfo("default_value", "VARCHAR", 255, false, false, false, false, null, false));
         catalog.addTable(systemConstraintsInfo);
         
         // 创建存储
@@ -298,8 +306,9 @@ public class CatalogManager {
                     (Boolean) columnRecord.get("not_null"),
                     (Boolean) columnRecord.get("primary_key"),
                     (Boolean) columnRecord.get("unique"),
+                    (Boolean) columnRecord.get("auto_increment"),
                     (String) columnRecord.get("default_value"),
-                    (Boolean) columnRecord.get("auto_increment")
+                    (Boolean) columnRecord.get("not_null")
                 );
                 tableInfo.addColumn(columnInfo);
             }
@@ -314,6 +323,7 @@ public class CatalogManager {
                     (String) constraintRecord.get("referenced_table"),
                     constraintRecord.get("referenced_columns") != null ? 
                         Arrays.asList(((String) constraintRecord.get("referenced_columns")).split(",")) : null,
+                    null,
                     (String) constraintRecord.get("default_value")
                 );
                 tableInfo.addConstraint(constraintInfo);
