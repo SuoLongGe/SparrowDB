@@ -7,6 +7,5 @@ COLUMN=column_count:INT:4
 COLUMN=constraint_count:INT:4
 # End Metadata
 PAGE:1
-create_time=1757643759937|constraint_count=0|column_count=4|table_name=users
-create_time=1757643760015|constraint_count=0|column_count=4|table_name=products
+create_time=1757639136170|constraint_count=0|column_count=3|table_name=test_table
 

@@ -1,0 +1,6 @@
+# Table Metadata
+TABLE_NAME=smx
+COLUMN_COUNT=1
+COLUMN=ID:INT:0
+# End Metadata
+

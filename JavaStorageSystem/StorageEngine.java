@@ -6,15 +6,16 @@ import java.util.ArrayList;
  */
 public class StorageEngine {
     private final BufferPoolManager bufferPoolManager;
-    private final IndexManager indexManager;
+    private final ExtendedIndexManager indexManager;
     
     /**
      * 构造函数
      */
     public StorageEngine(int bufferPoolSize, String dbFilename, ReplacementPolicy policy) {
         this.bufferPoolManager = new BufferPoolManager(bufferPoolSize, dbFilename, policy);
-        this.indexManager = new IndexManager(this);
-        System.out.println("Storage engine initialized");
+        // 使用扩展的索引管理器，支持B+树和哈希索引
+        this.indexManager = new ExtendedIndexManager(this);
+        System.out.println("Storage engine initialized with dual index support (B+ Tree and Hash)");
     }
     
     /**
@@ -155,22 +156,50 @@ public class StorageEngine {
     /**
      * 获取索引管理器
      */
-    public IndexManager getIndexManager() {
+    public ExtendedIndexManager getIndexManager() {
         return indexManager;
     }
     
     /**
-     * 创建整数索引
+     * 创建整数B+树索引
      */
     public boolean createIntegerIndex(String indexName, int maxKeys) {
-        return indexManager.createIntegerIndex(indexName, maxKeys);
+        return indexManager.createIntegerBPlusIndex(indexName, maxKeys);
     }
     
     /**
-     * 创建字符串索引
+     * 创建字符串B+树索引
      */
     public boolean createStringIndex(String indexName, int maxKeys) {
-        return indexManager.createStringIndex(indexName, maxKeys);
+        return indexManager.createStringBPlusIndex(indexName, maxKeys);
+    }
+    
+    /**
+     * 创建整数B+树索引（显式方法）
+     */
+    public boolean createIntegerBPlusIndex(String indexName, int maxKeys) {
+        return indexManager.createIntegerBPlusIndex(indexName, maxKeys);
+    }
+    
+    /**
+     * 创建字符串B+树索引（显式方法）
+     */
+    public boolean createStringBPlusIndex(String indexName, int maxKeys) {
+        return indexManager.createStringBPlusIndex(indexName, maxKeys);
+    }
+    
+    /**
+     * 创建整数哈希索引
+     */
+    public boolean createIntegerHashIndex(String indexName, int bucketCount) {
+        return indexManager.createIntegerHashIndex(indexName, bucketCount);
+    }
+    
+    /**
+     * 创建字符串哈希索引
+     */
+    public boolean createStringHashIndex(String indexName, int bucketCount) {
+        return indexManager.createStringHashIndex(indexName, bucketCount);
     }
     
     /**
@@ -234,5 +263,26 @@ public class StorageEngine {
      */
     public void printIndexStructure(String indexName) {
         indexManager.printIndexStructure(indexName);
+    }
+    
+    /**
+     * 获取索引类型
+     */
+    public IndexType getIndexType(String indexName) {
+        return indexManager.getIndexType(indexName);
+    }
+    
+    /**
+     * 按类型打印索引
+     */
+    public void printIndexesByType(IndexType type) {
+        indexManager.printIndexesByType(type);
+    }
+    
+    /**
+     * 打印索引统计信息
+     */
+    public void printIndexStatistics() {
+        indexManager.printStatistics();
     }
 }

@@ -30,6 +30,15 @@ public class EnhancedSQLCompiler {
     }
     
     /**
+     * 构造函数，使用外部提供的Catalog实例，确保目录同步
+     */
+    public EnhancedSQLCompiler(Catalog sharedCatalog) {
+        this.catalog = sharedCatalog;
+        this.semanticAnalyzer = new SemanticAnalyzer(catalog);
+        this.executionPlanGenerator = new ExecutionPlanGenerator();
+    }
+    
+    /**
      * 编译SQL语句并返回详细信息
      */
     public CompilationResult compile(String sql) {

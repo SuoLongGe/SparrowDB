@@ -87,8 +87,8 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         // 验证约束
         validateConstraints(tableInfo);
         
-        // 将表信息添加到目录
-        catalog.addTable(tableInfo);
+        // 注意：不在语义分析阶段添加表到目录，这应该在执行阶段完成
+        // catalog.addTable(tableInfo);
         
         return null;
     }
