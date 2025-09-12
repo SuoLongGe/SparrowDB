@@ -42,6 +42,9 @@ public class StorageAdapter {
         
         // 初始化系统表
         initializeSystemTables();
+        
+        // 自动发现并注册现有的表
+        discoverAndRegisterExistingTables();
     }
     
     /**
@@ -130,6 +133,9 @@ public class StorageAdapter {
         List<Map<String, Object>> records = new ArrayList<>();
         
         try {
+            // 确保表已注册
+            ensureTableRegistered(tableName);
+            
             TableStorageInfo storageInfo = tableStorageMap.get(tableName);
             if (storageInfo == null) {
                 return records;
@@ -226,6 +232,59 @@ public class StorageAdapter {
     private void initializeSystemTables() {
         tableStorageMap.put("__system_tables__", new TableStorageInfo("__system_tables__"));
         nextPageIdMap.put("__system_tables__", 1);
+    }
+    
+    /**
+     * 自动发现并注册现有的表
+     */
+    private void discoverAndRegisterExistingTables() {
+        try {
+            File dataDir = new File(dataDirectory);
+            if (!dataDir.exists() || !dataDir.isDirectory()) {
+                return;
+            }
+            
+            File[] tblFiles = dataDir.listFiles((dir, name) -> name.endsWith(".tbl"));
+            if (tblFiles == null) {
+                return;
+            }
+            
+            for (File tblFile : tblFiles) {
+                String fileName = tblFile.getName();
+                String tableName = fileName.substring(0, fileName.lastIndexOf(".tbl"));
+                
+                // 跳过系统表
+                if (tableName.startsWith("__system_")) {
+                    continue;
+                }
+                
+                // 注册表到存储适配器
+                if (!tableStorageMap.containsKey(tableName)) {
+                    tableStorageMap.put(tableName, new TableStorageInfo(tableName));
+                    nextPageIdMap.put(tableName, 1);
+                    System.out.println("StorageAdapter发现并注册表: " + tableName);
+                }
+            }
+            
+        } catch (Exception e) {
+            System.err.println("发现现有表失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 确保表已注册到存储适配器
+     */
+    private void ensureTableRegistered(String tableName) {
+        if (!tableStorageMap.containsKey(tableName)) {
+            // 检查表文件是否存在
+            String tableFile = getTableFilePath(tableName);
+            File file = new File(tableFile);
+            if (file.exists()) {
+                tableStorageMap.put(tableName, new TableStorageInfo(tableName));
+                nextPageIdMap.put(tableName, 1);
+                System.out.println("StorageAdapter动态注册表: " + tableName);
+            }
+        }
     }
     
     private String getTableFilePath(String tableName) {

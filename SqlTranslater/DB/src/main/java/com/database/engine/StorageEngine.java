@@ -29,6 +29,13 @@ public class StorageEngine {
     }
     
     /**
+     * 获取数据目录路径
+     */
+    public String getDataDirectory() {
+        return dataDirectory;
+    }
+    
+    /**
      * 创建表存储
      */
     public boolean createTableStorage(String tableName, TableInfo tableInfo) {
@@ -94,13 +101,27 @@ public class StorageEngine {
         List<Map<String, Object>> records = new ArrayList<>();
         
         try {
+            // 确保表已注册
+            ensureTableRegistered(tableName);
+            
             TableStorageInfo storageInfo = tableStorageMap.get(tableName);
             if (storageInfo == null) {
                 return records;
             }
             
-            // 扫描所有页面
-            for (int pageId = 1; pageId < nextPageIdMap.get(tableName); pageId++) {
+            // 首先尝试读取RECORD:格式的数据（兼容现有数据）
+            List<Map<String, Object>> recordFormatData = readRecordFormatData(tableName);
+            if (!recordFormatData.isEmpty()) {
+                return recordFormatData;
+            }
+            
+            // 如果没有RECORD:格式数据，扫描PAGE:格式
+            Integer nextPageId = nextPageIdMap.get(tableName);
+            if (nextPageId == null) {
+                nextPageId = 1;
+            }
+            
+            for (int pageId = 1; pageId < nextPageId; pageId++) {
                 List<String> pageRecords = readPageRecords(tableName, pageId);
                 for (String recordData : pageRecords) {
                     Map<String, Object> record = deserializeRecord(recordData);
@@ -227,6 +248,56 @@ public class StorageEngine {
         // 初始化系统表存储
         tableStorageMap.put("__system_tables__", new TableStorageInfo("__system_tables__"));
         nextPageIdMap.put("__system_tables__", 1);
+    }
+    
+    /**
+     * 确保表已注册到存储引擎
+     */
+    private void ensureTableRegistered(String tableName) {
+        if (!tableStorageMap.containsKey(tableName)) {
+            tableStorageMap.put(tableName, new TableStorageInfo(tableName));
+            nextPageIdMap.put(tableName, 1);
+        }
+    }
+    
+    /**
+     * 读取RECORD:格式的数据（兼容现有数据文件）
+     */
+    private List<Map<String, Object>> readRecordFormatData(String tableName) {
+        List<Map<String, Object>> records = new ArrayList<>();
+        
+        try {
+            String tableFile = getTableFilePath(tableName);
+            File file = new File(tableFile);
+            if (!file.exists()) {
+                return records;
+            }
+            
+            try (BufferedReader reader = new BufferedReader(new FileReader(tableFile))) {
+                String line;
+                boolean inDataSection = false;
+                
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("# End Metadata")) {
+                        inDataSection = true;
+                        continue;
+                    }
+                    
+                    if (inDataSection && line.startsWith("RECORD:")) {
+                        // 解析RECORD:格式的数据
+                        String recordData = line.substring(7); // 移除"RECORD:"前缀
+                        Map<String, Object> record = deserializeRecord(recordData);
+                        if (record != null) {
+                            records.add(record);
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("读取RECORD格式数据失败: " + e.getMessage());
+        }
+        
+        return records;
     }
     
     private String getTableFilePath(String tableName) {
