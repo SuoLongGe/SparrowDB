@@ -6,7 +6,10 @@ COLUMN=create_time:BIGINT:8
 COLUMN=column_count:INT:4
 COLUMN=constraint_count:INT:4
 # End Metadata
+<<<<<<< Updated upstream
 PAGE:1
 create_time=1757643434124|constraint_count=0|column_count=6|table_name=test1
 create_time=1757643617115|constraint_count=0|column_count=6|table_name=users
+=======
+>>>>>>> Stashed changes
 

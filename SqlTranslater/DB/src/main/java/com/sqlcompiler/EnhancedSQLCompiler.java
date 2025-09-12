@@ -110,6 +110,13 @@ public class EnhancedSQLCompiler {
     }
     
     /**
+     * 获取目录对象
+     */
+    public Catalog getCatalog() {
+        return catalog;
+    }
+    
+    /**
      * 清空目录
      */
     public void clearCatalog() {
