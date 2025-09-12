@@ -63,6 +63,7 @@ buildNumber.properties
 
 # Database files
 *.db
+*.tbl
 
 # Build directories
 out/

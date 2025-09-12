@@ -3,9 +3,12 @@
 echo "正在启动SparrowDB GUI界面..."
 echo
 
+# 创建目标目录
+mkdir -p target/classes
+
 # 编译所有Java文件
 echo "正在编译Java文件..."
-javac -cp "target/classes" -d target/classes src/main/java/com/sqlcompiler/DatabaseGUI.java src/main/java/com/sqlcompiler/EnhancedSQLCompiler.java
+find src/main/java -name "*.java" -exec javac -cp "src/main/java" -d target/classes {} +
 
 if [ $? -ne 0 ]; then
     echo "编译失败！请检查Java代码。"
