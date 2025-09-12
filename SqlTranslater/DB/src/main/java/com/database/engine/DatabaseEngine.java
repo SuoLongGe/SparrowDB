@@ -423,4 +423,11 @@ public class DatabaseEngine {
     public SQLCompiler getSQLCompiler() {
         return sqlCompiler;
     }
+    
+    /**
+     * 获取数据目录路径
+     */
+    public String getDataDirectory() {
+        return dataDirectory;
+    }
 }

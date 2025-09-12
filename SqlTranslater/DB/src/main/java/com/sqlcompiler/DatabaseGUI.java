@@ -2,6 +2,7 @@ package com.sqlcompiler;
 
 import com.database.engine.DatabaseEngine;
 import com.database.engine.ExecutionResult;
+import com.database.config.DatabaseConfig;
 import com.sqlcompiler.ast.ASTPrinter;
 import com.sqlcompiler.ast.Statement;
 import com.sqlcompiler.execution.ExecutionPlan;
@@ -187,8 +188,9 @@ public class DatabaseGUI extends JFrame {
      */
     private void initializeDatabase() {
         try {
-            // 先初始化数据库引擎
-            databaseEngine = new DatabaseEngine("SparrowDB", "data");
+            // 先初始化数据库引擎 - 使用自动检测的数据目录路径
+            String dataDirectory = DatabaseConfig.getAutoDetectedDataDirectory();
+            databaseEngine = new DatabaseEngine("SparrowDB", dataDirectory);
             
             if (databaseEngine.initialize()) {
                 // 使用数据库引擎的目录管理器创建SQL编译器，确保目录同步

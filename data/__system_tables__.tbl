@@ -7,6 +7,9 @@ COLUMN=column_count:INT:4
 COLUMN=constraint_count:INT:4
 # End Metadata
 PAGE:1
-create_time=1757643759937|constraint_count=0|column_count=4|table_name=users
-create_time=1757643760015|constraint_count=0|column_count=4|table_name=products
+create_time=1757663116598|constraint_count=0|column_count=3|table_name=courses
+create_time=1757663116628|constraint_count=0|column_count=4|table_name=products
+create_time=1757663116688|constraint_count=0|column_count=4|table_name=students
+create_time=1757663116756|constraint_count=0|column_count=2|table_name=test_table
+create_time=1757663116793|constraint_count=0|column_count=4|table_name=users
 

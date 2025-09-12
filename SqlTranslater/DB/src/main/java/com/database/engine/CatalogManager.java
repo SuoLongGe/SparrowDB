@@ -84,17 +84,24 @@ public class CatalogManager {
      */
     public void loadFromStorage() {
         try {
-            // 加载表信息
+            // 方法1: 尝试从系统表加载
             List<Map<String, Object>> tableRecords = storageEngine.scanTable(systemTableName);
+            Set<String> loadedTables = new HashSet<>();
+            
             for (Map<String, Object> record : tableRecords) {
                 String tableName = (String) record.get("table_name");
                 if (tableName != null && !tableName.startsWith("__system_")) {
                     TableInfo tableInfo = loadTableInfo(tableName);
                     if (tableInfo != null) {
                         catalog.addTable(tableInfo);
+                        loadedTables.add(tableName);
                     }
                 }
             }
+            
+            // 方法2: 直接扫描data目录中的.tbl文件来发现未注册的表
+            loadTablesFromDataDirectory(loadedTables);
+            
         } catch (Exception e) {
             System.err.println("从存储加载目录信息失败: " + e.getMessage());
         }
@@ -371,5 +378,122 @@ public class CatalogManager {
         }
         
         return result;
+    }
+    
+    /**
+     * 从data目录扫描.tbl文件来发现未注册的表
+     */
+    private void loadTablesFromDataDirectory(Set<String> alreadyLoadedTables) {
+        try {
+            // 获取data目录路径
+            String dataDir = getDataDirectory();
+            File dataDirectory = new File(dataDir);
+            
+            if (!dataDirectory.exists() || !dataDirectory.isDirectory()) {
+                return;
+            }
+            
+            // 扫描所有.tbl文件
+            File[] tblFiles = dataDirectory.listFiles((dir, name) -> 
+                name.endsWith(".tbl") && !name.startsWith("__system_"));
+            
+            if (tblFiles == null) {
+                return;
+            }
+            
+            for (File tblFile : tblFiles) {
+                String fileName = tblFile.getName();
+                String tableName = fileName.substring(0, fileName.lastIndexOf(".tbl"));
+                
+                // 跳过已经加载的表
+                if (alreadyLoadedTables.contains(tableName)) {
+                    continue;
+                }
+                
+                // 尝试从文件头解析表结构
+                TableInfo tableInfo = parseTableInfoFromFile(tblFile);
+                if (tableInfo != null) {
+                    catalog.addTable(tableInfo);
+                    System.out.println("从文件发现并加载表: " + tableName);
+                    
+                    // 将表信息持久化到系统表中
+                    persistTableMetadata(tableInfo);
+                }
+            }
+            
+        } catch (Exception e) {
+            System.err.println("扫描data目录失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 从.tbl文件头解析表结构信息
+     */
+    private TableInfo parseTableInfoFromFile(File tblFile) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(tblFile))) {
+            String line;
+            String tableName = null;
+            List<ColumnInfo> columns = new ArrayList<>();
+            
+            // 读取文件头的元数据
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                
+                if (line.equals("# End Metadata")) {
+                    break;
+                }
+                
+                if (line.startsWith("TABLE_NAME=")) {
+                    tableName = line.substring("TABLE_NAME=".length());
+                } else if (line.startsWith("COLUMN=")) {
+                    String columnDef = line.substring("COLUMN=".length());
+                    ColumnInfo columnInfo = parseColumnDefinition(columnDef);
+                    if (columnInfo != null) {
+                        columns.add(columnInfo);
+                    }
+                }
+            }
+            
+            if (tableName != null && !columns.isEmpty()) {
+                TableInfo tableInfo = new TableInfo(tableName);
+                for (ColumnInfo column : columns) {
+                    tableInfo.addColumn(column);
+                }
+                return tableInfo;
+            }
+            
+        } catch (Exception e) {
+            System.err.println("解析表文件失败: " + tblFile.getName() + " - " + e.getMessage());
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 解析列定义字符串 (格式: name:type:length)
+     */
+    private ColumnInfo parseColumnDefinition(String columnDef) {
+        try {
+            String[] parts = columnDef.split(":");
+            if (parts.length >= 3) {
+                String name = parts[0];
+                String dataType = parts[1];
+                int length = Integer.parseInt(parts[2]);
+                
+                // 创建列信息（默认值，后续可以通过其他方式获取更详细信息）
+                return new ColumnInfo(name, dataType, length, false, false, false, false, null, false);
+            }
+        } catch (Exception e) {
+            System.err.println("解析列定义失败: " + columnDef + " - " + e.getMessage());
+        }
+        return null;
+    }
+    
+    /**
+     * 获取数据目录路径
+     */
+    private String getDataDirectory() {
+        // 从StorageEngine获取数据目录路径
+        return storageEngine.getDataDirectory();
     }
 }
