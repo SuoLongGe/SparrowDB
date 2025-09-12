@@ -95,7 +95,6 @@ public class LexicalAnalyzer {
         keywordMap.put("LIKE", TokenType.LIKE);
         keywordMap.put("IN", TokenType.IN);
         keywordMap.put("BETWEEN", TokenType.BETWEEN);
-        
 
         // 排序关键字
         keywordMap.put("ASC", TokenType.ASC);
@@ -103,7 +102,6 @@ public class LexicalAnalyzer {
 
         // 约束关键字
         keywordMap.put("CHECK", TokenType.CHECK);
-
 
         return keywordMap;
     }
