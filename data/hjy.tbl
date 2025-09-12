@@ -1,0 +1,6 @@
+# Table Metadata
+TABLE_NAME=hjy
+COLUMN_COUNT=1
+COLUMN=ID:int:0
+# End Metadata
+

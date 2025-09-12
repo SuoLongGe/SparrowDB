@@ -57,26 +57,19 @@ public class DatabaseConfig {
     
     /**
      * 获取命令行程序的数据目录路径
-     * 命令行程序通常在项目根目录下运行
+     * 统一使用项目根目录的data文件夹
      */
     public static String getCLIDataDirectory() {
-        return "./data";
+        return "../../data";
     }
     
     /**
      * 根据当前工作目录自动检测合适的数据目录路径
+     * 统一使用项目根目录的data文件夹
      */
     public static String getAutoDetectedDataDirectory() {
-        String currentDir = System.getProperty("user.dir");
-        
-        // 如果当前在SqlTranslater/DB目录下
-        if (currentDir.endsWith("SqlTranslater" + java.io.File.separator + "DB") || 
-            currentDir.endsWith("SqlTranslater/DB")) {
-            return getGUIDataDirectory();
-        }
-        
-        // 默认使用CLI路径
-        return getCLIDataDirectory();
+        // 统一使用项目根目录的data文件夹
+        return "../../data";
     }
     
     /**

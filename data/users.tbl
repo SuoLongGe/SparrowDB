@@ -1,4 +1,3 @@
-
 # Table Metadata
 TABLE_NAME=users
 COLUMN_COUNT=4
@@ -6,12 +5,9 @@ COLUMN=id:INT:0
 COLUMN=name:VARCHAR:50
 COLUMN=email:VARCHAR:100
 COLUMN=age:INT:0
+
 # End Metadata
 
-RECORD:name=Alice Johnson|id=1|email=alice@example.com|age=28
-RECORD:name=Bob Smith|id=2|email=bob@example.com|age=32
-RECORD:name=Charlie Brown|id=3|email=charlie@example.com|age=25
-RECORD:name=Diana Wilson|id=4|email=diana@example.com|age=29
-RECORD:name=Eve Davis|id=5|email=eve@example.com|age=35
-RECORD:name=smx|id=6|email=695631817@qq.com|age=20
-RECORD:name=hjy|id=7|email=695631817@qq.com|age=20
+RECORD:name=Test User|id=6|email=test@example.com|age=25
+RECORD:name=Another User|id=7|email=another@example.com|age=30
+RECORD:name=¾ÅÑý|id=91|email=91@91.com|age=91
