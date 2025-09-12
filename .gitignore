@@ -1,4 +1,6 @@
 # Compiled class files
+/SqlTranslater/DB/target/
+
 *.class
 
 # Log files
