@@ -1,4 +1,3 @@
-
 # Table Metadata
 TABLE_NAME=__system_tables__
 COLUMN_COUNT=4
@@ -8,10 +7,6 @@ COLUMN=column_count:INT:4
 COLUMN=constraint_count:INT:4
 # End Metadata
 PAGE:1
-create_time=1757603768380|constraint_count=1|column_count=4|table_name=students
-create_time=1757603768416|constraint_count=1|column_count=3|table_name=courses
-create_time=1757603768452|constraint_count=1|column_count=3|table_name=courses
-create_time=1757603768470|constraint_count=1|column_count=4|table_name=students
-
-
+create_time=1757643434124|constraint_count=0|column_count=6|table_name=test1
+create_time=1757643617115|constraint_count=0|column_count=6|table_name=users
 

@@ -1,6 +1,7 @@
 package com.sqlcompiler;
 
 import com.sqlcompiler.ast.Statement;
+import com.sqlcompiler.ast.BatchStatement;
 import com.sqlcompiler.ast.ASTPrinter;
 import com.sqlcompiler.catalog.Catalog;
 import com.sqlcompiler.exception.CompilationException;
@@ -41,6 +42,42 @@ public class EnhancedSQLCompiler {
             // 2. 语法分析
             SyntaxAnalyzer parser = new SyntaxAnalyzer(tokens);
             Statement statement = parser.parse();
+            
+            // 3. 语义分析
+            SemanticAnalysisResult semanticResult = semanticAnalyzer.analyze(statement);
+            
+            if (!semanticResult.isSuccess()) {
+                return new CompilationResult(false, tokens, null, null, null, semanticResult.getErrors());
+            }
+            
+            // 4. 执行计划生成
+            ExecutionPlan executionPlan = statement.accept(executionPlanGenerator);
+            
+            // 5. 生成AST字符串
+            ASTPrinter astPrinter = new ASTPrinter();
+            String astStructure = statement.accept(astPrinter);
+            
+            return new CompilationResult(true, tokens, statement, executionPlan, astStructure, null);
+            
+        } catch (CompilationException e) {
+            return new CompilationResult(false, null, null, null, null, List.of(e.toString()));
+        } catch (Exception e) {
+            return new CompilationResult(false, null, null, null, null, List.of("未知错误: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * 编译批量SQL语句并返回详细信息
+     */
+    public CompilationResult compileBatch(String sql) {
+        try {
+            // 1. 词法分析
+            LexicalAnalyzer lexer = new LexicalAnalyzer(sql);
+            List<Token> tokens = lexer.tokenize();
+            
+            // 2. 语法分析
+            SyntaxAnalyzer parser = new SyntaxAnalyzer(tokens);
+            BatchStatement statement = parser.parseBatch();
             
             // 3. 语义分析
             SemanticAnalysisResult semanticResult = semanticAnalyzer.analyze(statement);

@@ -30,7 +30,24 @@ public class ASTPrinter implements ASTVisitor<String> {
     public String visit(Statement node) throws CompilationException {
         return "Statement";
     }
-    
+    @Override
+    public String visit(BatchStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("BatchStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("statementCount: ").append(node.getStatementCount()).append("\n");
+        sb.append(getIndent()).append("statements: [\n");
+        increaseIndent();
+        for (int i = 0; i < node.getStatements().size(); i++) {
+            Statement stmt = node.getStatements().get(i);
+            sb.append(getIndent()).append("[").append(i + 1).append("] ").append(stmt.accept(this)).append(",\n");
+        }
+        decreaseIndent();
+        sb.append(getIndent()).append("]\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
     @Override
     public String visit(CreateTableStatement node) throws CompilationException {
         StringBuilder sb = new StringBuilder();
