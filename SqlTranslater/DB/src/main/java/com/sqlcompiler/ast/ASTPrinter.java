@@ -2,6 +2,7 @@ package com.sqlcompiler.ast;
 
 import com.sqlcompiler.exception.CompilationException;
 import com.sqlcompiler.lexer.Position;
+import java.util.Map;
 
 /**
  * AST打印器 - 用于显示抽象语法树的结构
@@ -122,6 +123,27 @@ public class ASTPrinter implements ASTVisitor<String> {
     }
     
     @Override
+    public String visit(UpdateStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("UpdateStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("tableName: ").append(node.getTableName()).append("\n");
+        sb.append(getIndent()).append("setClause: {\n");
+        increaseIndent();
+        for (Map.Entry<String, Expression> entry : node.getSetClause().entrySet()) {
+            sb.append(getIndent()).append(entry.getKey()).append(" = ").append(entry.getValue().accept(this)).append("\n");
+        }
+        decreaseIndent();
+        sb.append(getIndent()).append("}\n");
+        if (node.getWhereClause() != null) {
+            sb.append(getIndent()).append("whereClause: ").append(node.getWhereClause().accept(this)).append("\n");
+        }
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
     public String visit(DeleteStatement node) throws CompilationException {
         StringBuilder sb = new StringBuilder();
         sb.append("DeleteStatement {\n");
@@ -209,6 +231,45 @@ public class ASTPrinter implements ASTVisitor<String> {
         }
         decreaseIndent();
         sb.append(getIndent()).append("]\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(InExpression node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("InExpression {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("left: ").append(node.getLeft().accept(this)).append("\n");
+        sb.append(getIndent()).append("right: ");
+        if (node.isSubquery()) {
+            sb.append("Subquery {\n");
+            increaseIndent();
+            sb.append(getIndent()).append(node.getSubquery().accept(this)).append("\n");
+            decreaseIndent();
+            sb.append(getIndent()).append("}");
+        } else {
+            sb.append("Values [\n");
+            increaseIndent();
+            for (Expression value : node.getValues()) {
+                sb.append(getIndent()).append(value.accept(this)).append(",\n");
+            }
+            decreaseIndent();
+            sb.append(getIndent()).append("]");
+        }
+        sb.append("\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(SubqueryExpression node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SubqueryExpression {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("subquery: ").append(node.getSubquery().accept(this)).append("\n");
         decreaseIndent();
         sb.append(getIndent()).append("}");
         return sb.toString();

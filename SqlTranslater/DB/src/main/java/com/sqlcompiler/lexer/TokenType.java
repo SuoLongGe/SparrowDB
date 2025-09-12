@@ -70,6 +70,13 @@ public enum TokenType {
     ASC("ASC"),
     DESC("DESC"),
     
+    // 聚合函数
+    COUNT("COUNT"),
+    SUM("SUM"),
+    AVG("AVG"),
+    MAX("MAX"),
+    MIN("MIN"),
+    
     // 运算符
     EQUALS("="),
     NOT_EQUALS("!="),
@@ -138,6 +145,8 @@ public enum TokenType {
                this == PRIMARY || this == KEY || this == PRIMARY_KEY || this == FOREIGN || 
                this == FOREIGN_KEY || this == REFERENCES || this == UNIQUE || this == NOT_NULL || 
                this == DEFAULT || this == AUTO_INCREMENT || this == CHECK ||
+               this == ASC || this == DESC ||
+               this == COUNT || this == SUM || this == AVG || this == MAX || this == MIN ||
                this == LIKE || this == IN || this == BETWEEN;
     }
     

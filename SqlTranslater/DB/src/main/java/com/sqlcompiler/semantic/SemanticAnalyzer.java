@@ -100,8 +100,8 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         // 检查表是否存在
         TableInfo tableInfo = catalog.getTable(tableName);
         if (tableInfo == null) {
-            errors.add(String.format("[语义错误, %s, 表 '%s' 不存在]", 
-                                   node.getPosition(), tableName));
+            errors.add(String.format("❌ 语义错误\n   位置: 第%d行第%d列\n   错误: 表 '%s' 不存在", 
+                                   node.getPosition().getLine(), node.getPosition().getColumn(), tableName));
             return null;
         }
         
@@ -116,8 +116,8 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         // 检查列是否存在
         for (String columnName : insertColumns) {
             if (!tableInfo.columnExists(columnName)) {
-                errors.add(String.format("[语义错误, %s, 列 '%s' 在表 '%s' 中不存在]", 
-                                       node.getPosition(), columnName, tableName));
+                errors.add(String.format("❌ 语义错误\n   位置: 第%d行第%d列\n   错误: 列 '%s' 在表 '%s' 中不存在", 
+                                       node.getPosition().getLine(), node.getPosition().getColumn(), columnName, tableName));
             }
         }
         
@@ -125,8 +125,8 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         for (int i = 0; i < values.size(); i++) {
             List<Expression> valueList = values.get(i);
             if (valueList.size() != insertColumns.size()) {
-                errors.add(String.format("[语义错误, %s, 第%d行值的数量(%d)与列数(%d)不匹配]", 
-                                       node.getPosition(), i + 1, valueList.size(), insertColumns.size()));
+                errors.add(String.format("❌ 语义错误\n   位置: 第%d行第%d列\n   错误: 第%d行值的数量(%d)与列数(%d)不匹配", 
+                                       node.getPosition().getLine(), node.getPosition().getColumn(), i + 1, valueList.size(), insertColumns.size()));
             }
         }
         
@@ -195,13 +195,55 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
     }
     
     @Override
+    public Void visit(UpdateStatement node) throws CompilationException {
+        String tableName = node.getTableName();
+        
+        // 检查表是否存在
+        TableInfo tableInfo = catalog.getTable(tableName);
+        if (tableInfo == null) {
+            errors.add(String.format("❌ 语义错误\n   位置: 第%d行第%d列\n   错误: 表 '%s' 不存在", 
+                                   node.getPosition().getLine(), node.getPosition().getColumn(), tableName));
+            return null;
+        }
+        
+        // 检查SET子句中的列是否存在
+        for (String columnName : node.getSetClause().keySet()) {
+            if (!tableInfo.columnExists(columnName)) {
+                errors.add(String.format("❌ 语义错误\n   位置: 第%d行第%d列\n   错误: 列 '%s' 在表 '%s' 中不存在", 
+                                       node.getPosition().getLine(), node.getPosition().getColumn(), columnName, tableName));
+            }
+        }
+        
+        // 检查SET子句中的表达式类型
+        for (Map.Entry<String, Expression> entry : node.getSetClause().entrySet()) {
+            String columnName = entry.getKey();
+            Expression expr = entry.getValue();
+            ColumnInfo columnInfo = tableInfo.getColumn(columnName);
+            
+            if (columnInfo != null) {
+                validateExpressionType(expr, columnInfo, node.getPosition());
+            }
+        }
+        
+        // 分析WHERE子句
+        if (node.getWhereClause() != null) {
+            List<TableReference> fromClause = Arrays.asList(
+                new TableReference(tableName, null, new ArrayList<>(), node.getPosition())
+            );
+            validateExpression(node.getWhereClause().getCondition(), fromClause, node.getPosition());
+        }
+        
+        return null;
+    }
+    
+    @Override
     public Void visit(DeleteStatement node) throws CompilationException {
         String tableName = node.getTableName();
         
         // 检查表是否存在
         if (!catalog.tableExists(tableName)) {
-            errors.add(String.format("[语义错误, %s, 表 '%s' 不存在]", 
-                                   node.getPosition(), tableName));
+            errors.add(String.format("❌ 语义错误\n   位置: 第%d行第%d列\n   错误: 表 '%s' 不存在", 
+                                   node.getPosition().getLine(), node.getPosition().getColumn(), tableName));
             return null;
         }
         
@@ -265,6 +307,31 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         for (Expression arg : node.getArguments()) {
             arg.accept(this);
         }
+        return null;
+    }
+    
+    @Override
+    public Void visit(InExpression node) throws CompilationException {
+        // 验证左侧表达式
+        node.getLeft().accept(this);
+        
+        // 验证右侧（子查询或值列表）
+        if (node.isSubquery()) {
+            // 验证子查询
+            node.getSubquery().accept(this);
+        } else {
+            // 验证值列表
+            for (Expression value : node.getValues()) {
+                value.accept(this);
+            }
+        }
+        return null;
+    }
+    
+    @Override
+    public Void visit(SubqueryExpression node) throws CompilationException {
+        // 验证子查询
+        node.getSubquery().accept(this);
         return null;
     }
     
