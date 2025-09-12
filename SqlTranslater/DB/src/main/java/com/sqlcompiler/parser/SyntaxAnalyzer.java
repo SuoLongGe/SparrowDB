@@ -44,6 +44,44 @@ public class SyntaxAnalyzer {
     }
     
     /**
+     * 解析批量SQL语句
+     */
+    public BatchStatement parseBatch() throws SyntaxException {
+        if (tokens.isEmpty() || tokens.get(0).getType() == TokenType.EOF) {
+            throw new SyntaxException("空语句", new Position(1, 1));
+        }
+        
+        List<Statement> statements = new ArrayList<>();
+        Position startPos = currentToken().getPosition();
+        
+        while (currentToken().getType() != TokenType.EOF) {
+            // 跳过空白和分号
+            while (currentToken().getType() == TokenType.SEMICOLON) {
+                nextToken();
+            }
+            
+            if (currentToken().getType() == TokenType.EOF) {
+                break;
+            }
+            
+            // 解析单个语句
+            Statement statement = parseStatement();
+            statements.add(statement);
+            
+            // 跳过语句后的分号
+            if (currentToken().getType() == TokenType.SEMICOLON) {
+                nextToken();
+            }
+        }
+        
+        if (statements.isEmpty()) {
+            throw new SyntaxException("没有找到有效的SQL语句", startPos);
+        }
+        
+        return new BatchStatement(statements, startPos);
+    }
+    
+    /**
      * 解析语句
      */
     private Statement parseStatement() throws SyntaxException {

@@ -247,8 +247,16 @@ public class DatabaseGUI extends JFrame {
         astArea.setText("");
         
         try {
+            // 检查是否是批量SQL语句
+            boolean isMultiStatement = sql.contains(";") && sql.split(";").length > 1;
+            
             // 使用增强版SQL编译器进行编译
-            EnhancedSQLCompiler.CompilationResult result = compiler.compile(sql);
+            EnhancedSQLCompiler.CompilationResult result;
+            if (isMultiStatement) {
+                result = compiler.compileBatch(sql);
+            } else {
+                result = compiler.compile(sql);
+            }
             
             // 显示Token信息
             displayTokens(result);
