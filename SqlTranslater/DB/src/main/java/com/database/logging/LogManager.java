@@ -1,6 +1,7 @@
 package com.database.logging;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -78,7 +79,7 @@ public class LogManager {
             return maxLsn;
         }
         
-        try (BufferedReader reader = Files.newBufferedReader(file)) {
+        try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.trim().isEmpty()) {
@@ -119,8 +120,8 @@ public class LogManager {
                                            entry.getTableName(), entry.getOperation(),
                                            entry.getOldData(), entry.getNewData(), entry.getAdditionalInfo());
             
-            // 写入日志文件
-            try (FileWriter writer = new FileWriter(currentLogFile, true);
+            // 写入日志文件 - 使用UTF-8编码
+            try (FileWriter writer = new FileWriter(currentLogFile, StandardCharsets.UTF_8, true);
                  BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
                 bufferedWriter.write(newEntry.toLogLine());
                 bufferedWriter.newLine();
@@ -219,7 +220,7 @@ public class LogManager {
         
         // 记录检查点信息到单独文件
         String checkpointFile = logDirectory + File.separator + "checkpoint.log";
-        try (FileWriter writer = new FileWriter(checkpointFile, true);
+        try (FileWriter writer = new FileWriter(checkpointFile, StandardCharsets.UTF_8, true);
              BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
             // 使用简单的时间格式避免兼容性问题
             String timestamp = java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
@@ -292,7 +293,7 @@ public class LogManager {
      * 在指定文件中查找日志条目
      */
     private LogEntry findLogEntryInFile(String filePath, long lsn) throws IOException {
-        try (BufferedReader reader = Files.newBufferedReader(Paths.get(filePath))) {
+        try (BufferedReader reader = Files.newBufferedReader(Paths.get(filePath), StandardCharsets.UTF_8)) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.contains("LSN:" + String.format("%08d", lsn))) {

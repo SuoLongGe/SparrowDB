@@ -2,6 +2,7 @@ package com.database.engine;
 
 import java.util.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import com.sqlcompiler.catalog.*;
@@ -446,8 +447,8 @@ public class StorageAdapter {
         try {
             String tableFile = getTableFilePath(tableName);
             
-            // 追加记录到文件
-            try (FileWriter writer = new FileWriter(tableFile, true)) {
+            // 追加记录到文件 - 使用UTF-8编码
+            try (FileWriter writer = new FileWriter(tableFile, StandardCharsets.UTF_8, true)) {
                 writer.write("RECORD:" + serializedRecord + "\n");
             }
             
@@ -468,7 +469,7 @@ public class StorageAdapter {
                 return records;
             }
             
-            try (BufferedReader reader = new BufferedReader(new FileReader(tableFile))) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(tableFile, StandardCharsets.UTF_8))) {
                 String line;
                 boolean inDataSection = false;
                 

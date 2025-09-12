@@ -21,6 +21,9 @@ public class DatabaseEngine {
     private final String dataDirectory;
     private boolean initialized = false;
     
+    // 索引类型设置
+    private String currentIndexType = "智能选择";
+    
     public DatabaseEngine(String databaseName, String dataDirectory) {
         this.databaseName = databaseName;
         this.dataDirectory = dataDirectory;
@@ -315,6 +318,21 @@ public class DatabaseEngine {
         }
         
         return null;
+    }
+    
+    /**
+     * 设置索引类型
+     */
+    public void setIndexType(String indexType) {
+        this.currentIndexType = indexType;
+        System.out.println("索引类型已设置为: " + indexType);
+    }
+    
+    /**
+     * 获取当前索引类型
+     */
+    public String getCurrentIndexType() {
+        return currentIndexType;
     }
     
     /**
