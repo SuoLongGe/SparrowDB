@@ -2,6 +2,10 @@ package com.sqlcompiler;
 
 import com.database.engine.DatabaseEngine;
 import com.database.engine.ExecutionResult;
+
+import com.sqlcompiler.gui.SQLAutoComplete;
+import com.sqlcompiler.gui.SQLSyntaxHighlighter;
+
 import com.database.config.DatabaseConfig;
 import com.sqlcompiler.ast.ASTPrinter;
 import com.sqlcompiler.ast.Statement;
@@ -9,12 +13,12 @@ import com.sqlcompiler.execution.ExecutionPlan;
 import com.sqlcompiler.lexer.Token;
 import com.sqlcompiler.lexer.TokenType;
 
+
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
 
 /**
  * 数据库GUI界面
@@ -25,7 +29,7 @@ public class DatabaseGUI extends JFrame {
     private DatabaseEngine databaseEngine;
     
     // 界面组件
-    private JTextArea sqlInputArea;
+    private JTextPane sqlInputArea;
     private JTextArea resultArea;
     private JTextArea tokenArea;
     private JTextArea astArea;
@@ -33,6 +37,12 @@ public class DatabaseGUI extends JFrame {
     private JButton clearButton;
     private JButton catalogButton;
     private JLabel statusLabel;
+    
+    // 自动补全组件
+    private SQLAutoComplete autoComplete;
+    
+    // 语法高亮组件
+    private SQLSyntaxHighlighter syntaxHighlighter;
     
     public DatabaseGUI() {
         initializeComponents();
@@ -45,12 +55,14 @@ public class DatabaseGUI extends JFrame {
      * 初始化组件
      */
     private void initializeComponents() {
-        // SQL输入区域
-        sqlInputArea = new JTextArea(8, 50);
+        // SQL输入区域 - 使用JTextPane支持语法高亮
+        sqlInputArea = new JTextPane();
         sqlInputArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
-        sqlInputArea.setBorder(new TitledBorder("SQL输入区域"));
-        sqlInputArea.setLineWrap(true);
-        sqlInputArea.setWrapStyleWord(true);
+        sqlInputArea.setBorder(new TitledBorder("SQL输入区域 (支持语法高亮)"));
+        sqlInputArea.setPreferredSize(new Dimension(600, 200));
+        
+        // 初始化语法高亮组件
+        syntaxHighlighter = new SQLSyntaxHighlighter(sqlInputArea);
         
         // 结果显示区域
         resultArea = new JTextArea(15, 30);
@@ -99,10 +111,11 @@ public class DatabaseGUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         
-        // 顶部：SQL输入区域和按钮
+        // 顶部：SQL输入区域、自动补全建议和按钮
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
+        // SQL输入区域
         JScrollPane sqlScrollPane = new JScrollPane(sqlInputArea);
         sqlScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         topPanel.add(sqlScrollPane, BorderLayout.CENTER);
@@ -112,6 +125,16 @@ public class DatabaseGUI extends JFrame {
         buttonPanel.add(executeButton);
         buttonPanel.add(clearButton);
         buttonPanel.add(catalogButton);
+        
+        // 添加语法高亮开关按钮
+        JCheckBox highlightCheckBox = new JCheckBox("语法高亮", true);
+        highlightCheckBox.addActionListener(e -> {
+            if (syntaxHighlighter != null) {
+                syntaxHighlighter.setSyntaxHighlightingEnabled(highlightCheckBox.isSelected());
+            }
+        });
+        buttonPanel.add(highlightCheckBox);
+        
         buttonPanel.add(statusLabel);
         topPanel.add(buttonPanel, BorderLayout.SOUTH);
         
@@ -181,6 +204,17 @@ public class DatabaseGUI extends JFrame {
                 executeSQL();
             }
         });
+        
+        // 添加自动补全快捷键
+        sqlInputArea.getInputMap().put(KeyStroke.getKeyStroke("ctrl SPACE"), "autocomplete");
+        sqlInputArea.getActionMap().put("autocomplete", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (autoComplete != null) {
+                    autoComplete.showAutoComplete();
+                }
+            }
+        });
     }
     
     /**
@@ -193,15 +227,20 @@ public class DatabaseGUI extends JFrame {
             databaseEngine = new DatabaseEngine("SparrowDB", dataDirectory);
             
             if (databaseEngine.initialize()) {
+
                 // 使用数据库引擎的目录管理器创建SQL编译器，确保目录同步
                 compiler = new EnhancedSQLCompiler(databaseEngine.getCatalogManager().getCatalog());
+                
+                // 初始化自动补全组件
+                autoComplete = new SQLAutoComplete(sqlInputArea, compiler.getCatalog());
                 
                 statusLabel.setText("数据库已连接");
                 statusLabel.setForeground(Color.GREEN);
                 appendToResult("数据库引擎初始化成功！\n");
                 appendToResult("使用简单文件存储系统\n");
                 appendToResult("支持的命令：CREATE TABLE、INSERT、SELECT、DELETE\n");
-                appendToResult("输入'exit'退出程序，输入'catalog'查看目录信息\n\n");
+                appendToResult("输入'exit'退出程序，输入'catalog'查看目录信息\n");
+                appendToResult("自动补全功能已启用：按Tab键或Ctrl+Space触发\n\n");
             } else {
                 statusLabel.setText("数据库连接失败");
                 statusLabel.setForeground(Color.RED);
@@ -352,6 +391,7 @@ public class DatabaseGUI extends JFrame {
         statusLabel.setText("已清空");
         statusLabel.setForeground(Color.BLUE);
     }
+    
     
     /**
      * 向结果区域添加文本

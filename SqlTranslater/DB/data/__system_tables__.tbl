@@ -8,6 +8,8 @@ COLUMN=column_count:INT:4
 COLUMN=constraint_count:INT:4
 # End Metadata
 PAGE:1
+create_time=1757643434124|constraint_count=0|column_count=6|table_name=test1
+create_time=1757643617115|constraint_count=0|column_count=6|table_name=users
 create_time=1757653112138|constraint_count=0|column_count=3|table_name=courses
 create_time=1757653112143|constraint_count=0|column_count=4|table_name=products
 create_time=1757653112163|constraint_count=0|column_count=1|table_name=smx
