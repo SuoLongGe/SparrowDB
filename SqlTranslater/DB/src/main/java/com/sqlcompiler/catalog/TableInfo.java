@@ -9,9 +9,15 @@ public class TableInfo {
     private final String name;
     private final Map<String, ColumnInfo> columns;
     private final List<ConstraintInfo> constraints;
+    private final String storageFormat; // 存储格式：ROW 或 COLUMN
     
     public TableInfo(String name) {
+        this(name, "ROW");
+    }
+    
+    public TableInfo(String name, String storageFormat) {
         this.name = name;
+        this.storageFormat = storageFormat != null ? storageFormat : "ROW";
         this.columns = new LinkedHashMap<>();
         this.constraints = new ArrayList<>();
     }
@@ -46,6 +52,18 @@ public class TableInfo {
     
     public List<ConstraintInfo> getConstraints() {
         return constraints;
+    }
+    
+    public String getStorageFormat() {
+        return storageFormat;
+    }
+    
+    public boolean isColumnarStorage() {
+        return "COLUMN".equalsIgnoreCase(storageFormat);
+    }
+    
+    public boolean isRowStorage() {
+        return "ROW".equalsIgnoreCase(storageFormat);
     }
     
     /**

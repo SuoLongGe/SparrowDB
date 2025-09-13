@@ -1,0 +1,12 @@
+# Column Metadata
+COLUMN_NAME=name
+DATA_TYPE=VARCHAR
+LENGTH=10
+NOT_NULL=false
+PRIMARY_KEY=false
+UNIQUE=false
+DEFAULT_VALUE=
+AUTO_INCREMENT=false
+# End Metadata
+# Data starts below
+fyh

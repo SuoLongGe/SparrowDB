@@ -41,6 +41,9 @@ public class DatabaseGUI extends JFrame {
     private JComboBox<String> indexTypeComboBox;
     private JLabel executionTimeLabel;
     
+    // 存储格式选择组件
+    private JComboBox<String> storageFormatComboBox;
+    
     // 自动补全组件
     private SQLAutoComplete autoComplete;
     
@@ -133,6 +136,12 @@ public class DatabaseGUI extends JFrame {
         executionTimeLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
         executionTimeLabel.setForeground(new Color(100, 100, 100));
         
+        // 存储格式选择组件
+        String[] storageFormats = {"行式存储", "列式存储"};
+        storageFormatComboBox = new JComboBox<>(storageFormats);
+        storageFormatComboBox.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        storageFormatComboBox.setSelectedIndex(0); // 默认选择行式存储
+        
         // 状态标签
         statusLabel = new JLabel("就绪");
         statusLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
@@ -174,6 +183,12 @@ public class DatabaseGUI extends JFrame {
         indexLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
         buttonPanel.add(indexLabel);
         buttonPanel.add(indexTypeComboBox);
+        
+        // 添加存储格式选择组件
+        JLabel storageLabel = new JLabel("存储格式:");
+        storageLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        buttonPanel.add(storageLabel);
+        buttonPanel.add(storageFormatComboBox);
         
         // 添加执行时间标签
         buttonPanel.add(executionTimeLabel);
@@ -524,8 +539,15 @@ public class DatabaseGUI extends JFrame {
                     String selectedIndexType = (String) indexTypeComboBox.getSelectedItem();
                     appendToResult("使用索引方式: " + selectedIndexType + "\n");
                     
+                    // 获取选择的存储格式
+                    String selectedStorageFormat = (String) storageFormatComboBox.getSelectedItem();
+                    appendToResult("使用存储格式: " + selectedStorageFormat + "\n");
+                    
                     // 设置数据库引擎的索引类型
                     databaseEngine.setIndexType(selectedIndexType);
+                    
+                    // 设置数据库引擎的存储格式
+                    databaseEngine.setStorageFormat(selectedStorageFormat);
                     
                     // 测量执行时间
                     long startTime = System.nanoTime();

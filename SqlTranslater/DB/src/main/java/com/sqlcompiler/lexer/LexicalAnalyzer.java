@@ -124,6 +124,7 @@ public class LexicalAnalyzer {
         keywordMap.put("MAX", TokenType.MAX);
         keywordMap.put("MIN", TokenType.MIN);
         
+<<<<<<< HEAD
         // 数学函数
         keywordMap.put("ABS", TokenType.ABS);
         keywordMap.put("CEIL", TokenType.CEIL);
@@ -160,6 +161,12 @@ public class LexicalAnalyzer {
         keywordMap.put("DATE_SUB", TokenType.DATE_SUB);
         keywordMap.put("DATEDIFF", TokenType.DATEDIFF);
         
+=======
+        // 存储格式关键字
+        keywordMap.put("STORAGE", TokenType.STORAGE);
+        keywordMap.put("ROW", TokenType.ROW);
+        keywordMap.put("COLUMN", TokenType.COLUMN);
+>>>>>>> 272a007 (列式存储实现)
 
         return keywordMap;
     }

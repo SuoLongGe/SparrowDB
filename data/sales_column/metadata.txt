@@ -1,0 +1,8 @@
+STORAGE_FORMAT=COLUMN
+COLUMN_COUNT=6
+COLUMN=id
+COLUMN=product_name
+COLUMN=price
+COLUMN=quantity
+COLUMN=category
+COLUMN=region

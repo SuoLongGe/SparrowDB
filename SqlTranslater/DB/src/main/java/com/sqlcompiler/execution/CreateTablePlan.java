@@ -9,12 +9,18 @@ public class CreateTablePlan extends ExecutionPlan {
     private final String tableName;
     private final List<ColumnPlan> columns;
     private final List<ConstraintPlan> constraints;
+    private final String storageFormat;
     
     public CreateTablePlan(String tableName, List<ColumnPlan> columns, List<ConstraintPlan> constraints) {
+        this(tableName, columns, constraints, "ROW");
+    }
+    
+    public CreateTablePlan(String tableName, List<ColumnPlan> columns, List<ConstraintPlan> constraints, String storageFormat) {
         super("CREATE_TABLE");
         this.tableName = tableName;
         this.columns = columns;
         this.constraints = constraints;
+        this.storageFormat = storageFormat != null ? storageFormat : "ROW";
     }
     
     public String getTableName() {
@@ -27,6 +33,10 @@ public class CreateTablePlan extends ExecutionPlan {
     
     public List<ConstraintPlan> getConstraints() {
         return constraints;
+    }
+    
+    public String getStorageFormat() {
+        return storageFormat;
     }
     
     @Override
@@ -56,7 +66,8 @@ public class CreateTablePlan extends ExecutionPlan {
             sb.append("\n");
         }
         
-        sb.append("  ]\n");
+        sb.append("  ],\n");
+        sb.append("  \"storageFormat\": \"").append(storageFormat).append("\"\n");
         sb.append("}");
         return sb.toString();
     }
