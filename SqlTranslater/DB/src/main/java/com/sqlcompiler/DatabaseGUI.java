@@ -72,6 +72,9 @@ public class DatabaseGUI extends JFrame {
         // 初始化语法高亮组件
         syntaxHighlighter = new SQLSyntaxHighlighter(sqlInputArea);
         
+        // 初始化AST可视化组件
+        astVisualizer = new ASTVisualizer();
+        
         // 结果显示区域
         resultArea = new JTextArea(15, 30);
         resultArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
