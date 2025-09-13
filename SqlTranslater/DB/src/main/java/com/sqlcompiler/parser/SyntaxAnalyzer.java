@@ -98,11 +98,13 @@ public class SyntaxAnalyzer {
                 return parseUpdateStatement();
             case DELETE:
                 return parseDeleteStatement();
+            case DROP:
+                return parseDropTableStatement();
             default:
                 throw new SyntaxException(
                     String.format("不支持的语句类型 '%s'", token.getValue()),
                     token.getPosition(),
-                    "CREATE TABLE, INSERT INTO, SELECT, UPDATE, DELETE FROM"
+                    "CREATE TABLE, INSERT INTO, SELECT, UPDATE, DELETE FROM, DROP TABLE"
                 );
         }
     }
@@ -802,6 +804,35 @@ public class SyntaxAnalyzer {
         }
         
         return new DeleteStatement(tableName, whereClause, startPos);
+    }
+    
+    /**
+     * 解析DROP TABLE语句
+     */
+    private DropTableStatement parseDropTableStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+        
+        // DROP TABLE
+        expect(TokenType.DROP);
+        expect(TokenType.TABLE);
+        
+        // 可选的IF EXISTS
+        boolean ifExists = false;
+        if (currentToken().getType() == TokenType.IF) {
+            nextToken();
+            expect(TokenType.EXISTS);
+            ifExists = true;
+        }
+        
+        // 表名
+        String tableName = expectIdentifier();
+        
+        // 可选的分号
+        if (currentToken().getType() == TokenType.SEMICOLON) {
+            nextToken();
+        }
+        
+        return new DropTableStatement(tableName, ifExists, startPos);
     }
     
     /**

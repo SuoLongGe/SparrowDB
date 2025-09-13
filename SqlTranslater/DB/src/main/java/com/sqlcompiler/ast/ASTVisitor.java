@@ -13,6 +13,7 @@ public interface ASTVisitor<T> {
     T visit(SelectStatement node) throws CompilationException;
     T visit(UpdateStatement node) throws CompilationException;
     T visit(DeleteStatement node) throws CompilationException;
+    T visit(DropTableStatement node) throws CompilationException;
     T visit(ColumnDefinition node) throws CompilationException;
     T visit(Expression node) throws CompilationException;
     T visit(BinaryExpression node) throws CompilationException;

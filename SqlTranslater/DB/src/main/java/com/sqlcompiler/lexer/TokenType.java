@@ -40,6 +40,8 @@ public enum TokenType {
     NULL("NULL"),
     TRUE("TRUE"),
     FALSE("FALSE"),
+    IF("IF"),
+    EXISTS("EXISTS"),
     
     // 数据类型
     INT("INT"),
@@ -146,6 +148,7 @@ public enum TokenType {
                this == HAVING || this == LIMIT || this == OFFSET || this == JOIN ||
                this == INNER || this == LEFT || this == RIGHT || this == OUTER ||
                this == ON || this == IS || this == NULL || this == TRUE || this == FALSE ||
+               this == IF || this == EXISTS ||
                this == INT || this == INTEGER || this == VARCHAR || this == CHAR ||
                this == TEXT || this == DECIMAL || this == FLOAT || this == DOUBLE ||
                this == BOOLEAN || this == DATE || this == TIME || this == TIMESTAMP ||

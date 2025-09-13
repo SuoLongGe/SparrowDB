@@ -238,6 +238,38 @@ public class StorageAdapter {
     }
     
     /**
+     * 删除表
+     */
+    public boolean dropTable(String tableName) {
+        try {
+            // 从内存中移除表信息
+            tableStorageMap.remove(tableName);
+            nextPageIdMap.remove(tableName);
+            
+            // 删除表文件
+            String tableFile = getTableFilePath(tableName);
+            File file = new File(tableFile);
+            if (file.exists()) {
+                boolean deleted = file.delete();
+                if (deleted) {
+                    System.out.println("表文件删除成功: " + tableName);
+                    return true;
+                } else {
+                    System.err.println("表文件删除失败: " + tableName);
+                    return false;
+                }
+            } else {
+                System.out.println("表文件不存在: " + tableName);
+                return true; // 文件不存在也算成功
+            }
+            
+        } catch (Exception e) {
+            System.err.println("删除表失败: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
      * 获取缓存统计信息
      */
     public String getCacheStats() {
