@@ -12,16 +12,13 @@ COLUMN=default_value:VARCHAR:255
 COLUMN=auto_increment:BOOLEAN:1
 # End Metadata
 PAGE:1
-auto_increment=false|not_null=false|unique=false|column_name=age|data_type=INT|length=4|default_value=null|table_name=test_table|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|length=4|default_value=null|table_name=test_table2|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=50|default_value=null|table_name=test_table2|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=age|data_type=INT|length=4|default_value=null|table_name=test_table2|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=score|data_type=DECIMAL|length=10|default_value=null|table_name=test_table2|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|length=0|default_value=null|table_name=test_unified|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=50|default_value=null|table_name=test_unified|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|length=0|default_value=null|table_name=users|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=50|default_value=null|table_name=users|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=email|data_type=VARCHAR|length=100|default_value=null|table_name=users|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=age|data_type=INT|length=0|default_value=null|table_name=users|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=student_id|data_type=INT|length=0|default_value=null|table_name=StudentsTest|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=100|default_value=null|table_name=StudentsTest|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=age|data_type=INT|length=0|default_value=null|table_name=StudentsTest|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|length=0|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=100|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=price|data_type=DECIMAL|length=10|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=category|data_type=VARCHAR|length=50|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=ID|data_type=INT|length=0|default_value=null|table_name=smx|primary_key=false
 
 PAGE:2

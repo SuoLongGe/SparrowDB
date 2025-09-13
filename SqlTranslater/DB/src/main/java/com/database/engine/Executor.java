@@ -30,6 +30,8 @@ public class Executor {
             return executeSelect((SelectPlan) plan);
         } else if (plan instanceof DeletePlan) {
             return executeDelete((DeletePlan) plan);
+        } else if (plan instanceof BatchPlan) {
+            return executeBatch((BatchPlan) plan);
         } else {
             return new ExecutionResult(false, "不支持的执行计划类型: " + plan.getPlanType(), null);
         }
@@ -243,6 +245,39 @@ public class Executor {
             
         } catch (Exception e) {
             return new ExecutionResult(false, "删除数据时发生错误: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
+     * 执行批量计划
+     */
+    private ExecutionResult executeBatch(BatchPlan plan) {
+        try {
+            List<ExecutionResult> results = new ArrayList<>();
+            int successCount = 0;
+            int totalCount = plan.getPlans().size();
+            
+            for (ExecutionPlan subPlan : plan.getPlans()) {
+                ExecutionResult result = execute(subPlan);
+                results.add(result);
+                
+                if (result.isSuccess()) {
+                    successCount++;
+                } else {
+                    // 如果任何一个语句失败，返回失败结果
+                    return new ExecutionResult(false, 
+                        String.format("批量执行失败: %d/%d 成功, 错误: %s", 
+                            successCount, totalCount, result.getMessage()), 
+                        results, true);
+                }
+            }
+            
+            return new ExecutionResult(true, 
+                String.format("批量执行成功: %d/%d 语句执行成功", successCount, totalCount), 
+                results, true);
+                
+        } catch (Exception e) {
+            return new ExecutionResult(false, "批量执行时发生错误: " + e.getMessage(), null);
         }
     }
     

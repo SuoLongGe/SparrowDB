@@ -164,7 +164,10 @@ public class ASTVisualizer extends JPanel {
      * 获取节点标签
      */
     private String getNodeLabel(ASTNode node) {
-        if (node instanceof CreateTableStatement) {
+        if (node instanceof BatchStatement) {
+            BatchStatement batch = (BatchStatement) node;
+            return "BATCH\n" + batch.getStatementCount() + " statements";
+        } else if (node instanceof CreateTableStatement) {
             return "CREATE TABLE\n" + ((CreateTableStatement) node).getTableName();
         } else if (node instanceof SelectStatement) {
             return "SELECT";
@@ -239,7 +242,10 @@ public class ASTVisualizer extends JPanel {
         List<ASTNode> children = new ArrayList<>();
         
         try {
-            if (node instanceof CreateTableStatement) {
+            if (node instanceof BatchStatement) {
+                BatchStatement batch = (BatchStatement) node;
+                children.addAll(batch.getStatements());
+            } else if (node instanceof CreateTableStatement) {
                 CreateTableStatement stmt = (CreateTableStatement) node;
                 children.addAll(stmt.getColumns());
                 children.addAll(stmt.getConstraints());
