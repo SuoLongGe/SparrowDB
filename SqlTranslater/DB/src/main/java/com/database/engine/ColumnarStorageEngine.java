@@ -746,70 +746,29 @@ public class ColumnarStorageEngine {
     private List<Object> readColumnValues(String columnFile, int expectedRows) throws IOException {
         List<Object> values = new ArrayList<>();
         
-        System.out.println("尝试读取列文件: " + columnFile);
-        File file = new File(columnFile);
-        System.out.println("文件是否存在: " + file.exists());
-        if (file.exists()) {
-            System.out.println("文件大小: " + file.length() + " 字节");
-        }
+        // 优化：移除调试输出以提升性能
         
-        // 首先检查文件是否有元数据标记
-        boolean hasMetadata = false;
-        try (BufferedReader reader = new BufferedReader(new FileReader(columnFile, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.equals("# Data starts below")) {
-                    hasMetadata = true;
-                    break;
-                }
-            }
-        }
-        
-        // 读取数据
+        // 优化：只读取一次文件，同时处理元数据和数据
         try (BufferedReader reader = new BufferedReader(new FileReader(columnFile, StandardCharsets.UTF_8))) {
             String line;
             boolean inDataSection = false;
-            int lineNumber = 0;
             
             while ((line = reader.readLine()) != null) {
-                lineNumber++;
-                
-                // 调试：打印前几行内容
-                if (lineNumber <= 15) {
-                    System.out.println("行 " + lineNumber + ": '" + line + "'");
-                }
-                
                 if (line.equals("# Data starts below")) {
                     inDataSection = true;
-                    System.out.println("找到数据开始标记，行号: " + lineNumber);
                     continue;
                 }
                 
-                // 如果文件有元数据标记，只读取数据部分
-                if (hasMetadata) {
-                    if (inDataSection && !line.startsWith("#") && !line.trim().isEmpty()) {
-                        if ("NULL".equals(line)) {
-                            values.add(null);
-                        } else {
-                            values.add(line);
-                        }
-                        System.out.println("添加数据行: " + line + " (行号: " + lineNumber + ")");
-                    }
-                } else {
-                    // 如果文件没有元数据标记，直接读取所有非空行作为数据
-                    if (!line.startsWith("#") && !line.trim().isEmpty()) {
-                        if ("NULL".equals(line)) {
-                            values.add(null);
-                        } else {
-                            values.add(line);
-                        }
-                        System.out.println("添加数据行: " + line + " (行号: " + lineNumber + ")");
-                    }
+                // 读取数据行
+                if (inDataSection && !line.startsWith("#") && !line.trim().isEmpty()) {
+                    values.add("NULL".equals(line) ? null : line);
+                } else if (!inDataSection && !line.startsWith("#") && !line.trim().isEmpty()) {
+                    // 如果没有元数据标记，直接读取所有非空行
+                    values.add("NULL".equals(line) ? null : line);
                 }
             }
         }
         
-        System.out.println("读取列文件: " + columnFile + ", 返回 " + values.size() + " 个值");
         return values;
     }
     
