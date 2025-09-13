@@ -67,6 +67,8 @@ public class LexicalAnalyzer {
         keywordMap.put("NULL", TokenType.NULL);
         keywordMap.put("TRUE", TokenType.TRUE);
         keywordMap.put("FALSE", TokenType.FALSE);
+        keywordMap.put("IF", TokenType.IF);
+        keywordMap.put("EXISTS", TokenType.EXISTS);
         
         // 数据类型
         keywordMap.put("INT", TokenType.INT);

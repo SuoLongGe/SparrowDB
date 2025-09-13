@@ -7,6 +7,7 @@ import com.sqlcompiler.gui.SQLAutoComplete;
 import com.sqlcompiler.gui.SQLSyntaxHighlighter;
 import com.sqlcompiler.gui.ASTVisualizer;
 import com.sqlcompiler.gui.LineNumberScrollPane;
+import com.sqlcompiler.gui.ResultTabbedPane;
 
 import com.database.config.DatabaseConfig;
 
@@ -16,7 +17,6 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 
 /**
  * 数据库GUI界面
@@ -28,7 +28,7 @@ public class DatabaseGUI extends JFrame {
     
     // 界面组件
     private JTextPane sqlInputArea;
-    private JTextArea resultArea;
+    private ResultTabbedPane resultTabbedPane;
     private JTextArea tokenArea;
     private JTextArea astArea;
     private JButton executeButton;
@@ -85,11 +85,8 @@ public class DatabaseGUI extends JFrame {
         // 设置键盘快捷键
         setupKeyboardShortcuts();
         
-        // 结果显示区域
-        resultArea = new JTextArea(15, 30);
-        resultArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-        resultArea.setEditable(false);
-        resultArea.setBackground(Color.WHITE);
+        // 结果显示区域 - 使用标签栏组件
+        resultTabbedPane = new ResultTabbedPane();
         
         // Token显示区域
         tokenArea = new JTextArea(15, 30);
@@ -206,11 +203,8 @@ public class DatabaseGUI extends JFrame {
         JPanel resultPanel = new JPanel(new BorderLayout());
         resultPanel.setBorder(BorderFactory.createTitledBorder("执行结果"));
         
-        JScrollPane resultScrollPane = new JScrollPane(resultArea);
-        resultScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        resultScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        resultScrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY)); // 内层单纯线框
-        resultPanel.add(resultScrollPane, BorderLayout.CENTER);
+        // 直接添加标签栏组件
+        resultPanel.add(resultTabbedPane, BorderLayout.CENTER);
         bottomPanel.add(resultPanel);
         
         // 右侧：Token列表和AST可视化（上下分布，高度比例2:3）
@@ -410,16 +404,16 @@ public class DatabaseGUI extends JFrame {
                 
                 statusLabel.setText("数据库已连接");
                 statusLabel.setForeground(Color.GREEN);
-                appendToResult("数据库引擎初始化成功！\n");
+                resultTabbedPane.showMessage("数据库引擎初始化成功！");
             } else {
                 statusLabel.setText("数据库连接失败");
                 statusLabel.setForeground(Color.RED);
-                appendToResult("数据库引擎初始化失败！\n");
+                resultTabbedPane.showError("数据库引擎初始化失败！");
             }
         } catch (Exception e) {
             statusLabel.setText("初始化错误");
             statusLabel.setForeground(Color.RED);
-            appendToResult("初始化错误: " + e.getMessage() + "\n");
+            resultTabbedPane.showError("初始化错误: " + e.getMessage());
         }
     }
     
@@ -480,7 +474,7 @@ public class DatabaseGUI extends JFrame {
         
         if ("clear".equalsIgnoreCase(sql)) {
             compiler.clearCatalog();
-            appendToResult("目录已清空\n");
+            resultTabbedPane.showMessage("目录已清空");
             return;
         }
         
@@ -515,14 +509,10 @@ public class DatabaseGUI extends JFrame {
             
             // 显示执行结果
             if (result.isSuccess()) {
-                appendToResult("=== 编译成功 ===\n");
-                appendToResult("SQL: " + sql + "\n\n");
-                
                 // 尝试执行SQL（如果数据库引擎支持）
                 try {
                     // 获取选择的索引类型
                     String selectedIndexType = (String) indexTypeComboBox.getSelectedItem();
-                    appendToResult("使用索引方式: " + selectedIndexType + "\n");
                     
                     // 设置数据库引擎的索引类型
                     databaseEngine.setIndexType(selectedIndexType);
@@ -538,45 +528,56 @@ public class DatabaseGUI extends JFrame {
                     // 更新执行时间标签
                     executionTimeLabel.setText(String.format("执行时间: %.2f ms", executionTimeMs));
                     
+                    // 判断是否为查询类指令
+                    boolean isQuery = isQueryStatement(sql);
+                    
                     if (execResult.isSuccess()) {
-                        appendToResult("=== 执行成功 ===\n");
-                        appendToResult(String.format("执行时间: %.2f ms\n", executionTimeMs));
-                        if (execResult.getData() != null) {
-                            appendToResult(execResult.getData().toString() + "\n");
+                        if (isQuery && execResult.getData() != null && !execResult.getData().isEmpty()) {
+                            // 查询类指令且有数据，显示查询消息和结果
+                            resultTabbedPane.showQueryMessage(sql, true, true, executionTimeMs, selectedIndexType);
+                            resultTabbedPane.showQueryResult(execResult);
+                        } else {
+                            // 非查询类指令或查询无数据，只显示消息
+                            String message = isQuery ? "查询成功，但无数据返回" : "执行成功";
+                            resultTabbedPane.showMessage(message);
                         }
                     } else {
-                        appendToResult("=== 执行失败 ===\n");
-                        appendToResult("错误: " + execResult.getMessage() + "\n");
+                        // 执行失败
+                        resultTabbedPane.showQueryMessage(sql, true, false, executionTimeMs, selectedIndexType);
+                        resultTabbedPane.showError(execResult.getMessage());
                     }
                 } catch (Exception e) {
-                    appendToResult("=== 执行失败 ===\n");
-                    appendToResult("错误: " + e.getMessage() + "\n");
-                    appendToResult("注意: 数据库引擎功能尚未完全实现\n");
+                    resultTabbedPane.showQueryMessage(sql, true, false, 0, "");
+                    resultTabbedPane.showError("执行失败: " + e.getMessage() + "\n注意: 数据库引擎功能尚未完全实现");
                     executionTimeLabel.setText("执行时间: 错误");
                 }
                 
                 statusLabel.setText("执行成功");
                 statusLabel.setForeground(Color.GREEN);
             } else {
-                appendToResult("=== 编译失败 ===\n");
-                appendToResult("SQL: " + sql + "\n");
-                if (result.getErrors() != null) {
-                    for (String error : result.getErrors()) {
-                        appendToResult("错误: " + error + "\n");
-                    }
-                }
+                // 编译失败，显示错误信息
+                resultTabbedPane.showCompileError(sql, result.getErrors());
                 statusLabel.setText("编译失败");
                 statusLabel.setForeground(Color.RED);
             }
             
         } catch (Exception e) {
-            appendToResult("=== 程序错误 ===\n");
-            appendToResult("错误: " + e.getMessage() + "\n");
+            resultTabbedPane.showError("程序错误: " + e.getMessage());
             statusLabel.setText("程序错误");
             statusLabel.setForeground(Color.RED);
         }
-        
-        appendToResult("\n" + "=".repeat(50) + "\n\n");
+    }
+    
+    /**
+     * 判断是否为查询类指令
+     */
+    private boolean isQueryStatement(String sql) {
+        String trimmedSql = sql.trim().toLowerCase();
+        return trimmedSql.startsWith("select") || 
+               trimmedSql.startsWith("show") || 
+               trimmedSql.startsWith("describe") || 
+               trimmedSql.startsWith("desc") ||
+               trimmedSql.startsWith("explain");
     }
     
     /**
@@ -610,11 +611,9 @@ public class DatabaseGUI extends JFrame {
     private void showCatalog() {
         try {
             String catalogInfo = compiler.getCatalogInfo();
-            appendToResult("=== 目录信息 ===\n");
-            appendToResult(catalogInfo + "\n");
-            appendToResult("\n" + "=".repeat(50) + "\n\n");
+            resultTabbedPane.showMessage("目录信息:\n" + catalogInfo);
         } catch (Exception e) {
-            appendToResult("获取目录信息失败: " + e.getMessage() + "\n");
+            resultTabbedPane.showError("获取目录信息失败: " + e.getMessage());
         }
     }
     
@@ -624,7 +623,7 @@ public class DatabaseGUI extends JFrame {
      */
     private void clearAll() {
         sqlInputArea.setText("");
-        resultArea.setText("");
+        resultTabbedPane.clear();
         tokenArea.setText("");
         astArea.setText("");
         astVisualizer.setAST(null);
@@ -634,14 +633,6 @@ public class DatabaseGUI extends JFrame {
         statusLabel.setForeground(Color.BLUE);
     }
     
-    
-    /**
-     * 向结果区域添加文本
-     */
-    private void appendToResult(String text) {
-        resultArea.append(text);
-        resultArea.setCaretPosition(resultArea.getDocument().getLength());
-    }
     
     /**
      * 主方法

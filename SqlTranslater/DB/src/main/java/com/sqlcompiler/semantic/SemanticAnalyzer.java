@@ -519,6 +519,19 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         }
     }
     
+    @Override
+    public Void visit(DropTableStatement node) throws CompilationException {
+        String tableName = node.getTableName();
+        
+        // 检查表是否存在（除非使用了IF EXISTS）
+        if (!node.isIfExists() && !catalog.tableExists(tableName)) {
+            errors.add(String.format("[语义错误, %s, 表 '%s' 不存在]", 
+                                   node.getPosition(), tableName));
+        }
+        
+        return null;
+    }
+    
     /**
      * 验证表达式类型
      */

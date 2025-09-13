@@ -164,6 +164,11 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
     }
     
     @Override
+    public ExecutionPlan visit(DropTableStatement node) throws CompilationException {
+        return new DropTablePlan(node.getTableName(), node.isIfExists());
+    }
+    
+    @Override
     public ExecutionPlan visit(ColumnDefinition node) {
         // 列定义在CREATE TABLE中处理
         return null;

@@ -175,6 +175,18 @@ public class ASTPrinter implements ASTVisitor<String> {
     }
     
     @Override
+    public String visit(DropTableStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("DropTableStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("tableName: ").append(node.getTableName()).append("\n");
+        sb.append(getIndent()).append("ifExists: ").append(node.isIfExists()).append("\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
     public String visit(ColumnDefinition node) throws CompilationException {
         StringBuilder sb = new StringBuilder();
         sb.append("ColumnDefinition {\n");
