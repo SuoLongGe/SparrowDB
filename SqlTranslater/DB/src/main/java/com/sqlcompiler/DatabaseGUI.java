@@ -15,6 +15,7 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
 /**
  * 数据库GUI界面
@@ -30,6 +31,7 @@ public class DatabaseGUI extends JFrame {
     private JTextArea tokenArea;
     private JTextArea astArea;
     private JButton executeButton;
+    private JButton executeSelectedButton;
     private JButton clearButton;
     private JButton catalogButton;
     private JLabel statusLabel;
@@ -75,6 +77,9 @@ public class DatabaseGUI extends JFrame {
         // 初始化AST可视化组件
         astVisualizer = new ASTVisualizer();
         
+        // 设置键盘快捷键
+        setupKeyboardShortcuts();
+        
         // 结果显示区域
         resultArea = new JTextArea(15, 30);
         resultArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
@@ -99,6 +104,12 @@ public class DatabaseGUI extends JFrame {
         executeButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
         executeButton.setBackground(new Color(76, 175, 80));
         executeButton.setForeground(Color.BLACK);
+        
+        executeSelectedButton = new JButton("执行选中");
+        executeSelectedButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        executeSelectedButton.setBackground(new Color(52, 152, 219));
+        executeSelectedButton.setForeground(Color.WHITE);
+        executeSelectedButton.setToolTipText("执行选中的SQL语句");
         
         clearButton = new JButton("清空");
         clearButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
@@ -143,6 +154,7 @@ public class DatabaseGUI extends JFrame {
         // 按钮面板
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         buttonPanel.add(executeButton);
+        buttonPanel.add(executeSelectedButton);
         buttonPanel.add(clearButton);
         buttonPanel.add(catalogButton);
         
@@ -163,6 +175,12 @@ public class DatabaseGUI extends JFrame {
             }
         });
         buttonPanel.add(highlightCheckBox);
+        
+        // 添加快捷键提示
+        JLabel shortcutLabel = new JLabel("F5:执行选中 | F9:执行全部 | Ctrl+Enter:执行全部");
+        shortcutLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+        shortcutLabel.setForeground(new Color(100, 100, 100));
+        buttonPanel.add(shortcutLabel);
         
         buttonPanel.add(statusLabel);
         topPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -254,6 +272,41 @@ public class DatabaseGUI extends JFrame {
     }
     
     /**
+     * 设置键盘快捷键
+     */
+    private void setupKeyboardShortcuts() {
+        // F5 - 执行选中
+        sqlInputArea.getInputMap(JComponent.WHEN_FOCUSED).put(
+            KeyStroke.getKeyStroke("F5"), "executeSelected");
+        sqlInputArea.getActionMap().put("executeSelected", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                executeSelectedSQL();
+            }
+        });
+        
+        // F9 - 执行全部
+        sqlInputArea.getInputMap(JComponent.WHEN_FOCUSED).put(
+            KeyStroke.getKeyStroke("F9"), "executeAll");
+        sqlInputArea.getActionMap().put("executeAll", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                executeSQL();
+            }
+        });
+        
+        // Ctrl+Enter - 执行全部
+        sqlInputArea.getInputMap(JComponent.WHEN_FOCUSED).put(
+            KeyStroke.getKeyStroke("ctrl ENTER"), "executeAllCtrl");
+        sqlInputArea.getActionMap().put("executeAllCtrl", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                executeSQL();
+            }
+        });
+    }
+    
+    /**
      * 设置事件处理器
      */
     private void setupEventHandlers() {
@@ -261,6 +314,13 @@ public class DatabaseGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 executeSQL();
+            }
+        });
+        
+        executeSelectedButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                executeSelectedSQL();
             }
         });
         
@@ -351,6 +411,40 @@ public class DatabaseGUI extends JFrame {
             statusLabel.setForeground(Color.RED);
             appendToResult("初始化错误: " + e.getMessage() + "\n");
         }
+    }
+    
+    /**
+     * 执行选中的SQL语句
+     */
+    private void executeSelectedSQL() {
+        String selectedText = sqlInputArea.getSelectedText();
+        if (selectedText == null || selectedText.trim().isEmpty()) {
+            statusLabel.setText("请先选中要执行的SQL语句");
+            statusLabel.setForeground(Color.ORANGE);
+            return;
+        }
+        
+        // 临时保存原始文本
+        String originalText = sqlInputArea.getText();
+        int selectionStart = sqlInputArea.getSelectionStart();
+        int selectionEnd = sqlInputArea.getSelectionEnd();
+        
+        // 设置选中的文本为当前文本
+        sqlInputArea.setText(selectedText.trim());
+        
+        // 执行SQL
+        executeSQL();
+        
+        // 恢复原始文本
+        sqlInputArea.setText(originalText);
+        
+        // 恢复选中状态
+        sqlInputArea.setSelectionStart(selectionStart);
+        sqlInputArea.setSelectionEnd(selectionEnd);
+        
+        // 更新状态
+        statusLabel.setText("已执行选中语句");
+        statusLabel.setForeground(Color.GREEN);
     }
     
     /**
