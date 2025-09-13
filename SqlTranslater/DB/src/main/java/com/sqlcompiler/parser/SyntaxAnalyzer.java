@@ -279,6 +279,13 @@ public class SyntaxAnalyzer {
                 expect(TokenType.RIGHT_PAREN);
                 return new Constraint(Constraint.ConstraintType.PRIMARY_KEY, null, 
                                     columns, null, null, null, startPos);
+            case PRIMARY_KEY:
+                nextToken();
+                expect(TokenType.LEFT_PAREN);
+                List<String> columns2 = parseColumnList();
+                expect(TokenType.RIGHT_PAREN);
+                return new Constraint(Constraint.ConstraintType.PRIMARY_KEY, null, 
+                                    columns2, null, null, null, startPos);
             case FOREIGN:
                 nextToken();
                 expect(TokenType.KEY);
@@ -292,6 +299,18 @@ public class SyntaxAnalyzer {
                 expect(TokenType.RIGHT_PAREN);
                 return new Constraint(Constraint.ConstraintType.FOREIGN_KEY, null, 
                                     fkColumns, refTable, refColumns, null, startPos);
+            case FOREIGN_KEY:
+                nextToken();
+                expect(TokenType.LEFT_PAREN);
+                List<String> fkColumns2 = parseColumnList();
+                expect(TokenType.RIGHT_PAREN);
+                expect(TokenType.REFERENCES);
+                String refTable2 = expectIdentifier();
+                expect(TokenType.LEFT_PAREN);
+                List<String> refColumns2 = parseColumnList();
+                expect(TokenType.RIGHT_PAREN);
+                return new Constraint(Constraint.ConstraintType.FOREIGN_KEY, null, 
+                                    fkColumns2, refTable2, refColumns2, null, startPos);
             case UNIQUE:
                 nextToken();
                 expect(TokenType.LEFT_PAREN);

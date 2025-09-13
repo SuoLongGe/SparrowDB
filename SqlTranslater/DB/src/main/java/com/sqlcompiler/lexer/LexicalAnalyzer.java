@@ -102,7 +102,6 @@ public class LexicalAnalyzer {
 
         // 约束关键字
         keywordMap.put("CHECK", TokenType.CHECK);
-
         keywordMap.put("ASC", TokenType.ASC);
         keywordMap.put("DESC", TokenType.DESC);
         
@@ -131,6 +130,9 @@ public class LexicalAnalyzer {
             
             if (Character.isWhitespace(currentChar)) {
                 skipWhitespace();
+            } else if (currentChar == '-' && currentPos + 1 < source.length() && source.charAt(currentPos + 1) == '-') {
+                // 处理SQL注释 (--)
+                skipComment();
             } else if (Character.isLetter(currentChar) || currentChar == '_') {
                 readIdentifierOrKeyword();
             } else if (Character.isDigit(currentChar)) {
@@ -161,6 +163,28 @@ public class LexicalAnalyzer {
             } else {
                 currentColumn++;
             }
+            currentPos++;
+        }
+    }
+    
+    /**
+     * 跳过SQL注释 (--)
+     */
+    private void skipComment() {
+        // 跳过 "--"
+        currentPos += 2;
+        currentColumn += 2;
+        
+        // 跳过注释内容直到行尾
+        while (currentPos < source.length() && source.charAt(currentPos) != '\n') {
+            currentPos++;
+            currentColumn++;
+        }
+        
+        // 如果遇到换行符，更新行号和列号
+        if (currentPos < source.length() && source.charAt(currentPos) == '\n') {
+            currentLine++;
+            currentColumn = 1;
             currentPos++;
         }
     }

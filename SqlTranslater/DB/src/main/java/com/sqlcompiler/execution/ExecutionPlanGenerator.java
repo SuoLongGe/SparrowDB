@@ -20,8 +20,17 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
     }
     @Override
     public ExecutionPlan visit(BatchStatement node) throws CompilationException {
-        // 批量语句不直接转换为执行计划，需要分别处理每个语句
-        return null;
+        // 批量语句转换为批量执行计划
+        List<ExecutionPlan> plans = new ArrayList<>();
+        
+        for (Statement statement : node.getStatements()) {
+            ExecutionPlan plan = statement.accept(this);
+            if (plan != null) {
+                plans.add(plan);
+            }
+        }
+        
+        return new BatchPlan(plans);
     }
     @Override
     public ExecutionPlan visit(CreateTableStatement node) throws CompilationException {

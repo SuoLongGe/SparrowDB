@@ -6,6 +6,7 @@ import com.database.engine.ExecutionResult;
 import com.sqlcompiler.gui.SQLAutoComplete;
 import com.sqlcompiler.gui.SQLSyntaxHighlighter;
 import com.sqlcompiler.gui.ASTVisualizer;
+import com.sqlcompiler.gui.LineNumberScrollPane;
 
 import com.database.config.DatabaseConfig;
 
@@ -68,7 +69,11 @@ public class DatabaseGUI extends JFrame {
         // SQL输入区域 - 使用JTextPane支持语法高亮
         sqlInputArea = new JTextPane();
         sqlInputArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
-        sqlInputArea.setBorder(new TitledBorder("SQL输入区域"));
+        //sqlInputArea.setBorder(new TitledBorder("SQL输入区域"));
+        // 设置固定大小，防止根据内容自动调整
+        sqlInputArea.setSize(new Dimension(600, 200));
+        sqlInputArea.setMinimumSize(new Dimension(600, 200));
+        sqlInputArea.setMaximumSize(new Dimension(600, 200));
         sqlInputArea.setPreferredSize(new Dimension(600, 200));
         
         // 初始化语法高亮组件
@@ -146,9 +151,15 @@ public class DatabaseGUI extends JFrame {
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        // SQL输入区域
-        JScrollPane sqlScrollPane = new JScrollPane(sqlInputArea);
+        // SQL输入区域 - 使用带行号的滚动面板
+        LineNumberScrollPane sqlScrollPane = new LineNumberScrollPane(sqlInputArea);
         sqlScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        sqlScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        // 设置滚动面板的固定大小，防止自动调整
+        sqlScrollPane.setSize(new Dimension(600, 200));
+        sqlScrollPane.setMinimumSize(new Dimension(600, 200));
+        sqlScrollPane.setMaximumSize(new Dimension(600, 200));
+        sqlScrollPane.setPreferredSize(new Dimension(600, 200));
         topPanel.add(sqlScrollPane, BorderLayout.CENTER);
         
         // 按钮面板
@@ -209,7 +220,6 @@ public class DatabaseGUI extends JFrame {
         // Token列表（上半部分，占2/5高度）
         JPanel tokenPanel = new JPanel(new BorderLayout());
         tokenPanel.setBorder(BorderFactory.createTitledBorder("Token列表"));
-        
         JScrollPane tokenScrollPane = new JScrollPane(tokenArea);
         tokenScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         tokenScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);

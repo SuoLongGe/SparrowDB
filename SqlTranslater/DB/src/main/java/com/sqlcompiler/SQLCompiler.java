@@ -106,6 +106,69 @@ public class SQLCompiler {
     }
     
     /**
+     * 编译批量SQL语句
+     */
+    public CompilationResult compileBatch(String sql) {
+        try {
+            // 1. 词法分析
+            System.out.println("=== 批量词法分析 ===");
+            LexicalAnalyzer lexer = new LexicalAnalyzer(sql);
+            List<Token> tokens = lexer.tokenize();
+            
+            System.out.println("Token列表:");
+            for (Token token : tokens) {
+                if (token.getType() != com.sqlcompiler.lexer.TokenType.EOF) {
+                    System.out.println("  " + token.toString());
+                }
+            }
+            
+            // 2. 语法分析
+            System.out.println("\n=== 批量语法分析 ===");
+            SyntaxAnalyzer parser = new SyntaxAnalyzer(tokens);
+            com.sqlcompiler.ast.BatchStatement batchStatement = parser.parseBatch();
+            System.out.println("批量语法分析成功，生成AST");
+            
+            // 显示AST结构
+            System.out.println("\n=== 批量AST结构 ===");
+            ASTPrinter astPrinter = new ASTPrinter();
+            String astStructure = batchStatement.accept(astPrinter);
+            System.out.println(astStructure);
+            
+            // 3. 语义分析
+            System.out.println("\n=== 批量语义分析 ===");
+            SemanticAnalysisResult semanticResult = semanticAnalyzer.analyze(batchStatement);
+            System.out.println(semanticResult.toString());
+            
+            if (!semanticResult.isSuccess()) {
+                return new CompilationResult(false, null, null, semanticResult.getErrors());
+            }
+            
+            // 4. 执行计划生成
+            System.out.println("\n=== 批量执行计划生成 ===");
+            ExecutionPlan executionPlan = batchStatement.accept(executionPlanGenerator);
+            
+            System.out.println("批量执行计划生成成功");
+            System.out.println("树形结构:");
+            System.out.println(executionPlan.toTreeString());
+            
+            System.out.println("\nJSON格式:");
+            System.out.println(executionPlan.toJSON());
+            
+            System.out.println("\nS表达式格式:");
+            System.out.println(executionPlan.toSExpression());
+            
+            return new CompilationResult(true, null, executionPlan, null);
+            
+        } catch (CompilationException e) {
+            return new CompilationResult(false, null, null, List.of(e.toString()));
+        } catch (Exception e) {
+            System.err.println("批量编译过程中发生未知错误: " + e.getMessage());
+            e.printStackTrace();
+            return new CompilationResult(false, null, null, List.of("未知错误: " + e.getMessage()));
+        }
+    }
+    
+    /**
      * 获取目录信息
      */
     public String getCatalogInfo() {

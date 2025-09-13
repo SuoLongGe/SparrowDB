@@ -10,11 +10,20 @@ public class ExecutionResult {
     private final boolean success;
     private final String message;
     private final List<Map<String, Object>> data;
+    private final List<ExecutionResult> batchResults;
     
     public ExecutionResult(boolean success, String message, List<Map<String, Object>> data) {
         this.success = success;
         this.message = message;
         this.data = data;
+        this.batchResults = null;
+    }
+    
+    public ExecutionResult(boolean success, String message, List<ExecutionResult> batchResults, boolean isBatch) {
+        this.success = success;
+        this.message = message;
+        this.data = null;
+        this.batchResults = batchResults;
     }
     
     public boolean isSuccess() {
@@ -27,6 +36,10 @@ public class ExecutionResult {
     
     public List<Map<String, Object>> getData() {
         return data;
+    }
+    
+    public List<ExecutionResult> getBatchResults() {
+        return batchResults;
     }
     
     @Override

@@ -87,7 +87,16 @@ public class DatabaseEngine {
             // 使用SQL编译器解析SQL并生成执行计划
             ExecutionPlan plan = null;
             try {
-                SQLCompiler.CompilationResult result = sqlCompiler.compile(sql);
+                // 检查是否是批量SQL语句
+                boolean isMultiStatement = sql.contains(";") && sql.split(";").length > 1;
+                
+                SQLCompiler.CompilationResult result;
+                if (isMultiStatement) {
+                    result = sqlCompiler.compileBatch(sql);
+                } else {
+                    result = sqlCompiler.compile(sql);
+                }
+                
                 if (result.isSuccess()) {
                     plan = result.getExecutionPlan();
                 } else {
