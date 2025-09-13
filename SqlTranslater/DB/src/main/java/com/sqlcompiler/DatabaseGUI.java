@@ -102,7 +102,6 @@ public class DatabaseGUI extends JFrame {
         
         catalogButton = new JButton("查看目录");
         catalogButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        
 
         // 索引选择组件
         String[] indexTypes = {"智能选择", "B+树索引", "哈希索引", "线性查找"};
