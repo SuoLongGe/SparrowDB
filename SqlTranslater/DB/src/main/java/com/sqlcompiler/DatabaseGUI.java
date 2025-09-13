@@ -5,13 +5,9 @@ import com.database.engine.ExecutionResult;
 
 import com.sqlcompiler.gui.SQLAutoComplete;
 import com.sqlcompiler.gui.SQLSyntaxHighlighter;
+import com.sqlcompiler.gui.ASTVisualizer;
 
 import com.database.config.DatabaseConfig;
-import com.sqlcompiler.ast.ASTPrinter;
-import com.sqlcompiler.ast.Statement;
-import com.sqlcompiler.execution.ExecutionPlan;
-import com.sqlcompiler.lexer.Token;
-import com.sqlcompiler.lexer.TokenType;
 
 
 import javax.swing.*;
@@ -48,6 +44,14 @@ public class DatabaseGUI extends JFrame {
     // 语法高亮组件
     private SQLSyntaxHighlighter syntaxHighlighter;
     
+    // AST可视化组件
+    private ASTVisualizer astVisualizer;
+    
+    // AST可视化控制按钮
+    private JButton zoomInButton;
+    private JButton zoomOutButton;
+    private JButton fitButton;
+    
     public DatabaseGUI() {
         initializeComponents();
         setupLayout();
@@ -62,7 +66,7 @@ public class DatabaseGUI extends JFrame {
         // SQL输入区域 - 使用JTextPane支持语法高亮
         sqlInputArea = new JTextPane();
         sqlInputArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
-        sqlInputArea.setBorder(new TitledBorder("SQL输入区域 (支持语法高亮)"));
+        sqlInputArea.setBorder(new TitledBorder("SQL输入区域"));
         sqlInputArea.setPreferredSize(new Dimension(600, 200));
         
         // 初始化语法高亮组件
@@ -71,14 +75,12 @@ public class DatabaseGUI extends JFrame {
         // 结果显示区域
         resultArea = new JTextArea(15, 30);
         resultArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-        resultArea.setBorder(new TitledBorder("执行结果"));
         resultArea.setEditable(false);
         resultArea.setBackground(Color.WHITE);
         
         // Token显示区域
         tokenArea = new JTextArea(15, 30);
         tokenArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-        tokenArea.setBorder(new TitledBorder("Token列表"));
         tokenArea.setEditable(false);
         tokenArea.setBackground(Color.WHITE);
         
@@ -100,7 +102,7 @@ public class DatabaseGUI extends JFrame {
         
         catalogButton = new JButton("查看目录");
         catalogButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        
+
         // 索引选择组件
         String[] indexTypes = {"智能选择", "B+树索引", "哈希索引", "线性查找"};
         indexTypeComboBox = new JComboBox<>(indexTypes);
@@ -122,7 +124,7 @@ public class DatabaseGUI extends JFrame {
      * 设置布局
      */
     private void setupLayout() {
-        setTitle("SparrowDB - 迷你数据库管理界面");
+        setTitle("SparrowDB");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         
@@ -168,26 +170,79 @@ public class DatabaseGUI extends JFrame {
         JPanel bottomPanel = new JPanel(new GridLayout(1, 2));
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        // 左侧：执行结果
+        // 左侧：执行结果（占满整个左侧）
+        JPanel resultPanel = new JPanel(new BorderLayout());
+        resultPanel.setBorder(BorderFactory.createTitledBorder("执行结果"));
+        
         JScrollPane resultScrollPane = new JScrollPane(resultArea);
         resultScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         resultScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        bottomPanel.add(resultScrollPane);
+        resultScrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY)); // 内层单纯线框
+        resultPanel.add(resultScrollPane, BorderLayout.CENTER);
+        bottomPanel.add(resultPanel);
         
-        // 右侧：Token和AST显示
-        JPanel rightPanel = new JPanel(new GridLayout(2, 1));
+        // 右侧：Token列表和AST可视化（上下分布，高度比例2:3）
+        JPanel rightPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        
+        // Token列表（上半部分，占2/5高度）
+        JPanel tokenPanel = new JPanel(new BorderLayout());
+        tokenPanel.setBorder(BorderFactory.createTitledBorder("Token列表"));
         
         JScrollPane tokenScrollPane = new JScrollPane(tokenArea);
         tokenScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         tokenScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        rightPanel.add(tokenScrollPane);
+        tokenScrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY)); // 内层单纯线框
+        tokenPanel.add(tokenScrollPane, BorderLayout.CENTER);
         
-        JScrollPane astScrollPane = new JScrollPane(astArea);
-        astScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        astScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        rightPanel.add(astScrollPane);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.4; // 2/5 = 0.4
+        gbc.fill = GridBagConstraints.BOTH;
+        rightPanel.add(tokenPanel, gbc);
         
+        // AST可视化（下半部分，占3/5高度）
+        JPanel astPanel = new JPanel(new BorderLayout());
+        astPanel.setBorder(BorderFactory.createTitledBorder("AST可视化"));
+        
+        // 添加AST可视化组件
+        JScrollPane astVisualizerScrollPane = new JScrollPane(astVisualizer);
+        astVisualizerScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        astVisualizerScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        astVisualizerScrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY)); // 内层单纯线框
+        astPanel.add(astVisualizerScrollPane, BorderLayout.CENTER);
+        
+        // 添加放大缩小按钮
+        JPanel astButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        zoomInButton = new JButton("+");
+        zoomInButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
+        zoomInButton.setPreferredSize(new Dimension(30, 25));
+        zoomInButton.setToolTipText("放大");
+        
+        zoomOutButton = new JButton("-");
+        zoomOutButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
+        zoomOutButton.setPreferredSize(new Dimension(30, 25));
+        zoomOutButton.setToolTipText("缩小");
+        
+        fitButton = new JButton("适应");
+        fitButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+        fitButton.setPreferredSize(new Dimension(40, 25));
+        fitButton.setToolTipText("适应窗口大小");
+        
+        astButtonPanel.add(zoomInButton);
+        astButtonPanel.add(zoomOutButton);
+        astButtonPanel.add(fitButton);
+        astPanel.add(astButtonPanel, BorderLayout.SOUTH);
+        
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        gbc.weighty = 0.6; // 3/5 = 0.6
+        gbc.fill = GridBagConstraints.BOTH;
+        rightPanel.add(astPanel, gbc);
         bottomPanel.add(rightPanel);
+        
         add(bottomPanel, BorderLayout.CENTER);
         
         // 设置窗口大小和位置
@@ -217,6 +272,28 @@ public class DatabaseGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 showCatalog();
+            }
+        });
+        
+        // AST可视化按钮事件处理器
+        zoomInButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                astVisualizer.zoomIn();
+            }
+        });
+        
+        zoomOutButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                astVisualizer.zoomOut();
+            }
+        });
+        
+        fitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                astVisualizer.fitToWindow();
             }
         });
         
@@ -261,10 +338,6 @@ public class DatabaseGUI extends JFrame {
                 statusLabel.setText("数据库已连接");
                 statusLabel.setForeground(Color.GREEN);
                 appendToResult("数据库引擎初始化成功！\n");
-                appendToResult("使用简单文件存储系统\n");
-                appendToResult("支持的命令：CREATE TABLE、INSERT、SELECT、DELETE\n");
-                appendToResult("输入'exit'退出程序，输入'catalog'查看目录信息\n");
-                appendToResult("自动补全功能已启用：按Tab键或Ctrl+Space触发\n\n");
             } else {
                 statusLabel.setText("数据库连接失败");
                 statusLabel.setForeground(Color.RED);
@@ -310,6 +383,7 @@ public class DatabaseGUI extends JFrame {
         // 清空显示区域
         tokenArea.setText("");
         astArea.setText("");
+        astVisualizer.setAST(null);
         
         try {
             // 检查是否是批量SQL语句
@@ -326,8 +400,11 @@ public class DatabaseGUI extends JFrame {
             // 显示Token信息
             displayTokens(result);
             
-            // 显示AST信息
+            // 显示AST信息（文本形式）
             displayAST(result);
+            
+            // 显示AST可视化
+            displayASTVisualization(result);
             
             // 显示执行结果
             if (result.isSuccess()) {
@@ -410,6 +487,17 @@ public class DatabaseGUI extends JFrame {
     }
     
     /**
+     * 显示AST可视化
+     */
+    private void displayASTVisualization(EnhancedSQLCompiler.CompilationResult result) {
+        if (result.isSuccess() && result.getStatement() != null) {
+            astVisualizer.setAST(result.getStatement());
+        } else {
+            astVisualizer.setAST(null);
+        }
+    }
+    
+    /**
      * 显示目录信息
      */
     private void showCatalog() {
@@ -423,6 +511,7 @@ public class DatabaseGUI extends JFrame {
         }
     }
     
+    
     /**
      * 清空所有区域
      */
@@ -431,6 +520,8 @@ public class DatabaseGUI extends JFrame {
         resultArea.setText("");
         tokenArea.setText("");
         astArea.setText("");
+        astVisualizer.setAST(null);
+
         executionTimeLabel.setText("执行时间: --");
         statusLabel.setText("已清空");
         statusLabel.setForeground(Color.BLUE);
