@@ -1,4 +1,0 @@
-sparrow_test
-data
-SELECT * FROM users
-quit

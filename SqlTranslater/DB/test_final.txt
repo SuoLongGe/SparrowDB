@@ -1,6 +1,0 @@
-sparrow_test
-data
-SELECT * FROM users
-INSERT INTO users VALUES (8, 'Final Test', 'final@test.com', 99)
-SELECT * FROM users
-quit

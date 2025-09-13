@@ -35,6 +35,10 @@ public class DatabaseGUI extends JFrame {
     private JButton catalogButton;
     private JLabel statusLabel;
     
+    // 索引选择组件
+    private JComboBox<String> indexTypeComboBox;
+    private JLabel executionTimeLabel;
+    
     // 自动补全组件
     private SQLAutoComplete autoComplete;
     
@@ -103,9 +107,17 @@ public class DatabaseGUI extends JFrame {
         
         catalogButton = new JButton("查看目录");
         catalogButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+
+        // 索引选择组件
+        String[] indexTypes = {"智能选择", "B+树索引", "哈希索引", "线性查找"};
+        indexTypeComboBox = new JComboBox<>(indexTypes);
+        indexTypeComboBox.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        indexTypeComboBox.setSelectedIndex(0); // 默认选择智能选择
         
-        // 初始化AST可视化组件
-        astVisualizer = new ASTVisualizer();
+        // 执行时间标签
+        executionTimeLabel = new JLabel("执行时间: --");
+        executionTimeLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        executionTimeLabel.setForeground(new Color(100, 100, 100));
         
         // 状态标签
         statusLabel = new JLabel("就绪");
@@ -141,6 +153,15 @@ public class DatabaseGUI extends JFrame {
         buttonPanel.add(executeButton);
         buttonPanel.add(clearButton);
         buttonPanel.add(catalogButton);
+        
+        // 添加索引选择组件
+        JLabel indexLabel = new JLabel("索引方式:");
+        indexLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        buttonPanel.add(indexLabel);
+        buttonPanel.add(indexTypeComboBox);
+        
+        // 添加执行时间标签
+        buttonPanel.add(executionTimeLabel);
         
         // 添加语法高亮开关按钮
         JCheckBox highlightCheckBox = new JCheckBox("语法高亮", true);
@@ -402,9 +423,27 @@ public class DatabaseGUI extends JFrame {
                 
                 // 尝试执行SQL（如果数据库引擎支持）
                 try {
+                    // 获取选择的索引类型
+                    String selectedIndexType = (String) indexTypeComboBox.getSelectedItem();
+                    appendToResult("使用索引方式: " + selectedIndexType + "\n");
+                    
+                    // 设置数据库引擎的索引类型
+                    databaseEngine.setIndexType(selectedIndexType);
+                    
+                    // 测量执行时间
+                    long startTime = System.nanoTime();
                     ExecutionResult execResult = databaseEngine.executeSQL(sql);
+                    long endTime = System.nanoTime();
+                    
+                    // 计算执行时间（毫秒）
+                    double executionTimeMs = (endTime - startTime) / 1_000_000.0;
+                    
+                    // 更新执行时间标签
+                    executionTimeLabel.setText(String.format("执行时间: %.2f ms", executionTimeMs));
+                    
                     if (execResult.isSuccess()) {
                         appendToResult("=== 执行成功 ===\n");
+                        appendToResult(String.format("执行时间: %.2f ms\n", executionTimeMs));
                         if (execResult.getData() != null) {
                             appendToResult(execResult.getData().toString() + "\n");
                         }
@@ -416,6 +455,7 @@ public class DatabaseGUI extends JFrame {
                     appendToResult("=== 执行失败 ===\n");
                     appendToResult("错误: " + e.getMessage() + "\n");
                     appendToResult("注意: 数据库引擎功能尚未完全实现\n");
+                    executionTimeLabel.setText("执行时间: 错误");
                 }
                 
                 statusLabel.setText("执行成功");
@@ -491,6 +531,8 @@ public class DatabaseGUI extends JFrame {
         tokenArea.setText("");
         astArea.setText("");
         astVisualizer.setAST(null);
+
+        executionTimeLabel.setText("执行时间: --");
         statusLabel.setText("已清空");
         statusLabel.setForeground(Color.BLUE);
     }

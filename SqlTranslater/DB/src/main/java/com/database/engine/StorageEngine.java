@@ -3,6 +3,7 @@ package com.database.engine;
 import com.sqlcompiler.catalog.*;
 import java.util.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 存储引擎 - 负责数据的物理存储和检索
@@ -273,7 +274,7 @@ public class StorageEngine {
                 return records;
             }
             
-            try (BufferedReader reader = new BufferedReader(new FileReader(tableFile))) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(tableFile, StandardCharsets.UTF_8))) {
                 String line;
                 boolean inDataSection = false;
                 
@@ -397,7 +398,7 @@ public class StorageEngine {
                 return records;
             }
             
-            try (BufferedReader reader = new BufferedReader(new FileReader(tableFile))) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(tableFile, StandardCharsets.UTF_8))) {
                 String line;
                 boolean inDataSection = false;
                 int currentPage = 0;
