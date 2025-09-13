@@ -63,7 +63,7 @@ public enum TokenType {
     WHEN("WHEN"),
     THEN("THEN"),
     EXISTS("EXISTS"),
-    
+
     // 数据类型
     INT("INT"),
     INTEGER("INTEGER"),
@@ -99,7 +99,7 @@ public enum TokenType {
     COLUMN("COLUMN"),
     ROW_STORAGE("ROW_STORAGE"),
     COLUMN_STORAGE("COLUMN_STORAGE"),
-    
+
     // 聚合函数
     COUNT("COUNT"),
     SUM("SUM"),
@@ -116,7 +116,7 @@ public enum TokenType {
     POWER("POWER"),
     MOD("MOD"),
     RAND("RAND"),
-    
+
     // 字符串函数
     UPPER("UPPER"),
     LOWER("LOWER"),
@@ -127,7 +127,7 @@ public enum TokenType {
     LTRIM("LTRIM"),
     RTRIM("RTRIM"),
     REPLACE("REPLACE"),
-    
+
     // 日期函数
     NOW("NOW"),
     CURRENT_DATE("CURRENT_DATE"),
@@ -142,7 +142,7 @@ public enum TokenType {
     DATE_ADD("DATE_ADD"),
     DATE_SUB("DATE_SUB"),
     DATEDIFF("DATEDIFF"),
-    
+
     // 运算符
     EQUALS("="),
     NOT_EQUALS("!="),
@@ -207,6 +207,7 @@ public enum TokenType {
                this == HAVING || this == LIMIT || this == OFFSET || this == JOIN ||
                this == INNER || this == LEFT || this == RIGHT || this == OUTER ||
                this == ON || this == IS || this == NULL || this == TRUE || this == FALSE ||
+               this == IF || this == EXISTS ||
                this == IF || this == ELSE || this == ELSEIF || this == ENDIF ||
                this == WHILE || this == LOOP || this == ENDLOOP || this == REPEAT ||
                this == UNTIL || this == CASE || this == WHEN || this == THEN || this == EXISTS ||

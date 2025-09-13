@@ -79,7 +79,7 @@ public class LexicalAnalyzer {
         keywordMap.put("PERMANENT", TokenType.PERMANENT);
         keywordMap.put("IF", TokenType.IF);
         keywordMap.put("EXISTS", TokenType.EXISTS);
-        
+
         // 数据类型
         keywordMap.put("INT", TokenType.INT);
         keywordMap.put("INTEGER", TokenType.INTEGER);
@@ -123,8 +123,7 @@ public class LexicalAnalyzer {
         keywordMap.put("AVG", TokenType.AVG);
         keywordMap.put("MAX", TokenType.MAX);
         keywordMap.put("MIN", TokenType.MIN);
-        
-<<<<<<< HEAD
+
         // 数学函数
         keywordMap.put("ABS", TokenType.ABS);
         keywordMap.put("CEIL", TokenType.CEIL);
@@ -134,7 +133,7 @@ public class LexicalAnalyzer {
         keywordMap.put("POWER", TokenType.POWER);
         keywordMap.put("MOD", TokenType.MOD);
         keywordMap.put("RAND", TokenType.RAND);
-        
+
         // 字符串函数
         keywordMap.put("UPPER", TokenType.UPPER);
         keywordMap.put("LOWER", TokenType.LOWER);
@@ -145,7 +144,7 @@ public class LexicalAnalyzer {
         keywordMap.put("LTRIM", TokenType.LTRIM);
         keywordMap.put("RTRIM", TokenType.RTRIM);
         keywordMap.put("REPLACE", TokenType.REPLACE);
-        
+
         // 日期函数
         keywordMap.put("NOW", TokenType.NOW);
         keywordMap.put("CURRENT_DATE", TokenType.CURRENT_DATE);
@@ -160,13 +159,11 @@ public class LexicalAnalyzer {
         keywordMap.put("DATE_ADD", TokenType.DATE_ADD);
         keywordMap.put("DATE_SUB", TokenType.DATE_SUB);
         keywordMap.put("DATEDIFF", TokenType.DATEDIFF);
-        
-=======
-        // 存储格式关键字
+
+
         keywordMap.put("STORAGE", TokenType.STORAGE);
         keywordMap.put("ROW", TokenType.ROW);
         keywordMap.put("COLUMN", TokenType.COLUMN);
->>>>>>> 272a007 (列式存储实现)
 
         return keywordMap;
     }

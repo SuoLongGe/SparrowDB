@@ -89,7 +89,7 @@ public class SyntaxAnalyzer {
         
         switch (token.getType()) {
             case CREATE:
-                return parseCreateStatement();
+                return parseCreateTableStatement();
             case INSERT:
                 return parseInsertStatement();
             case SELECT:
@@ -110,16 +110,16 @@ public class SyntaxAnalyzer {
                 );
         }
     }
-    
+
     /**
      * 解析CREATE语句 (TABLE 或 VIEW)
      */
     private Statement parseCreateStatement() throws SyntaxException {
         Position startPos = currentToken().getPosition();
-        
+
         // CREATE
         expect(TokenType.CREATE);
-        
+
         Token nextToken = currentToken();
         if (nextToken.getType() == TokenType.TABLE) {
             // 回退一步，让parseCreateTableStatement重新处理CREATE
@@ -139,19 +139,19 @@ public class SyntaxAnalyzer {
                 String.format("CREATE后面应该是TABLE、VIEW、FUNCTION或PERMANENT FUNCTION，而不是 '%s'", nextToken.getValue()),
                 nextToken.getPosition(),
                 "TABLE、VIEW、FUNCTION 或 PERMANENT FUNCTION"
-            );
+                );
         }
     }
-    
+
     /**
      * 解析DROP语句 (VIEW)
      */
     private Statement parseDropStatement() throws SyntaxException {
         Position startPos = currentToken().getPosition();
-        
+
         // DROP
         expect(TokenType.DROP);
-        
+
         Token nextToken = currentToken();
         if (nextToken.getType() == TokenType.VIEW) {
             return parseDropViewStatement();
@@ -165,42 +165,42 @@ public class SyntaxAnalyzer {
             );
         }
     }
-    
+
     /**
      * 解析CREATE VIEW语句
      */
     private CreateViewStatement parseCreateViewStatement() throws SyntaxException {
         Position startPos = currentToken().getPosition();
-        
+
         // VIEW
         expect(TokenType.VIEW);
-        
+
         // 视图名
         String viewName = expectIdentifier();
-        
+
         // AS
         expect(TokenType.AS);
-        
+
         // SELECT查询
         SelectStatement selectStatement = parseSelectStatement();
-        
+
         // 可选的分号
         if (currentToken().getType() == TokenType.SEMICOLON) {
             nextToken();
         }
-        
+
         return new CreateViewStatement(viewName, selectStatement, startPos);
     }
-    
+
     /**
      * 解析DROP VIEW语句
      */
     private DropViewStatement parseDropViewStatement() throws SyntaxException {
         Position startPos = currentToken().getPosition();
-        
+
         // VIEW
         expect(TokenType.VIEW);
-        
+
         // 可选的IF EXISTS
         boolean ifExists = false;
         if (currentToken().getType() == TokenType.IF) {
@@ -208,18 +208,18 @@ public class SyntaxAnalyzer {
             expect(TokenType.EXISTS);
             ifExists = true;
         }
-        
+
         // 视图名
         String viewName = expectIdentifier();
-        
+
         // 可选的分号
         if (currentToken().getType() == TokenType.SEMICOLON) {
             nextToken();
         }
-        
+
         return new DropViewStatement(viewName, ifExists, startPos);
     }
-    
+
     /**
      * 解析CREATE TABLE语句
      */
@@ -261,12 +261,12 @@ public class SyntaxAnalyzer {
         String storageFormat = "ROW"; // 默认行式存储
         if (currentToken().getType() == TokenType.STORAGE) {
             nextToken(); // 跳过 STORAGE
-            
-            if (currentToken().getType() == TokenType.ROW || 
+
+            if (currentToken().getType() == TokenType.ROW ||
                 currentToken().getType() == TokenType.ROW_STORAGE) {
                 storageFormat = "ROW";
                 nextToken();
-            } else if (currentToken().getType() == TokenType.COLUMN || 
+            } else if (currentToken().getType() == TokenType.COLUMN ||
                       currentToken().getType() == TokenType.COLUMN_STORAGE) {
                 storageFormat = "COLUMN";
                 nextToken();
@@ -278,7 +278,7 @@ public class SyntaxAnalyzer {
                 );
             }
         }
-        
+
         // 可选的分号
         if (currentToken().getType() == TokenType.SEMICOLON) {
             nextToken();
@@ -918,6 +918,35 @@ public class SyntaxAnalyzer {
     }
     
     /**
+     * 解析DROP TABLE语句
+     */
+    private DropTableStatement parseDropTableStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+
+        // DROP TABLE
+        expect(TokenType.DROP);
+        expect(TokenType.TABLE);
+
+        // 可选的IF EXISTS
+        boolean ifExists = false;
+        if (currentToken().getType() == TokenType.IF) {
+            nextToken();
+            expect(TokenType.EXISTS);
+            ifExists = true;
+        }
+
+        // 表名
+        String tableName = expectIdentifier();
+
+        // 可选的分号
+        if (currentToken().getType() == TokenType.SEMICOLON) {
+            nextToken();
+        }
+
+        return new DropTableStatement(tableName, ifExists, startPos);
+    }
+
+    /**
      * 解析表达式
      */
     private Expression parseExpression() throws SyntaxException {
@@ -1346,7 +1375,7 @@ public class SyntaxAnalyzer {
      * 判断关键字是否可以作为标识符使用
      */
     private boolean isKeywordAsIdentifier(TokenType type) {
-        // 函数关键字在某些上下文中可以作为标识符（如别名）
+        // 聚合函数关键字在某些上下文中可以作为标识符（如别名）
         return type == TokenType.COUNT || type == TokenType.SUM || 
                type == TokenType.AVG || type == TokenType.MAX || 
                type == TokenType.MIN ||
@@ -1421,16 +1450,16 @@ public class SyntaxAnalyzer {
         nextToken();
         return token.getValue();
     }
-    
+
     /**
      * 解析CREATE FUNCTION语句
      */
     private CreateFunctionStatement parseCreateFunctionStatement(boolean isPermanent) throws SyntaxException {
         Position startPos = currentToken().getPosition();
-        
+
         // FUNCTION
         expect(TokenType.FUNCTION);
-        
+
         // 可选的OR REPLACE
         boolean orReplace = false;
         if (currentToken().getType() == TokenType.OR) {
@@ -1438,20 +1467,20 @@ public class SyntaxAnalyzer {
             expect(TokenType.REPLACE);
             orReplace = true;
         }
-        
+
         // 函数名
         String functionName = expectIdentifier();
-        
+
         // 参数列表
         expect(TokenType.LEFT_PAREN);
         List<CreateFunctionStatement.FunctionParameter> parameters = new ArrayList<>();
-        
+
         if (currentToken().getType() != TokenType.RIGHT_PAREN) {
             do {
                 String paramName = expectIdentifier();
                 String paramType = expectDataType();
                 parameters.add(new CreateFunctionStatement.FunctionParameter(paramName, paramType));
-                
+
                 if (currentToken().getType() == TokenType.COMMA) {
                     nextToken();
                 } else {
@@ -1459,31 +1488,31 @@ public class SyntaxAnalyzer {
                 }
             } while (true);
         }
-        
+
         expect(TokenType.RIGHT_PAREN);
-        
+
         // RETURNS
         expect(TokenType.RETURNS);
         String returnType = expectDataType();
-        
+
         // BEGIN
         expect(TokenType.BEGIN);
-        
+
         // 函数体 - 增强实现，支持复杂控制结构
         String functionBody = parseComplexFunctionBody();
-        
+
         return new CreateFunctionStatement(functionName, parameters, returnType, functionBody, orReplace, isPermanent, startPos);
     }
-    
+
     /**
      * 解析DROP FUNCTION语句
      */
     private DropFunctionStatement parseDropFunctionStatement() throws SyntaxException {
         Position startPos = currentToken().getPosition();
-        
+
         // FUNCTION
         expect(TokenType.FUNCTION);
-        
+
         // 可选的IF EXISTS
         boolean ifExists = false;
         if (currentToken().getType() == TokenType.IF) {
@@ -1491,33 +1520,33 @@ public class SyntaxAnalyzer {
             expect(TokenType.EXISTS);
             ifExists = true;
         }
-        
+
         // 函数名
         String functionName = expectIdentifier();
-        
+
         return new DropFunctionStatement(functionName, ifExists, startPos);
     }
-    
+
     /**
      * 解析CALL语句
      */
     private CallStatement parseCallStatement() throws SyntaxException {
         Position startPos = currentToken().getPosition();
-        
+
         // CALL
         expect(TokenType.CALL);
-        
+
         // 函数名
         String functionName = expectIdentifier();
-        
+
         // 参数列表
         expect(TokenType.LEFT_PAREN);
         List<Expression> arguments = new ArrayList<>();
-        
+
         if (currentToken().getType() != TokenType.RIGHT_PAREN) {
             do {
                 arguments.add(parseExpression());
-                
+
                 if (currentToken().getType() == TokenType.COMMA) {
                     nextToken();
                 } else {
@@ -1525,27 +1554,27 @@ public class SyntaxAnalyzer {
                 }
             } while (true);
         }
-        
+
         expect(TokenType.RIGHT_PAREN);
-        
+
         return new CallStatement(functionName, arguments, startPos);
     }
-    
+
     /**
      * 解析复杂的函数体 - 支持控制结构
      */
     private String parseComplexFunctionBody() throws SyntaxException {
         StringBuilder bodyBuilder = new StringBuilder();
         int nestingLevel = 0;
-        
+
         while (currentToken().getType() != TokenType.EOF) {
             TokenType currentType = currentToken().getType();
             String currentValue = currentToken().getValue();
-            
+
             // 处理嵌套结构
-            if (currentType == TokenType.BEGIN || 
-                currentType == TokenType.IF || 
-                currentType == TokenType.WHILE || 
+            if (currentType == TokenType.BEGIN ||
+                currentType == TokenType.IF ||
+                currentType == TokenType.WHILE ||
                 currentType == TokenType.CASE) {
                 nestingLevel++;
             } else if (currentType == TokenType.END) {
@@ -1556,15 +1585,15 @@ public class SyntaxAnalyzer {
                 } else {
                     nestingLevel--;
                 }
-            } else if (currentType == TokenType.ENDIF || 
+            } else if (currentType == TokenType.ENDIF ||
                        currentType == TokenType.ENDLOOP) {
                 nestingLevel--;
             }
-            
+
             bodyBuilder.append(currentValue).append(" ");
             nextToken();
         }
-        
+
         return bodyBuilder.toString().trim();
     }
 }
