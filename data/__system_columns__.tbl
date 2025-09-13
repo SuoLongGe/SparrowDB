@@ -12,15 +12,15 @@ COLUMN=default_value:VARCHAR:255
 COLUMN=auto_increment:BOOLEAN:1
 # End Metadata
 PAGE:1
+auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=50|default_value=false|table_name=ll|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=phone|data_type=VARCHAR|length=50|default_value=false|table_name=ll|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|length=0|default_value=false|table_name=sales_column|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=product_name|data_type=VARCHAR|length=100|default_value=false|table_name=sales_column|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=price|data_type=DECIMAL|length=10|default_value=false|table_name=sales_column|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=quantity|data_type=INT|length=0|default_value=false|table_name=sales_column|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=category|data_type=VARCHAR|length=50|default_value=false|table_name=sales_column|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=region|data_type=VARCHAR|length=50|default_value=false|table_name=sales_column|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|length=0|default_value=false|table_name=test_column_table|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=50|default_value=false|table_name=test_column_table|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=10|default_value=null|table_name=ll|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=age|data_type=INT|length=0|default_value=null|table_name=ll|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=phone|data_type=INT|length=0|default_value=null|table_name=ll|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=ID|data_type=INT|length=0|default_value=null|table_name=ll|primary_key=false
 
 PAGE:2

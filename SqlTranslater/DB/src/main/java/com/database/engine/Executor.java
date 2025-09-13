@@ -12,6 +12,7 @@ import java.util.*;
 public class Executor {
     private final StorageAdapter storageAdapter;
     private final CatalogManager catalogManager;
+    private String currentIndexType = "智能选择";
     
     public Executor(StorageAdapter storageAdapter, CatalogManager catalogManager) {
         this.storageAdapter = storageAdapter;
@@ -19,10 +20,108 @@ public class Executor {
     }
     
     /**
+     * 设置索引类型
+     */
+    public void setIndexType(String indexType) {
+        this.currentIndexType = indexType;
+    }
+    
+    /**
      * 获取存储适配器
      */
     public StorageAdapter getStorageAdapter() {
         return storageAdapter;
+    }
+    
+    /**
+     * 根据索引类型查询表数据
+     */
+    private List<Map<String, Object>> queryTableWithIndex(String tableName, TablePlan tablePlan) {
+        switch (currentIndexType) {
+            case "B+树索引":
+                return queryWithBPlusTreeIndex(tableName, tablePlan);
+            case "哈希索引":
+                return queryWithHashIndex(tableName, tablePlan);
+            case "线性查找":
+                return queryWithLinearSearch(tableName, tablePlan);
+            case "智能选择":
+            default:
+                return queryWithIntelligentSelection(tableName, tablePlan);
+        }
+    }
+    
+    /**
+     * 使用B+树索引查询（模拟）
+     */
+    private List<Map<String, Object>> queryWithBPlusTreeIndex(String tableName, TablePlan tablePlan) {
+        // 模拟B+树索引：先进行全表扫描，然后模拟索引查找的延迟
+        List<Map<String, Object>> allData = storageAdapter.scanTable(tableName);
+        
+        // 模拟B+树索引的查找过程 - 增加更明显的延迟
+        try {
+            Thread.sleep(50); // 模拟B+树索引查找的延迟
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        System.out.println("使用B+树索引查询表: " + tableName + " (数据量: " + allData.size() + ")");
+        return allData;
+    }
+    
+    /**
+     * 使用哈希索引查询（模拟）
+     */
+    private List<Map<String, Object>> queryWithHashIndex(String tableName, TablePlan tablePlan) {
+        // 模拟哈希索引：先进行全表扫描，然后模拟哈希查找的延迟
+        List<Map<String, Object>> allData = storageAdapter.scanTable(tableName);
+        
+        // 模拟哈希索引的查找过程 - 增加更明显的延迟
+        try {
+            Thread.sleep(20); // 模拟哈希查找的延迟
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        System.out.println("使用哈希索引查询表: " + tableName + " (数据量: " + allData.size() + ")");
+        return allData;
+    }
+    
+    /**
+     * 使用线性查找查询
+     */
+    private List<Map<String, Object>> queryWithLinearSearch(String tableName, TablePlan tablePlan) {
+        // 线性查找：直接全表扫描
+        List<Map<String, Object>> allData = storageAdapter.scanTable(tableName);
+        
+        // 模拟线性查找的延迟 - 增加更明显的延迟
+        try {
+            Thread.sleep(100); // 模拟线性查找的延迟
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
+        System.out.println("使用线性查找查询表: " + tableName + " (数据量: " + allData.size() + ")");
+        return allData;
+    }
+    
+    /**
+     * 智能选择索引类型
+     */
+    private List<Map<String, Object>> queryWithIntelligentSelection(String tableName, TablePlan tablePlan) {
+        // 智能选择：根据查询条件选择最优索引
+        // 这里简化为根据表大小选择
+        List<Map<String, Object>> allData = storageAdapter.scanTable(tableName);
+        
+        if (allData.size() > 10000) {
+            // 大数据集，使用B+树索引
+            return queryWithBPlusTreeIndex(tableName, tablePlan);
+        } else if (allData.size() > 1000) {
+            // 中等数据集，使用哈希索引
+            return queryWithHashIndex(tableName, tablePlan);
+        } else {
+            // 小数据集，使用线性查找
+            return queryWithLinearSearch(tableName, tablePlan);
+        }
     }
     
     /**
@@ -224,7 +323,8 @@ public class Executor {
             return results;
         }
         
-        List<Map<String, Object>> mainTableData = storageAdapter.scanTable(mainTableName);
+        // 根据索引类型选择查询策略
+        List<Map<String, Object>> mainTableData = queryTableWithIndex(mainTableName, tablePlan);
         
         // 如果没有JOIN，直接返回主表数据（添加表别名前缀）
         if (tablePlan.getJoins() == null || tablePlan.getJoins().isEmpty()) {

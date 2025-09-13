@@ -531,7 +531,7 @@ public class DatabaseGUI extends JFrame {
                     
                     // 获取选择的存储格式
                     String selectedStorageFormat = (String) storageFormatComboBox.getSelectedItem();
-                    appendToResult("使用存储格式: " + selectedStorageFormat + "\n");
+                    resultTabbedPane.showMessage("使用存储格式: " + selectedStorageFormat);
                     
                     // 设置数据库引擎的索引类型
                     databaseEngine.setIndexType(selectedIndexType);

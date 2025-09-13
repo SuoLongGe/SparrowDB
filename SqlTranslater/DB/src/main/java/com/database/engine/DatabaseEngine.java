@@ -385,6 +385,8 @@ public class DatabaseEngine {
      */
     public void setIndexType(String indexType) {
         this.currentIndexType = indexType;
+        // 将索引类型传递给执行器
+        executor.setIndexType(indexType);
         System.out.println("索引类型已设置为: " + indexType);
     }
     
