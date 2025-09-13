@@ -1,0 +1,12 @@
+# Column Metadata
+COLUMN_NAME=age
+DATA_TYPE=INT
+LENGTH=0
+NOT_NULL=false
+PRIMARY_KEY=false
+UNIQUE=false
+DEFAULT_VALUE=
+AUTO_INCREMENT=false
+# End Metadata
+# Data starts below
+18

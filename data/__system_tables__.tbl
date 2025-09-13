@@ -1,4 +1,3 @@
-
 # Table Metadata
 TABLE_NAME=__system_tables__
 COLUMN_COUNT=4
@@ -8,25 +7,24 @@ COLUMN=column_count:INT:4
 COLUMN=constraint_count:INT:4
 # End Metadata
 PAGE:1
-create_time=1757740813222|constraint_count=0|column_count=1|table_name=fyh
-create_time=1757740813223|constraint_count=0|column_count=3|table_name=projects
-create_time=1757740813227|constraint_count=0|column_count=4|table_name=students
-create_time=1757740813231|constraint_count=0|column_count=3|table_name=ss3
-create_time=1757740813233|constraint_count=0|column_count=3|table_name=ss2
-create_time=1757740813234|constraint_count=0|column_count=1|table_name=fw
-create_time=1757740813235|constraint_count=0|column_count=3|table_name=courses
-create_time=1757740813236|constraint_count=0|column_count=5|table_name=ss1
-create_time=1757740813238|constraint_count=0|column_count=3|table_name=assignments
-create_time=1757740813240|constraint_count=0|column_count=6|table_name=test1
-create_time=1757740813243|constraint_count=0|column_count=5|table_name=user
-create_time=1757740813244|constraint_count=0|column_count=3|table_name=test_table
-create_time=1757740813245|constraint_count=0|column_count=2|table_name=test_integration
-create_time=1757740813246|constraint_count=0|column_count=1|table_name=hjy
-create_time=1757740813246|constraint_count=0|column_count=4|table_name=test_table2
-create_time=1757740813248|constraint_count=0|column_count=4|table_name=users
-create_time=1757740813249|constraint_count=0|column_count=2|table_name=test_unified
-create_time=1757740813250|constraint_count=0|column_count=3|table_name=test_logging
-create_time=1757740813251|constraint_count=0|column_count=3|table_name=StudentsTest
-create_time=1757740813252|constraint_count=0|column_count=4|table_name=products
-create_time=1757740813253|constraint_count=0|column_count=1|table_name=smx
+create_time=1757773934127|constraint_count=0|column_count=3|table_name=courses
+create_time=1757773934134|constraint_count=0|column_count=1|table_name=fyh
+create_time=1757773934149|constraint_count=0|column_count=1|table_name=hjy
+create_time=1757773934164|constraint_count=0|column_count=5|table_name=newtable
+create_time=1757773934188|constraint_count=0|column_count=4|table_name=products
+create_time=1757773934207|constraint_count=0|column_count=6|table_name=sales_row
+create_time=1757773934234|constraint_count=0|column_count=1|table_name=smx
+create_time=1757773934249|constraint_count=0|column_count=4|table_name=students
+create_time=1757773934268|constraint_count=0|column_count=6|table_name=test1
+create_time=1757773934292|constraint_count=0|column_count=2|table_name=test_integration
+create_time=1757773934310|constraint_count=0|column_count=3|table_name=test_logging
+create_time=1757773934329|constraint_count=0|column_count=2|table_name=test_row_table
+create_time=1757773934343|constraint_count=0|column_count=3|table_name=test_table
+create_time=1757773934363|constraint_count=0|column_count=4|table_name=test_table2
+create_time=1757773934384|constraint_count=0|column_count=2|table_name=test_unified
+create_time=1757773934402|constraint_count=0|column_count=4|table_name=users
+create_time=1757773934426|constraint_count=0|column_count=2|table_name=lie
+create_time=1757773934449|constraint_count=0|column_count=6|table_name=sales_column
+create_time=1757773934499|constraint_count=0|column_count=2|table_name=test_column_table
+create_time=1757773949118|constraint_count=0|column_count=4|table_name=ll
 

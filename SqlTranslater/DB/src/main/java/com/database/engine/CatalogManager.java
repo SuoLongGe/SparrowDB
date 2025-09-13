@@ -3,6 +3,7 @@ package com.database.engine;
 import com.sqlcompiler.catalog.*;
 import java.util.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 系统目录管理器 - 维护元数据，作为特殊表存储
@@ -381,7 +382,7 @@ public class CatalogManager {
     }
     
     /**
-     * 从data目录扫描.tbl文件来发现未注册的表
+     * 从data目录扫描.tbl文件和列式存储目录来发现未注册的表
      */
     private void loadTablesFromDataDirectory(Set<String> alreadyLoadedTables) {
         try {
@@ -393,36 +394,171 @@ public class CatalogManager {
                 return;
             }
             
-            // 扫描所有.tbl文件
+            // 1. 扫描所有.tbl文件
             File[] tblFiles = dataDirectory.listFiles((dir, name) -> 
                 name.endsWith(".tbl") && !name.startsWith("__system_"));
             
-            if (tblFiles == null) {
-                return;
+            if (tblFiles != null) {
+                for (File tblFile : tblFiles) {
+                    String fileName = tblFile.getName();
+                    String tableName = fileName.substring(0, fileName.lastIndexOf(".tbl"));
+                    
+                    // 跳过已经加载的表
+                    if (alreadyLoadedTables.contains(tableName)) {
+                        continue;
+                    }
+                    
+                    // 尝试从文件头解析表结构
+                    TableInfo tableInfo = parseTableInfoFromFile(tblFile);
+                    if (tableInfo != null) {
+                        catalog.addTable(tableInfo);
+                        System.out.println("从.tbl文件发现并加载表: " + tableName);
+                        
+                        // 将表信息持久化到系统表中
+                        persistTableMetadata(tableInfo);
+                    }
+                }
             }
             
-            for (File tblFile : tblFiles) {
-                String fileName = tblFile.getName();
-                String tableName = fileName.substring(0, fileName.lastIndexOf(".tbl"));
-                
-                // 跳过已经加载的表
-                if (alreadyLoadedTables.contains(tableName)) {
-                    continue;
-                }
-                
-                // 尝试从文件头解析表结构
-                TableInfo tableInfo = parseTableInfoFromFile(tblFile);
-                if (tableInfo != null) {
-                    catalog.addTable(tableInfo);
-                    System.out.println("从文件发现并加载表: " + tableName);
+            // 2. 扫描列式存储目录
+            File[] subDirs = dataDirectory.listFiles(File::isDirectory);
+            if (subDirs != null) {
+                for (File subDir : subDirs) {
+                    String tableName = subDir.getName();
                     
-                    // 将表信息持久化到系统表中
-                    persistTableMetadata(tableInfo);
+                    // 跳过已经加载的表
+                    if (alreadyLoadedTables.contains(tableName)) {
+                        continue;
+                    }
+                    
+                    // 检查是否为列式存储表
+                    String metaFile = subDir.getAbsolutePath() + File.separator + "metadata.txt";
+                    File meta = new File(metaFile);
+                    
+                    if (meta.exists() && isColumnarStorageTable(metaFile)) {
+                        // 从元数据文件解析表结构
+                        TableInfo tableInfo = parseTableInfoFromColumnarMetadata(metaFile);
+                        if (tableInfo != null) {
+                            catalog.addTable(tableInfo);
+                            System.out.println("从列式存储发现并加载表: " + tableName);
+                            
+                            // 将表信息持久化到系统表中
+                            persistTableMetadata(tableInfo);
+                        }
+                    }
                 }
             }
             
         } catch (Exception e) {
             System.err.println("扫描data目录失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 检查是否为列式存储表
+     */
+    private boolean isColumnarStorageTable(String metaFile) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(metaFile, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("STORAGE_FORMAT=")) {
+                    String format = line.substring("STORAGE_FORMAT=".length());
+                    return "COLUMN".equalsIgnoreCase(format);
+                }
+            }
+        } catch (IOException e) {
+            // 如果读取失败，假设不是列式存储
+        }
+        return false;
+    }
+    
+    /**
+     * 从列式存储元数据文件解析表结构信息
+     */
+    private TableInfo parseTableInfoFromColumnarMetadata(String metaFile) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(metaFile, StandardCharsets.UTF_8))) {
+            String line;
+            String tableName = null;
+            List<ColumnInfo> columns = new ArrayList<>();
+            
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("COLUMN=")) {
+                    String columnName = line.substring("COLUMN=".length());
+                    // 根据列名推断数据类型
+                    String dataType = inferDataType(columnName);
+                    int length = inferLength(columnName);
+                    boolean isPrimaryKey = "id".equals(columnName) || "ID".equals(columnName);
+                    
+                    columns.add(new ColumnInfo(columnName, dataType, length, isPrimaryKey, false));
+                }
+            }
+            
+            // 如果没有找到COLUMN=格式，尝试从列文件推断列信息
+            if (columns.isEmpty()) {
+                File meta = new File(metaFile);
+                File tableDir = meta.getParentFile();
+                if (tableDir != null && tableDir.isDirectory()) {
+                    File[] colFiles = tableDir.listFiles((dir, name) -> name.endsWith(".col"));
+                    if (colFiles != null) {
+                        for (File colFile : colFiles) {
+                            String fileName = colFile.getName();
+                            String columnName = fileName.substring(0, fileName.lastIndexOf(".col"));
+                            
+                            // 根据列名推断数据类型
+                            String dataType = inferDataType(columnName);
+                            int length = inferLength(columnName);
+                            boolean isPrimaryKey = "id".equals(columnName) || "ID".equals(columnName);
+                            
+                            columns.add(new ColumnInfo(columnName, dataType, length, isPrimaryKey, false));
+                        }
+                    }
+                }
+            }
+            
+            if (!columns.isEmpty()) {
+                // 从文件路径推断表名
+                File meta = new File(metaFile);
+                tableName = meta.getParentFile().getName();
+                
+                TableInfo tableInfo = new TableInfo(tableName, "COLUMN");
+                for (ColumnInfo column : columns) {
+                    tableInfo.addColumn(column);
+                }
+                return tableInfo;
+            }
+        } catch (IOException e) {
+            System.err.println("解析列式存储元数据失败: " + e.getMessage());
+        }
+        return null;
+    }
+    
+    /**
+     * 推断数据类型
+     */
+    private String inferDataType(String columnName) {
+        if ("id".equals(columnName)) {
+            return "INT";
+        } else if ("price".equals(columnName)) {
+            return "DECIMAL";
+        } else if ("quantity".equals(columnName)) {
+            return "INT";
+        } else {
+            return "VARCHAR";
+        }
+    }
+    
+    /**
+     * 推断长度
+     */
+    private int inferLength(String columnName) {
+        if ("id".equals(columnName) || "quantity".equals(columnName)) {
+            return 0;
+        } else if ("price".equals(columnName)) {
+            return 10;
+        } else if ("product_name".equals(columnName)) {
+            return 100;
+        } else {
+            return 50;
         }
     }
     

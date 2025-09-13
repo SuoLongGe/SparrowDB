@@ -24,6 +24,9 @@ public class DatabaseEngine {
     // 索引类型设置
     private String currentIndexType = "智能选择";
     
+    // 存储格式设置
+    private String currentStorageFormat = "行式存储";
+    
     public DatabaseEngine(String databaseName, String dataDirectory) {
         this.databaseName = databaseName;
         this.dataDirectory = dataDirectory;
@@ -57,11 +60,51 @@ public class DatabaseEngine {
         try {
             // 从存储中加载目录信息
             catalogManager.loadFromStorage();
+            
+            // 确保StorageAdapter中的列式存储表信息同步到CatalogManager
+            syncColumnarTablesToCatalog();
+            
             initialized = true;
             return true;
         } catch (Exception e) {
             System.err.println("数据库引擎初始化失败: " + e.getMessage());
             return false;
+        }
+    }
+    
+    /**
+     * 同步列式存储表信息到目录管理器
+     */
+    private void syncColumnarTablesToCatalog() {
+        try {
+            System.out.println("开始同步列式存储表到目录...");
+            
+            // 获取StorageAdapter中的列式存储引擎
+            StorageAdapter storageAdapter = executor.getStorageAdapter();
+            ColumnarStorageEngine columnarEngine = storageAdapter.getColumnarStorageEngine();
+            
+            // 获取所有列式存储表
+            List<String> columnarTables = columnarEngine.getTableNames();
+            System.out.println("发现列式存储表: " + columnarTables);
+            
+            for (String tableName : columnarTables) {
+                // 检查表是否已经在目录中
+                if (!catalogManager.tableExists(tableName)) {
+                    // 获取表信息并添加到目录
+                    TableInfo tableInfo = columnarEngine.getTableInfo(tableName);
+                    if (tableInfo != null) {
+                        catalogManager.addTable(tableInfo);
+                        System.out.println("同步列式存储表到目录: " + tableName);
+                    } else {
+                        System.out.println("无法获取表信息: " + tableName);
+                    }
+                } else {
+                    System.out.println("表已存在于目录中: " + tableName);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("同步列式存储表失败: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
@@ -84,17 +127,23 @@ public class DatabaseEngine {
             String tableName = extractTableName(sql);
             logManager.logSQLOperation(transactionId, sql, tableName, "SQL执行开始", null, null);
             
+            // 修改SQL语句以使用GUI选择的存储格式
+            String modifiedSql = modifySQLForStorageFormat(sql);
+            if (!modifiedSql.equals(sql)) {
+                System.out.println("修改后的SQL: " + modifiedSql);
+            }
+            
             // 使用SQL编译器解析SQL并生成执行计划
             ExecutionPlan plan = null;
             try {
                 // 检查是否是批量SQL语句
-                boolean isMultiStatement = sql.contains(";") && sql.split(";").length > 1;
+                boolean isMultiStatement = modifiedSql.contains(";") && modifiedSql.split(";").length > 1;
                 
                 SQLCompiler.CompilationResult result;
                 if (isMultiStatement) {
-                    result = sqlCompiler.compileBatch(sql);
+                    result = sqlCompiler.compileBatch(modifiedSql);
                 } else {
-                    result = sqlCompiler.compile(sql);
+                    result = sqlCompiler.compile(modifiedSql);
                 }
                 
                 if (result.isSuccess()) {
@@ -103,12 +152,12 @@ public class DatabaseEngine {
                     System.out.println("SQL编译失败: " + result.getErrors());
                     // 如果SQL编译器失败，回退到简单解析
                     System.out.println("SQL编译器不可用，使用简单解析: SQL编译失败");
-                    plan = parseSQL(sql);
+                    plan = parseSQL(modifiedSql);
                 }
             } catch (Exception e) {
                 // 如果SQL编译器不可用，回退到简单解析
                 System.out.println("SQL编译器不可用，使用简单解析: " + e.getMessage());
-                plan = parseSQL(sql);
+                plan = parseSQL(modifiedSql);
             }
             
             if (plan == null) {
@@ -161,7 +210,9 @@ public class DatabaseEngine {
         }
         
         try {
-            CreateTablePlan plan = new CreateTablePlan(tableName, columns, constraints);
+            // 将GUI的存储格式转换为内部格式
+            String storageFormat = convertStorageFormat(currentStorageFormat);
+            CreateTablePlan plan = new CreateTablePlan(tableName, columns, constraints, storageFormat);
             return executor.execute(plan);
         } catch (Exception e) {
             return new ExecutionResult(false, "创建表时发生错误: " + e.getMessage(), null);
@@ -342,6 +393,66 @@ public class DatabaseEngine {
      */
     public String getCurrentIndexType() {
         return currentIndexType;
+    }
+    
+    /**
+     * 设置存储格式
+     */
+    public void setStorageFormat(String storageFormat) {
+        this.currentStorageFormat = storageFormat;
+        System.out.println("存储格式已设置为: " + storageFormat);
+    }
+    
+    /**
+     * 获取当前存储格式
+     */
+    public String getCurrentStorageFormat() {
+        return currentStorageFormat;
+    }
+    
+    /**
+     * 转换存储格式
+     */
+    private String convertStorageFormat(String guiFormat) {
+        if ("列式存储".equals(guiFormat)) {
+            return "COLUMN";
+        } else {
+            return "ROW";
+        }
+    }
+    
+    /**
+     * 修改SQL语句以使用GUI选择的存储格式
+     */
+    private String modifySQLForStorageFormat(String sql) {
+        // 只处理CREATE TABLE语句
+        if (!sql.trim().toUpperCase().startsWith("CREATE TABLE")) {
+            return sql;
+        }
+        
+        // 获取GUI选择的存储格式
+        String guiStorageFormat = convertStorageFormat(currentStorageFormat);
+        
+        // 检查SQL中是否已经有STORAGE子句
+        String upperSql = sql.toUpperCase();
+        if (upperSql.contains("STORAGE")) {
+            // 替换现有的STORAGE子句
+            String pattern = "\\s+STORAGE\\s+(ROW|COLUMN)\\s*";
+            String replacement = " STORAGE " + guiStorageFormat + " ";
+            return sql.replaceAll("(?i)" + pattern, replacement);
+        } else {
+            // 添加STORAGE子句
+            // 找到最后一个右括号
+            int lastParenIndex = sql.lastIndexOf(')');
+            if (lastParenIndex != -1) {
+                // 在右括号后插入STORAGE子句
+                String beforeParen = sql.substring(0, lastParenIndex + 1);
+                String afterParen = sql.substring(lastParenIndex + 1);
+                return beforeParen + " STORAGE " + guiStorageFormat + afterParen;
+            }
+        }
+        
+        return sql;
     }
     
     /**

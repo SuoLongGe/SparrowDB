@@ -19,6 +19,9 @@ public class StorageAdapter {
     private final Map<String, TableStorageInfo> tableStorageMap;
     private final Map<String, Integer> nextPageIdMap;
     
+    // 列式存储引擎
+    private final ColumnarStorageEngine columnarStorageEngine;
+    
     // 存储系统配置
     private static final int BUFFER_POOL_SIZE = 50;
     private static final String REPLACEMENT_POLICY = "LRU";
@@ -27,6 +30,7 @@ public class StorageAdapter {
         this.dataDirectory = dataDirectory;
         this.tableStorageMap = new HashMap<>();
         this.nextPageIdMap = new HashMap<>();
+        this.columnarStorageEngine = new ColumnarStorageEngine(dataDirectory);
         
         // 确保数据目录存在
         File dir = new File(dataDirectory);
@@ -46,6 +50,13 @@ public class StorageAdapter {
         
         // 自动发现并注册现有的表
         discoverAndRegisterExistingTables();
+    }
+    
+    /**
+     * 获取列式存储引擎
+     */
+    public ColumnarStorageEngine getColumnarStorageEngine() {
+        return columnarStorageEngine;
     }
     
     /**
@@ -78,6 +89,25 @@ public class StorageAdapter {
      */
     public boolean createTable(String tableName, TableInfo tableInfo) {
         try {
+            // 根据存储格式选择存储引擎
+            if (tableInfo.isColumnarStorage()) {
+                // 使用列式存储引擎
+                return columnarStorageEngine.createTable(tableName, tableInfo);
+            } else {
+                // 使用行式存储引擎
+                return createRowStorageTable(tableName, tableInfo);
+            }
+        } catch (Exception e) {
+            System.err.println("创建表存储失败: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 创建行式存储表
+     */
+    private boolean createRowStorageTable(String tableName, TableInfo tableInfo) {
+        try {
             // 创建表存储信息
             TableStorageInfo storageInfo = new TableStorageInfo(tableName);
             tableStorageMap.put(tableName, storageInfo);
@@ -95,7 +125,7 @@ public class StorageAdapter {
             
             return true;
         } catch (Exception e) {
-            System.err.println("创建表存储失败: " + e.getMessage());
+            System.err.println("创建行式存储表失败: " + e.getMessage());
             return false;
         }
     }
@@ -105,6 +135,11 @@ public class StorageAdapter {
      */
     public boolean insertRecord(String tableName, Map<String, Object> record) {
         try {
+            // 检查是否为列式存储表
+            if (isColumnarStorageTable(tableName)) {
+                return columnarStorageEngine.insertRecord(tableName, record);
+            }
+            
             TableStorageInfo storageInfo = tableStorageMap.get(tableName);
             if (storageInfo == null) {
                 return false;
@@ -134,6 +169,11 @@ public class StorageAdapter {
         List<Map<String, Object>> records = new ArrayList<>();
         
         try {
+            // 检查是否为列式存储表
+            if (isColumnarStorageTable(tableName)) {
+                return columnarStorageEngine.scanTable(tableName);
+            }
+            
             // 确保表已注册
             ensureTableRegistered(tableName);
             
@@ -290,6 +330,34 @@ public class StorageAdapter {
     
     private String getTableFilePath(String tableName) {
         return dataDirectory + File.separator + tableName + ".tbl";
+    }
+    
+    /**
+     * 检查表是否为列式存储
+     */
+    private boolean isColumnarStorageTable(String tableName) {
+        // 检查是否存在列式存储目录和元数据文件
+        String columnarDir = dataDirectory + File.separator + tableName;
+        String metaFile = columnarDir + File.separator + "metadata.txt";
+        File file = new File(metaFile);
+        
+        if (!file.exists()) {
+            return false;
+        }
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("STORAGE_FORMAT=")) {
+                    String format = line.substring("STORAGE_FORMAT=".length());
+                    return "COLUMN".equalsIgnoreCase(format);
+                }
+            }
+        } catch (IOException e) {
+            // 如果读取失败，假设是行式存储
+        }
+        
+        return false;
     }
     
     private void writeTableMetadata(String tableFile, TableInfo tableInfo) {

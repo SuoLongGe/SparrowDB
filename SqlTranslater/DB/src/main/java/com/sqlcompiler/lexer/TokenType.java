@@ -70,6 +70,13 @@ public enum TokenType {
     ASC("ASC"),
     DESC("DESC"),
     
+    // 存储格式关键字
+    STORAGE("STORAGE"),
+    ROW("ROW"),
+    COLUMN("COLUMN"),
+    ROW_STORAGE("ROW_STORAGE"),
+    COLUMN_STORAGE("COLUMN_STORAGE"),
+    
     // 聚合函数
     COUNT("COUNT"),
     SUM("SUM"),
@@ -146,6 +153,7 @@ public enum TokenType {
                this == FOREIGN_KEY || this == REFERENCES || this == UNIQUE || this == NOT_NULL || 
                this == DEFAULT || this == AUTO_INCREMENT || this == CHECK ||
                this == ASC || this == DESC ||
+               this == STORAGE || this == ROW || this == COLUMN || this == ROW_STORAGE || this == COLUMN_STORAGE ||
                this == COUNT || this == SUM || this == AVG || this == MAX || this == MIN ||
                this == LIKE || this == IN || this == BETWEEN;
     }

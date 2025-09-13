@@ -49,7 +49,7 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
             constraints.add(constraintPlan);
         }
         
-        return new CreateTablePlan(node.getTableName(), columns, constraints);
+        return new CreateTablePlan(node.getTableName(), columns, constraints, node.getStorageFormat());
     }
     
     @Override

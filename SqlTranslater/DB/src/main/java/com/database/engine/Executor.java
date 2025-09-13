@@ -19,6 +19,13 @@ public class Executor {
     }
     
     /**
+     * 获取存储适配器
+     */
+    public StorageAdapter getStorageAdapter() {
+        return storageAdapter;
+    }
+    
+    /**
      * 执行执行计划
      */
     public ExecutionResult execute(ExecutionPlan plan) {
@@ -50,7 +57,7 @@ public class Executor {
             }
             
             // 创建表信息
-            TableInfo tableInfo = new TableInfo(tableName);
+            TableInfo tableInfo = new TableInfo(tableName, plan.getStorageFormat());
             
             // 添加列信息
             for (ColumnPlan columnPlan : plan.getColumns()) {

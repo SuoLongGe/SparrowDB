@@ -144,12 +144,34 @@ public class SyntaxAnalyzer {
         // )
         expect(TokenType.RIGHT_PAREN);
         
+        // 解析可选的存储格式
+        String storageFormat = "ROW"; // 默认行式存储
+        if (currentToken().getType() == TokenType.STORAGE) {
+            nextToken(); // 跳过 STORAGE
+            
+            if (currentToken().getType() == TokenType.ROW || 
+                currentToken().getType() == TokenType.ROW_STORAGE) {
+                storageFormat = "ROW";
+                nextToken();
+            } else if (currentToken().getType() == TokenType.COLUMN || 
+                      currentToken().getType() == TokenType.COLUMN_STORAGE) {
+                storageFormat = "COLUMN";
+                nextToken();
+            } else {
+                throw new SyntaxException(
+                    "无效的存储格式，期望 ROW 或 COLUMN",
+                    currentToken().getPosition(),
+                    "ROW, COLUMN"
+                );
+            }
+        }
+        
         // 可选的分号
         if (currentToken().getType() == TokenType.SEMICOLON) {
             nextToken();
         }
         
-        return new CreateTableStatement(tableName, columns, constraints, startPos);
+        return new CreateTableStatement(tableName, columns, constraints, storageFormat, startPos);
     }
     
     /**
