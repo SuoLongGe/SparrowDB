@@ -6,12 +6,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import com.sqlcompiler.catalog.*;
+import com.database.logging.RollbackCallback;
 
 /**
  * 存储系统适配器 - 整合Java存储系统与数据库引擎
  * 将高级存储系统接口适配为数据库引擎所需的接口
  */
-public class StorageAdapter {
+public class StorageAdapter implements RollbackCallback {
     // Java存储系统组件（导入外部包）
     private Object bufferPoolManager;
     private Object diskManager;
@@ -228,19 +229,19 @@ public class StorageAdapter {
             if (storageInfo == null) {
                 return false;
             }
-            
+
             if (bufferPoolManager != null) {
                 return updateRecordWithBufferPool(tableName, oldRecord, newRecord);
             } else {
                 return updateRecordWithFileStorage(tableName, oldRecord, newRecord);
             }
-            
+
         } catch (Exception e) {
             System.err.println("更新记录失败: " + e.getMessage());
             return false;
         }
     }
-    
+
     /**
      * 获取表统计信息
      */
@@ -328,15 +329,15 @@ public class StorageAdapter {
         // 注册所有系统表
         String[] systemTables = {
             "__system_tables__",
-            "__system_columns__", 
+            "__system_columns__",
             "__system_functions__",
             "__system_constraints__"
         };
-        
+
         for (String systemTable : systemTables) {
             tableStorageMap.put(systemTable, new TableStorageInfo(systemTable));
             nextPageIdMap.put(systemTable, 1);
-            
+
             // 检查文件是否存在，如果存在则动态注册
             String tableFile = getTableFilePath(systemTable);
             File file = new File(tableFile);
@@ -406,7 +407,7 @@ public class StorageAdapter {
     /**
      * 检查表是否为列式存储
      */
-    private boolean isColumnarStorageTable(String tableName) {
+    public boolean isColumnarStorageTable(String tableName) {
         // 检查是否存在列式存储目录和元数据文件
         String columnarDir = dataDirectory + File.separator + tableName;
         String metaFile = columnarDir + File.separator + "metadata.txt";
@@ -684,7 +685,7 @@ public class StorageAdapter {
             return false;
         }
     }
-    
+
     private boolean updateRecordWithBufferPool(String tableName, Map<String, Object> oldRecord, Map<String, Object> newRecord) {
         // 使用缓冲池的更新实现 - 简化版本
         try {
@@ -699,7 +700,7 @@ public class StorageAdapter {
             return false;
         }
     }
-    
+
     private boolean updateRecordWithFileStorage(String tableName, Map<String, Object> oldRecord, Map<String, Object> newRecord) {
         try {
             String tableFile = getTableFilePath(tableName);
@@ -707,7 +708,7 @@ public class StorageAdapter {
             if (!file.exists()) {
                 return false;
             }
-            
+
             // 读取所有内容
             List<String> allLines = new ArrayList<>();
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -716,23 +717,23 @@ public class StorageAdapter {
                     allLines.add(line);
                 }
             }
-            
+
             // 重写文件，替换要更新的记录
             boolean recordUpdated = false;
             try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
                 boolean inDataSection = false;
-                
+
                 for (String line : allLines) {
                     if (line.startsWith("# End Metadata")) {
                         writer.println(line);
                         inDataSection = true;
                         continue;
                     }
-                    
+
                     if (inDataSection && line.startsWith("RECORD:")) {
                         String recordData = line.substring(7);
                         Map<String, Object> currentRecord = deserializeRecord(recordData);
-                        
+
                         if (currentRecord != null && recordsEqual(currentRecord, oldRecord) && !recordUpdated) {
                             // 替换为新记录
                             String newRecordData = serializeRecord(newRecord);
@@ -741,18 +742,18 @@ public class StorageAdapter {
                             continue;
                         }
                     }
-                    
+
                     writer.println(line);
                 }
             }
-            
+
             return recordUpdated;
         } catch (IOException e) {
             System.err.println("文件存储更新记录失败: " + e.getMessage());
             return false;
         }
     }
-    
+
     private boolean recordsEqual(Map<String, Object> record1, Map<String, Object> record2) {
         if (record1.size() != record2.size()) {
             return false;
@@ -821,7 +822,7 @@ public class StorageAdapter {
             return String.format("表 %s: %d 页, %d 条记录", tableName, pageCount, recordCount);
         }
     }
-    
+
     /**
      * 检查表是否存在
      */
@@ -829,7 +830,7 @@ public class StorageAdapter {
         return tableStorageMap.containsKey(tableName.toLowerCase()) ||
                new File(dataDirectory, tableName.toLowerCase() + ".tbl").exists();
     }
-    
+
     /**
      * 创建系统表
      */
@@ -844,21 +845,21 @@ public class StorageAdapter {
                     tableInfo.addColumn(columnInfo);
                 }
             }
-            
+
             return createTable(tableName, tableInfo);
         } catch (Exception e) {
             System.err.println("创建系统表失败: " + e.getMessage());
             return false;
         }
     }
-    
+
     /**
      * 向系统表插入数据
      */
     public boolean insertIntoSystemTable(String tableName, Map<String, Object> data) {
         return insertRecord(tableName, data);
     }
-    
+
     /**
      * 从系统表删除数据
      */
@@ -883,11 +884,138 @@ public class StorageAdapter {
             return false;
         }
     }
-    
+
     /**
      * 查询系统表所有数据
      */
     public List<Map<String, Object>> selectAll(String tableName) {
         return scanTable(tableName);
+    }
+
+    // ==================== RollbackCallback 接口实现 ====================
+
+    @Override
+    public void rollbackInsert(String tableName, Map<String, Object> record) throws IOException {
+        System.out.println("回滚INSERT操作 - 删除记录从表: " + tableName + ", 记录: " + record);
+        // 对于INSERT回滚，我们需要删除插入的记录
+        // 这里简化处理，通过主键查找并删除记录
+        deleteRecordByKey(tableName, record);
+    }
+
+    @Override
+    public void rollbackUpdate(String tableName, Map<String, Object> record) throws IOException {
+        System.out.println("回滚UPDATE操作 - 恢复记录到表: " + tableName + ", 记录: " + record);
+        // 对于UPDATE回滚，我们需要恢复更新前的数据
+        // 这里简化处理，直接更新记录
+        updateRecord(tableName, record);
+    }
+
+    @Override
+    public void rollbackDelete(String tableName, Map<String, Object> record) throws IOException {
+        System.out.println("回滚DELETE操作 - 重新插入记录到表: " + tableName + ", 记录: " + record);
+        // 对于DELETE回滚，我们需要重新插入被删除的记录
+        insertRecord(tableName, record);
+    }
+
+    @Override
+    public void rollbackCreateTable(String tableName, String metadata) throws IOException {
+        System.out.println("回滚CREATE TABLE操作 - 删除表: " + tableName);
+        // 对于CREATE TABLE回滚，我们需要删除创建的表
+        dropTable(tableName);
+    }
+
+    @Override
+    public void rollbackDropTable(String tableName) throws IOException {
+        System.out.println("回滚删除表: " + tableName);
+
+        // 删除行式存储表文件
+        String tableFile = dataDirectory + File.separator + tableName + ".tbl";
+        File file = new File(tableFile);
+        if (file.exists()) {
+            if (file.delete()) {
+                System.out.println("成功删除表文件: " + tableFile);
+            } else {
+                System.err.println("删除表文件失败: " + tableFile);
+            }
+        }
+
+        // 删除列式存储表目录
+        String columnarDir = dataDirectory + File.separator + tableName;
+        File dir = new File(columnarDir);
+        if (dir.exists() && dir.isDirectory()) {
+            deleteDirectory(dir);
+            System.out.println("成功删除列式存储目录: " + columnarDir);
+        }
+
+        // 从内存中移除表信息
+        tableStorageMap.remove(tableName);
+        nextPageIdMap.remove(tableName);
+    }
+
+    /**
+     * 递归删除目录
+     */
+    private void deleteDirectory(File directory) {
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        deleteDirectory(file);
+                    } else {
+                        file.delete();
+                    }
+                }
+            }
+            directory.delete();
+        }
+    }
+
+    /**
+     * 根据主键删除记录（用于回滚INSERT操作）
+     */
+    private void deleteRecordByKey(String tableName, Map<String, Object> record) throws IOException {
+        // 简化实现：扫描表找到匹配的记录并删除
+        List<Map<String, Object>> allRecords = scanTable(tableName);
+        List<Map<String, Object>> filteredRecords = new ArrayList<>();
+
+        // 假设第一个字段是主键
+        String primaryKey = record.keySet().iterator().next();
+        Object primaryKeyValue = record.get(primaryKey);
+
+        for (Map<String, Object> existingRecord : allRecords) {
+            if (!primaryKeyValue.equals(existingRecord.get(primaryKey))) {
+                filteredRecords.add(existingRecord);
+            }
+        }
+
+        // 重写表文件
+        if (isColumnarStorageTable(tableName)) {
+            // 列式存储：重写所有列文件
+            columnarStorageEngine.scanTable(tableName).clear();
+            for (Map<String, Object> rec : filteredRecords) {
+                columnarStorageEngine.insertRecord(tableName, rec);
+            }
+        } else {
+            // 行式存储：重写表文件
+            String tableFile = dataDirectory + File.separator + tableName + ".tbl";
+            try (PrintWriter writer = new PrintWriter(new FileWriter(tableFile, StandardCharsets.UTF_8))) {
+                for (Map<String, Object> rec : filteredRecords) {
+                    writer.println(serializeRecord(rec));
+                }
+            }
+        }
+
+        System.out.println("成功删除记录，主键: " + primaryKey + "=" + primaryKeyValue);
+    }
+
+    /**
+     * 更新记录（用于回滚UPDATE操作）
+     */
+    private void updateRecord(String tableName, Map<String, Object> record) throws IOException {
+        // 简化实现：删除旧记录，插入新记录
+        deleteRecordByKey(tableName, record);
+        insertRecord(tableName, record);
+        System.out.println("成功更新记录: " + record);
     }
 }

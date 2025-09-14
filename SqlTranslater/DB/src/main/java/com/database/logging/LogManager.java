@@ -19,6 +19,7 @@ public class LogManager {
     private final Map<Long, Long> transactionLsnMap; // 事务ID -> 最新LSN
     private final Map<Long, List<Long>> transactionLogs; // 事务ID -> LSN列表
     private final String currentLogFile;
+    private RollbackCallback rollbackCallback; // 回滚回调接口
     
     public LogManager(String dataDirectory) throws IOException {
         // 创建日志目录
@@ -42,6 +43,20 @@ public class LogManager {
         
         System.out.println("日志管理器初始化: " + logDirectory);
         System.out.println("当前日志文件: " + currentLogFile);
+    }
+    
+    /**
+     * 设置回滚回调接口
+     */
+    public void setRollbackCallback(RollbackCallback callback) {
+        this.rollbackCallback = callback;
+    }
+    
+    /**
+     * 获取事务LSN映射（用于获取活跃事务）
+     */
+    public Map<Long, Long> getTransactionLsnMap() {
+        return transactionLsnMap;
     }
     
     /**
@@ -168,9 +183,194 @@ public class LogManager {
      * 回滚事务
      */
     public void abortTransaction(long transactionId) throws IOException {
+        // 执行实际的数据回滚
+        executeRollback(transactionId);
+        
+        // 记录回滚日志
         LogEntry entry = new LogEntry(0, LogEntry.LogType.TRANSACTION_ABORT, transactionId, 
                                     null, "事务回滚", null, null, "事务ID: " + transactionId);
         writeLogEntry(entry);
+    }
+    
+    /**
+     * 执行实际的数据回滚
+     */
+    public void executeRollback(long transactionId) throws IOException {
+        logLock.writeLock().lock();
+        try {
+            // 获取事务的所有操作日志
+            List<LogEntry> transactionLogs = getTransactionLogs(transactionId);
+            if (transactionLogs.isEmpty()) {
+                System.out.println("事务 " + transactionId + " 没有找到操作日志");
+                return;
+            }
+            
+            System.out.println("开始回滚事务 " + transactionId + "，共 " + transactionLogs.size() + " 个操作");
+            
+            // 按相反顺序执行回滚操作（后进先出）
+            Collections.reverse(transactionLogs);
+            
+            for (LogEntry logEntry : transactionLogs) {
+                if (logEntry.getLogType() == LogEntry.LogType.TRANSACTION_START) {
+                    continue; // 跳过事务开始日志
+                }
+                
+                try {
+                    rollbackOperation(logEntry);
+                    System.out.println("成功回滚操作: " + logEntry.getOperation() + 
+                                     " 表: " + logEntry.getTableName());
+                } catch (Exception e) {
+                    System.err.println("回滚操作失败: " + logEntry.getOperation() + 
+                                     " 表: " + logEntry.getTableName() + 
+                                     " 错误: " + e.getMessage());
+                    // 继续回滚其他操作
+                }
+            }
+            
+            // 清理事务日志
+            transactionLogs.remove(transactionId);
+            transactionLsnMap.remove(transactionId);
+            
+            System.out.println("事务 " + transactionId + " 回滚完成");
+            
+        } finally {
+            logLock.writeLock().unlock();
+        }
+    }
+    
+    /**
+     * 回滚单个操作
+     */
+    private void rollbackOperation(LogEntry logEntry) throws IOException {
+        String tableName = logEntry.getTableName();
+        String oldData = logEntry.getOldData();
+        String newData = logEntry.getNewData();
+        
+        switch (logEntry.getLogType()) {
+            case INSERT:
+                // 回滚INSERT：删除插入的记录
+                rollbackInsert(tableName, newData);
+                break;
+                
+            case UPDATE:
+                // 回滚UPDATE：恢复更新前的数据
+                rollbackUpdate(tableName, oldData, newData);
+                break;
+                
+            case DELETE:
+                // 回滚DELETE：重新插入被删除的记录
+                rollbackDelete(tableName, oldData);
+                break;
+                
+            case CREATE_TABLE:
+                // 回滚CREATE TABLE：删除创建的表
+                rollbackCreateTable(tableName);
+                break;
+                
+            case DROP_TABLE:
+                // 回滚DROP TABLE：重新创建被删除的表
+                rollbackDropTable(tableName, oldData);
+                break;
+                
+            default:
+                System.out.println("跳过回滚操作: " + logEntry.getLogType());
+                break;
+        }
+    }
+    
+    /**
+     * 回滚INSERT操作
+     */
+    private void rollbackInsert(String tableName, String newData) throws IOException {
+        if (newData == null || newData.trim().isEmpty()) {
+            return;
+        }
+        
+        // 解析新数据并删除记录
+        String[] pairs = newData.split("\\|");
+        Map<String, Object> recordToDelete = new HashMap<>();
+        
+        for (String pair : pairs) {
+            String[] keyValue = pair.split("=", 2);
+            if (keyValue.length == 2) {
+                recordToDelete.put(keyValue[0], keyValue[1]);
+            }
+        }
+        
+        // 这里需要调用存储引擎删除记录
+        // 由于LogManager不应该直接依赖存储引擎，我们通过回调机制实现
+        if (rollbackCallback != null) {
+            rollbackCallback.rollbackInsert(tableName, recordToDelete);
+        }
+    }
+    
+    /**
+     * 回滚UPDATE操作
+     */
+    private void rollbackUpdate(String tableName, String oldData, String newData) throws IOException {
+        if (oldData == null || oldData.trim().isEmpty()) {
+            return;
+        }
+        
+        // 解析旧数据并恢复记录
+        String[] pairs = oldData.split("\\|");
+        Map<String, Object> recordToRestore = new HashMap<>();
+        
+        for (String pair : pairs) {
+            String[] keyValue = pair.split("=", 2);
+            if (keyValue.length == 2) {
+                recordToRestore.put(keyValue[0], keyValue[1]);
+            }
+        }
+        
+        // 恢复记录
+        if (rollbackCallback != null) {
+            rollbackCallback.rollbackUpdate(tableName, recordToRestore);
+        }
+    }
+    
+    /**
+     * 回滚DELETE操作
+     */
+    private void rollbackDelete(String tableName, String oldData) throws IOException {
+        if (oldData == null || oldData.trim().isEmpty()) {
+            return;
+        }
+        
+        // 解析旧数据并重新插入记录
+        String[] pairs = oldData.split("\\|");
+        Map<String, Object> recordToRestore = new HashMap<>();
+        
+        for (String pair : pairs) {
+            String[] keyValue = pair.split("=", 2);
+            if (keyValue.length == 2) {
+                recordToRestore.put(keyValue[0], keyValue[1]);
+            }
+        }
+        
+        // 重新插入记录
+        if (rollbackCallback != null) {
+            rollbackCallback.rollbackDelete(tableName, recordToRestore);
+        }
+    }
+    
+    /**
+     * 回滚CREATE TABLE操作
+     */
+    private void rollbackCreateTable(String tableName) throws IOException {
+        if (rollbackCallback != null) {
+            rollbackCallback.rollbackCreateTable(tableName, null);
+        }
+    }
+    
+    /**
+     * 回滚DROP TABLE操作
+     */
+    private void rollbackDropTable(String tableName, String oldData) throws IOException {
+        if (rollbackCallback != null) {
+            // oldData应该包含表的元数据信息
+            rollbackCallback.rollbackDropTable(tableName);
+        }
     }
     
     /**

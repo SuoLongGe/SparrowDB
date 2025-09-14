@@ -143,6 +143,14 @@ public class SQLAutoComplete {
                 updatePopupPosition();
             }
         });
+        
+        // 添加光标位置变化监听器
+        textArea.addCaretListener(new javax.swing.event.CaretListener() {
+            @Override
+            public void caretUpdate(javax.swing.event.CaretEvent e) {
+                updatePopupPosition();
+            }
+        });
     }
     
     /**
@@ -345,12 +353,89 @@ public class SQLAutoComplete {
     }
     
     /**
-     * 计算弹出窗口位置，确保显示在SQL输入区域下方
+     * 计算弹出窗口位置，跟随光标位置显示
      */
     private Point calculatePopupPosition() {
+        try {
+            // 获取光标在文本中的位置
+            int caretPosition = textArea.getCaretPosition();
+            
+            // 将光标位置转换为屏幕坐标
+            Point caretScreenLocation = getCaretScreenLocation(caretPosition);
+            
+            if (caretScreenLocation != null) {
+                // 弹出窗口显示在光标下方
+                int popupX = caretScreenLocation.x;
+                int popupY = caretScreenLocation.y + 20; // 光标下方20像素
+                
+                // 确保弹出窗口不超出屏幕边界
+                Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+                int popupWidth = 250;
+                int popupHeight = 200;
+                
+                // 水平边界检查
+                if (popupX + popupWidth > screenSize.width) {
+                    popupX = screenSize.width - popupWidth;
+                }
+                if (popupX < 0) {
+                    popupX = 0;
+                }
+                
+                // 垂直边界检查
+                if (popupY + popupHeight > screenSize.height) {
+                    // 如果下方空间不够，显示在光标上方
+                    popupY = caretScreenLocation.y - popupHeight - 5;
+                }
+                if (popupY < 0) {
+                    popupY = 0;
+                }
+                
+                return new Point(popupX, popupY);
+            }
+        } catch (Exception e) {
+            // 如果计算失败，回退到原来的方法
+            System.err.println("计算光标位置失败，使用默认位置: " + e.getMessage());
+        }
+        
+        // 回退方案：显示在SQL输入区域下方
+        return calculateDefaultPopupPosition();
+    }
+    
+    /**
+     * 获取光标在屏幕上的位置
+     */
+    private Point getCaretScreenLocation(int caretPosition) {
+        try {
+            // 对于JTextPane，我们需要使用TextUI来获取光标位置
+            if (textArea instanceof JTextPane) {
+                JTextPane textPane = (JTextPane) textArea;
+                
+                // 获取光标在组件内的位置
+                Rectangle caretRect = textPane.modelToView(caretPosition);
+                if (caretRect != null) {
+                    // 转换为屏幕坐标
+                    Point caretLocation = new Point(caretRect.x, caretRect.y);
+                    SwingUtilities.convertPointToScreen(caretLocation, textPane);
+                    return caretLocation;
+                }
+            } else {
+                // 对于其他文本组件，使用简单的方法
+                // 这里可以根据需要扩展
+                return null;
+            }
+        } catch (Exception e) {
+            System.err.println("获取光标屏幕位置失败: " + e.getMessage());
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 计算默认弹出窗口位置（回退方案）
+     */
+    private Point calculateDefaultPopupPosition() {
         // 获取SQL输入区域的位置和大小
         Rectangle textAreaBounds = textArea.getBounds();
-        Point textAreaLocation = textArea.getLocationOnScreen();
         
         // 计算SQL输入区域在屏幕上的位置
         Point textAreaScreenLocation = SwingUtilities.convertPoint(

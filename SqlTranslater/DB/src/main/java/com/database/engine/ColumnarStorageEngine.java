@@ -667,22 +667,35 @@ public class ColumnarStorageEngine {
             int count = 0;
             boolean inDataSection = false;
             boolean hasMetadata = false;
+            
+            // 先检查是否有元数据标记
             try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     if (line.equals("# Data starts below")) {
-                        inDataSection = true;
                         hasMetadata = true;
-                        continue;
+                        break;
                     }
-                    
-                    // 如果文件有元数据标记，只计算数据部分的行数
+                }
+            }
+            
+            // 重新读取文件计算行数
+            try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
                     if (hasMetadata) {
+                        // 有元数据标记的情况
+                        if (line.equals("# Data starts below")) {
+                            inDataSection = true;
+                            continue;
+                        }
+                        
+                        // 只计算数据部分的行数
                         if (inDataSection && !line.startsWith("#") && !line.trim().isEmpty()) {
                             count++;
                         }
                     } else {
-                        // 如果文件没有元数据标记，直接计算所有非空行
+                        // 没有元数据标记的情况，直接计算所有非空行
                         if (!line.startsWith("#") && !line.trim().isEmpty()) {
                             count++;
                         }
@@ -748,23 +761,40 @@ public class ColumnarStorageEngine {
         
         // 优化：移除调试输出以提升性能
         
-        // 优化：只读取一次文件，同时处理元数据和数据
+        // 先检查是否有元数据标记
+        boolean hasMetadata = false;
+        try (BufferedReader reader = new BufferedReader(new FileReader(columnFile, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.equals("# Data starts below")) {
+                    hasMetadata = true;
+                    break;
+                }
+            }
+        }
+        
+        // 读取数据
         try (BufferedReader reader = new BufferedReader(new FileReader(columnFile, StandardCharsets.UTF_8))) {
             String line;
             boolean inDataSection = false;
             
             while ((line = reader.readLine()) != null) {
-                if (line.equals("# Data starts below")) {
-                    inDataSection = true;
-                    continue;
-                }
-                
-                // 读取数据行
-                if (inDataSection && !line.startsWith("#") && !line.trim().isEmpty()) {
-                    values.add("NULL".equals(line) ? null : line);
-                } else if (!inDataSection && !line.startsWith("#") && !line.trim().isEmpty()) {
-                    // 如果没有元数据标记，直接读取所有非空行
-                    values.add("NULL".equals(line) ? null : line);
+                if (hasMetadata) {
+                    // 有元数据标记的情况
+                    if (line.equals("# Data starts below")) {
+                        inDataSection = true;
+                        continue;
+                    }
+                    
+                    // 只读取数据部分
+                    if (inDataSection && !line.startsWith("#") && !line.trim().isEmpty()) {
+                        values.add("NULL".equals(line) ? null : line);
+                    }
+                } else {
+                    // 没有元数据标记的情况，直接读取所有非空行
+                    if (!line.startsWith("#") && !line.trim().isEmpty()) {
+                        values.add("NULL".equals(line) ? null : line);
+                    }
                 }
             }
         }
