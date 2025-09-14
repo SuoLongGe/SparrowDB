@@ -1013,7 +1013,10 @@ public class SyntaxAnalyzer {
                currentToken().getType() == TokenType.GREATER_THAN ||
                currentToken().getType() == TokenType.LESS_EQUAL ||
                currentToken().getType() == TokenType.GREATER_EQUAL ||
-               currentToken().getType() == TokenType.IN) {
+               currentToken().getType() == TokenType.IN ||
+               currentToken().getType() == TokenType.LIKE ||
+               currentToken().getType() == TokenType.BETWEEN ||
+               currentToken().getType() == TokenType.IS) {
             Position pos = currentToken().getPosition();
             TokenType operator = currentToken().getType();
             nextToken();
@@ -1021,6 +1024,16 @@ public class SyntaxAnalyzer {
             if (operator == TokenType.IN) {
                 // 处理IN子查询
                 left = parseInExpression(left, pos);
+            } else if (operator == TokenType.LIKE) {
+                // 处理LIKE操作符
+                Expression right = parseAdditiveExpression();
+                left = new BinaryExpression(left, TokenType.LIKE, right, pos);
+            } else if (operator == TokenType.BETWEEN) {
+                // 处理BETWEEN操作符
+                left = parseBetweenExpression(left, pos);
+            } else if (operator == TokenType.IS) {
+                // 处理IS NULL / IS NOT NULL
+                left = parseIsNullExpression(left, pos);
             } else {
                 Expression right = parseAdditiveExpression();
                 left = new BinaryExpression(left, operator, right, pos);
@@ -1054,6 +1067,40 @@ public class SyntaxAnalyzer {
             
             expect(TokenType.RIGHT_PAREN);
             return new InExpression(left, values, pos);
+        }
+    }
+    
+    /**
+     * 解析BETWEEN表达式
+     */
+    private Expression parseBetweenExpression(Expression left, Position pos) throws SyntaxException {
+        // 解析下界
+        Expression lowerBound = parseAdditiveExpression();
+        
+        // 期望AND关键字
+        expect(TokenType.AND);
+        
+        // 解析上界
+        Expression upperBound = parseAdditiveExpression();
+        
+        // 创建BETWEEN表达式
+        return new BetweenExpression(left, lowerBound, upperBound, pos);
+    }
+    
+    /**
+     * 解析IS NULL / IS NOT NULL表达式
+     */
+    private Expression parseIsNullExpression(Expression left, Position pos) throws SyntaxException {
+        if (currentToken().getType() == TokenType.NOT) {
+            nextToken();
+            expect(TokenType.NULL);
+            return new IsNullExpression(left, true, pos); // IS NOT NULL
+        } else if (currentToken().getType() == TokenType.NOT_NULL) {
+            nextToken(); // 消费NOT_NULL复合Token
+            return new IsNullExpression(left, true, pos); // IS NOT NULL
+        } else {
+            expect(TokenType.NULL);
+            return new IsNullExpression(left, false, pos); // IS NULL
         }
     }
     
