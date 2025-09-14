@@ -123,7 +123,7 @@ public class LexicalAnalyzer {
         keywordMap.put("AVG", TokenType.AVG);
         keywordMap.put("MAX", TokenType.MAX);
         keywordMap.put("MIN", TokenType.MIN);
-
+        
         // 数学函数
         keywordMap.put("ABS", TokenType.ABS);
         keywordMap.put("CEIL", TokenType.CEIL);

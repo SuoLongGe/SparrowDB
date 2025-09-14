@@ -10,6 +10,7 @@ public class FunctionCallExpressionPlan extends ExpressionPlan {
     private final List<ExpressionPlan> arguments;
     
     public FunctionCallExpressionPlan(String functionName, List<ExpressionPlan> arguments) {
+        super("FunctionCall");
         this.functionName = functionName;
         this.arguments = arguments;
     }

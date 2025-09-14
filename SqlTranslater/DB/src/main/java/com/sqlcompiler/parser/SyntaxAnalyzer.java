@@ -623,7 +623,7 @@ public class SyntaxAnalyzer {
     private Expression parseSelectItem() throws SyntaxException {
         Expression expr;
         Position startPos = currentToken().getPosition();
-        
+
         // 检查是否为 * 通配符
         if (currentToken().getType() == TokenType.MULTIPLY) {
             expr = new IdentifierExpression("*", currentToken().getPosition());

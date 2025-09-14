@@ -16,26 +16,26 @@ public class Executor {
     private String currentIndexType = "智能选择";
     private final ViewManager viewManager;
 
-    public Executor(StorageAdapter storageAdapter, CatalogManager catalogManager, ViewManager viewManager) {
+    public Executor(StorageAdapter storageAdapter, CatalogManager catalogManager) {
         this.storageAdapter = storageAdapter;
         this.catalogManager = catalogManager;
         this.viewManager = viewManager;
     }
-    
+
     /**
      * 设置索引类型
      */
     public void setIndexType(String indexType) {
         this.currentIndexType = indexType;
     }
-    
+
     /**
      * 获取存储适配器
      */
     public StorageAdapter getStorageAdapter() {
         return storageAdapter;
     }
-    
+
     /**
      * 根据索引类型查询表数据
      */
@@ -89,54 +89,54 @@ public class Executor {
     private List<Map<String, Object>> queryWithBPlusTreeIndex(String tableName, TablePlan tablePlan) {
         // 模拟B+树索引：先进行全表扫描，然后模拟索引查找的延迟
         List<Map<String, Object>> allData = storageAdapter.scanTable(tableName);
-        
+
         // 模拟B+树索引的查找过程 - 增加更明显的延迟
         try {
             Thread.sleep(50); // 模拟B+树索引查找的延迟
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        
+
         System.out.println("使用B+树索引查询表: " + tableName + " (数据量: " + allData.size() + ")");
         return allData;
     }
-    
+
     /**
      * 使用哈希索引查询（模拟）
      */
     private List<Map<String, Object>> queryWithHashIndex(String tableName, TablePlan tablePlan) {
         // 模拟哈希索引：先进行全表扫描，然后模拟哈希查找的延迟
         List<Map<String, Object>> allData = storageAdapter.scanTable(tableName);
-        
+
         // 模拟哈希索引的查找过程 - 增加更明显的延迟
         try {
             Thread.sleep(20); // 模拟哈希查找的延迟
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        
+
         System.out.println("使用哈希索引查询表: " + tableName + " (数据量: " + allData.size() + ")");
         return allData;
     }
-    
+
     /**
      * 使用线性查找查询
      */
     private List<Map<String, Object>> queryWithLinearSearch(String tableName, TablePlan tablePlan) {
         // 线性查找：直接全表扫描
         List<Map<String, Object>> allData = storageAdapter.scanTable(tableName);
-        
+
         // 模拟线性查找的延迟 - 增加更明显的延迟
         try {
             Thread.sleep(100); // 模拟线性查找的延迟
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        
+
         System.out.println("使用线性查找查询表: " + tableName + " (数据量: " + allData.size() + ")");
         return allData;
     }
-    
+
     /**
      * 智能选择索引类型
      */
@@ -144,7 +144,7 @@ public class Executor {
         // 智能选择：根据查询条件选择最优索引
         // 这里简化为根据表大小选择
         List<Map<String, Object>> allData = storageAdapter.scanTable(tableName);
-        
+
         if (allData.size() > 10000) {
             // 大数据集，使用B+树索引
             return queryWithBPlusTreeIndex(tableName, tablePlan);
@@ -317,7 +317,7 @@ public class Executor {
             }
             
             TableInfo tableInfo = catalogManager.getTable(tableName);
-
+            
             // 执行JOIN操作
             List<Map<String, Object>> joinedRecords = executeJoins(tablePlan);
             
@@ -336,15 +336,15 @@ public class Executor {
                     // 普通查询
                     for (Map<String, Object> row : joinedRecords) {
                 
-                        // 应用WHERE条件
-                        if (plan.getWhereClause() != null) {
-                            if (!evaluateWhereCondition(row, plan.getWhereClause(), tableInfo)) {
+                // 应用WHERE条件
+                if (plan.getWhereClause() != null) {
+                    if (!evaluateWhereCondition(row, plan.getWhereClause(), tableInfo)) {
                         continue;
                     }
                 }
                 
                 // 应用SELECT列表（投影）
-                        Map<String, Object> projectedRow = applyProjection(row, plan.getSelectList(), tableInfo);
+                Map<String, Object> projectedRow = applyProjection(row, plan.getSelectList(), tableInfo);
                 results.add(projectedRow);
             }
                 }
@@ -375,18 +375,18 @@ public class Executor {
      */
     private List<Map<String, Object>> executeJoins(TablePlan tablePlan) {
         List<Map<String, Object>> results = new ArrayList<>();
-        
+
         // 获取主表数据
         String mainTableName = tablePlan.getTableName();
         String mainTableAlias = tablePlan.getAlias();
-        
+
         if (!catalogManager.tableExists(mainTableName)) {
             return results;
         }
-        
+
         // 根据索引类型选择查询策略
         List<Map<String, Object>> mainTableData = queryTableWithIndex(mainTableName, tablePlan);
-        
+
         // 为左表数据添加表别名前缀
         List<Map<String, Object>> aliasedMainData = new ArrayList<>();
             for (Map<String, Object> row : mainTableData) {
@@ -405,32 +405,32 @@ public class Executor {
         if (tablePlan.getJoins() == null || tablePlan.getJoins().isEmpty()) {
             return aliasedMainData;
         }
-        
+
         // 处理JOIN操作
         results = aliasedMainData;
-        
+
         for (JoinPlan join : tablePlan.getJoins()) {
             results = executeJoin(results, join, mainTableAlias);
         }
-        
+
         return results;
     }
-    
+
     /**
      * 执行单个JOIN操作
      */
     private List<Map<String, Object>> executeJoin(List<Map<String, Object>> leftResults, JoinPlan join, String leftTableAlias) {
         List<Map<String, Object>> joinResults = new ArrayList<>();
-        
+
         String rightTableName = join.getTableName();
         String rightTableAlias = join.getAlias();
-        
+
         if (!catalogManager.tableExists(rightTableName)) {
             return joinResults;
         }
-        
+
         List<Map<String, Object>> rightTableData = storageAdapter.scanTable(rightTableName);
-        
+
         // 为右表数据添加别名前缀
         List<Map<String, Object>> aliasedRightData = new ArrayList<>();
         for (Map<String, Object> row : rightTableData) {
@@ -444,24 +444,24 @@ public class Executor {
             }
             aliasedRightData.add(aliasedRow);
         }
-        
+
         // 执行JOIN
         for (Map<String, Object> leftRow : leftResults) {
             for (Map<String, Object> rightRow : aliasedRightData) {
                 // 合并左右两行数据
                 Map<String, Object> joinedRow = new HashMap<>(leftRow);
                 joinedRow.putAll(rightRow);
-                
+
                 // 检查JOIN条件
                 if (evaluateJoinCondition(joinedRow, join.getCondition())) {
                     joinResults.add(joinedRow);
                 }
             }
         }
-        
+
         return joinResults;
     }
-    
+
     /**
      * 评估JOIN条件
      */
@@ -471,7 +471,7 @@ public class Executor {
             String leftValue = getColumnValueFromRow(row, binary.getLeft());
             String rightValue = getColumnValueFromRow(row, binary.getRight());
             String operator = binary.getOperator();
-            
+
             // 尝试数字比较
             try {
                 double leftNum = Double.parseDouble(leftValue);
@@ -514,7 +514,7 @@ public class Executor {
         }
         return true;
     }
-    
+
     /**
      * 从行数据中获取列值
      */
@@ -565,7 +565,7 @@ public class Executor {
         }
         return "NULL";
     }
-    
+
     /**
      * 执行子查询（支持相关子查询）
      */
@@ -670,7 +670,7 @@ public class Executor {
     private ExecutionResult executeDropTable(DropTablePlan plan) {
         try {
             String tableName = plan.getTableName();
-            
+
             // 检查表是否存在
             if (!catalogManager.tableExists(tableName)) {
                 if (plan.isIfExists()) {
@@ -679,22 +679,22 @@ public class Executor {
                     return new ExecutionResult(false, "表 " + tableName + " 不存在", null);
                 }
             }
-            
+
             // 从目录中删除表信息
             catalogManager.dropTable(tableName);
-            
+
             // 删除表存储文件
             if (!storageAdapter.dropTable(tableName)) {
                 return new ExecutionResult(false, "删除表存储文件失败", null);
             }
-            
+
             return new ExecutionResult(true, "表 " + tableName + " 删除成功", null);
-            
+
         } catch (Exception e) {
             return new ExecutionResult(false, "删除表时发生错误: " + e.getMessage(), null);
         }
     }
-    
+
     /**
      * 执行UPDATE
      */
@@ -847,14 +847,14 @@ public class Executor {
                 }
             } catch (NumberFormatException e) {
                 // 如果不是数字，使用字符串比较
-            switch (operator) {
-                case "=":
-                    return leftValue.equals(rightValue);
-                case "!=":
-                    return !leftValue.equals(rightValue);
-                case ">":
-                    return leftValue.compareTo(rightValue) > 0;
-                case "<":
+                switch (operator) {
+                    case "=":
+                        return leftValue.equals(rightValue);
+                    case "!=":
+                        return !leftValue.equals(rightValue);
+                    case ">":
+                        return leftValue.compareTo(rightValue) > 0;
+                    case "<":
                         return leftValue.compareTo(rightValue) < 0;
                     case ">=":
                         return leftValue.compareTo(rightValue) >= 0;
@@ -900,15 +900,40 @@ public class Executor {
                 } else {
                     // 处理带表别名的列名
                     Object value = row.getOrDefault(columnName, "NULL");
-                    
+
                     // 确定输出列名
                     String outputColumnName = columnName;
                     if (columnName.contains(".")) {
                         // 如果输入列名包含表别名，输出时去掉表别名
                         outputColumnName = columnName.substring(columnName.lastIndexOf(".") + 1);
                     }
-                    
+
                     projectedRow.put(outputColumnName, value);
+                }
+            } else if (expr instanceof FunctionCallExpressionPlan) {
+                // 处理聚合函数
+                FunctionCallExpressionPlan funcExpr = (FunctionCallExpressionPlan) expr;
+                String functionName = funcExpr.getFunctionName();
+                List<ExpressionPlan> arguments = funcExpr.getArguments();
+
+                // 计算聚合函数值
+                Object result = evaluateAggregateFunction(row, functionName, arguments, tableInfo);
+
+                // 生成列名
+                String columnName = generateAggregateColumnName(functionName, arguments);
+                projectedRow.put(columnName, result);
+            } else if (expr instanceof AliasExpressionPlan) {
+                // 处理别名表达式
+                AliasExpressionPlan aliasExpr = (AliasExpressionPlan) expr;
+                ExpressionPlan innerExpr = aliasExpr.getExpression();
+                String alias = aliasExpr.getAlias();
+
+                // 递归处理内部表达式
+                Map<String, Object> innerResult = applyProjection(row, Arrays.asList(innerExpr), tableInfo);
+
+                // 将结果重命名为别名
+                for (Map.Entry<String, Object> entry : innerResult.entrySet()) {
+                    projectedRow.put(alias, entry.getValue());
                 }
             }
         }
@@ -1354,91 +1379,5 @@ public class Executor {
             }
         }
         return a.toString().compareTo(b.toString());
-    }
-
-    /**
-     * 执行CREATE VIEW
-     */
-    private ExecutionResult executeCreateView(CreateViewPlan plan) {
-        try {
-            String viewName = plan.getViewName();
-
-            // 检查视图名是否已存在
-            if (viewManager.viewExists(viewName)) {
-                return new ExecutionResult(false, "视图 " + viewName + " 已存在", null);
-            }
-
-            // 检查是否与表名冲突
-            if (catalogManager.tableExists(viewName)) {
-                return new ExecutionResult(false, "名称 " + viewName + " 已被表使用", null);
-            }
-
-            // 创建视图
-            viewManager.createView(viewName, plan.getSelectStatement(), plan.getOriginalQuery());
-
-            return new ExecutionResult(true, "视图 " + viewName + " 创建成功", null);
-
-        } catch (Exception e) {
-            return new ExecutionResult(false, "创建视图失败: " + e.getMessage(), null);
-        }
-    }
-
-    /**
-     * 执行DROP VIEW
-     */
-    private ExecutionResult executeDropView(DropViewPlan plan) {
-        try {
-            String viewName = plan.getViewName();
-            boolean ifExists = plan.isIfExists();
-
-            // 删除视图
-            boolean success = viewManager.dropView(viewName, ifExists);
-
-            if (success) {
-                return new ExecutionResult(true, "视图 " + viewName + " 删除成功", null);
-            } else {
-                return new ExecutionResult(false, "删除视图失败", null);
-            }
-
-        } catch (Exception e) {
-            return new ExecutionResult(false, "删除视图失败: " + e.getMessage(), null);
-        }
-    }
-
-    /**
-     * 执行CREATE FUNCTION
-     */
-    private ExecutionResult executeCreateFunction(CreateFunctionPlan plan) {
-        try {
-            // 委托给执行计划自己处理，因为它需要访问DatabaseEngine
-            // 这里我们需要找到一种方式来获取DatabaseEngine实例
-            return new ExecutionResult(false, "CREATE FUNCTION执行需要通过DatabaseEngine", null);
-        } catch (Exception e) {
-            return new ExecutionResult(false, "创建函数失败: " + e.getMessage(), null);
-        }
-    }
-
-    /**
-     * 执行CALL
-     */
-    private ExecutionResult executeCall(CallPlan plan) {
-        try {
-            // 委托给执行计划自己处理
-            return new ExecutionResult(false, "CALL执行需要通过DatabaseEngine", null);
-        } catch (Exception e) {
-            return new ExecutionResult(false, "调用函数失败: " + e.getMessage(), null);
-        }
-    }
-
-    /**
-     * 执行DROP FUNCTION
-     */
-    private ExecutionResult executeDropFunction(DropFunctionPlan plan) {
-        try {
-            // 委托给执行计划自己处理
-            return new ExecutionResult(false, "DROP FUNCTION执行需要通过DatabaseEngine", null);
-        } catch (Exception e) {
-            return new ExecutionResult(false, "删除函数失败: " + e.getMessage(), null);
-        }
     }
 }

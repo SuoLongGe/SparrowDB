@@ -22,7 +22,7 @@ public class StorageAdapter implements RollbackCallback {
     
     // 列式存储引擎
     private final ColumnarStorageEngine columnarStorageEngine;
-    
+
     // 存储系统配置
     private static final int BUFFER_POOL_SIZE = 50;
     private static final String REPLACEMENT_POLICY = "LRU";
@@ -32,7 +32,7 @@ public class StorageAdapter implements RollbackCallback {
         this.tableStorageMap = new HashMap<>();
         this.nextPageIdMap = new HashMap<>();
         this.columnarStorageEngine = new ColumnarStorageEngine(dataDirectory);
-        
+
         // 确保数据目录存在
         File dir = new File(dataDirectory);
         if (!dir.exists()) {
@@ -59,7 +59,7 @@ public class StorageAdapter implements RollbackCallback {
     public ColumnarStorageEngine getColumnarStorageEngine() {
         return columnarStorageEngine;
     }
-    
+
     /**
      * 初始化存储系统
      */
@@ -103,7 +103,7 @@ public class StorageAdapter implements RollbackCallback {
             return false;
         }
     }
-    
+
     /**
      * 创建行式存储表
      */
@@ -140,7 +140,7 @@ public class StorageAdapter implements RollbackCallback {
             if (isColumnarStorageTable(tableName)) {
                 return columnarStorageEngine.insertRecord(tableName, record);
             }
-            
+
             TableStorageInfo storageInfo = tableStorageMap.get(tableName);
             if (storageInfo == null) {
                 return false;
@@ -174,7 +174,7 @@ public class StorageAdapter implements RollbackCallback {
             if (isColumnarStorageTable(tableName)) {
                 return columnarStorageEngine.scanTable(tableName);
             }
-            
+
             // 确保表已注册
             ensureTableRegistered(tableName);
             
@@ -219,7 +219,7 @@ public class StorageAdapter implements RollbackCallback {
             return false;
         }
     }
-    
+
     /**
      * 更新记录
      */
@@ -268,7 +268,7 @@ public class StorageAdapter implements RollbackCallback {
             // 从内存中移除表信息
             tableStorageMap.remove(tableName);
             nextPageIdMap.remove(tableName);
-            
+
             // 删除表文件
             String tableFile = getTableFilePath(tableName);
             File file = new File(tableFile);
@@ -285,13 +285,13 @@ public class StorageAdapter implements RollbackCallback {
                 System.out.println("表文件不存在: " + tableName);
                 return true; // 文件不存在也算成功
             }
-            
+
         } catch (Exception e) {
             System.err.println("删除表失败: " + e.getMessage());
             return false;
         }
     }
-    
+
     /**
      * 获取缓存统计信息
      */
@@ -412,11 +412,11 @@ public class StorageAdapter implements RollbackCallback {
         String columnarDir = dataDirectory + File.separator + tableName;
         String metaFile = columnarDir + File.separator + "metadata.txt";
         File file = new File(metaFile);
-        
+
         if (!file.exists()) {
             return false;
         }
-        
+
         try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -428,10 +428,10 @@ public class StorageAdapter implements RollbackCallback {
         } catch (IOException e) {
             // 如果读取失败，假设是行式存储
         }
-        
+
         return false;
     }
-    
+
     private void writeTableMetadata(String tableFile, TableInfo tableInfo) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(tableFile))) {
             writer.println("# Table Metadata");
@@ -685,75 +685,7 @@ public class StorageAdapter implements RollbackCallback {
             return false;
         }
     }
-
-    private boolean updateRecordWithBufferPool(String tableName, Map<String, Object> oldRecord, Map<String, Object> newRecord) {
-        // 使用缓冲池的更新实现 - 简化版本
-        try {
-            // 先删除旧记录，再插入新记录
-            if (deleteRecordWithBufferPool(tableName, oldRecord)) {
-                String serializedRecord = serializeRecord(newRecord);
-                return insertRecordWithBufferPool(tableName, serializedRecord);
-            }
-            return false;
-        } catch (Exception e) {
-            System.err.println("使用缓冲池更新记录失败: " + e.getMessage());
-            return false;
-        }
-    }
-
-    private boolean updateRecordWithFileStorage(String tableName, Map<String, Object> oldRecord, Map<String, Object> newRecord) {
-        try {
-            String tableFile = getTableFilePath(tableName);
-            File file = new File(tableFile);
-            if (!file.exists()) {
-                return false;
-            }
-
-            // 读取所有内容
-            List<String> allLines = new ArrayList<>();
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    allLines.add(line);
-                }
-            }
-
-            // 重写文件，替换要更新的记录
-            boolean recordUpdated = false;
-            try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
-                boolean inDataSection = false;
-
-                for (String line : allLines) {
-                    if (line.startsWith("# End Metadata")) {
-                        writer.println(line);
-                        inDataSection = true;
-                        continue;
-                    }
-
-                    if (inDataSection && line.startsWith("RECORD:")) {
-                        String recordData = line.substring(7);
-                        Map<String, Object> currentRecord = deserializeRecord(recordData);
-
-                        if (currentRecord != null && recordsEqual(currentRecord, oldRecord) && !recordUpdated) {
-                            // 替换为新记录
-                            String newRecordData = serializeRecord(newRecord);
-                            writer.println("RECORD:" + newRecordData);
-                            recordUpdated = true;
-                            continue;
-                        }
-                    }
-
-                    writer.println(line);
-                }
-            }
-
-            return recordUpdated;
-        } catch (IOException e) {
-            System.err.println("文件存储更新记录失败: " + e.getMessage());
-            return false;
-        }
-    }
-
+    
     private boolean recordsEqual(Map<String, Object> record1, Map<String, Object> record2) {
         if (record1.size() != record2.size()) {
             return false;
