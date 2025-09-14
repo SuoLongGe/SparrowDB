@@ -290,6 +290,18 @@ public class ASTPrinter implements ASTVisitor<String> {
     }
     
     @Override
+    public String visit(AliasExpression node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("AliasExpression {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("expression: ").append(node.getExpression().accept(this)).append("\n");
+        sb.append(getIndent()).append("alias: ").append(node.getAlias()).append("\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
     public String visit(InExpression node) throws CompilationException {
         StringBuilder sb = new StringBuilder();
         sb.append("InExpression {\n");
