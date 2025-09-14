@@ -2,6 +2,7 @@ package com.sqlcompiler;
 
 import com.database.engine.DatabaseEngine;
 import com.database.engine.ExecutionResult;
+import com.sqlcompiler.catalog.TableInfo;
 
 import com.sqlcompiler.gui.SQLAutoComplete;
 import com.sqlcompiler.gui.SQLSyntaxHighlighter;
@@ -32,7 +33,6 @@ public class DatabaseGUI extends JFrame {
     private JTextArea tokenArea;
     private JTextArea astArea;
     private JButton executeButton;
-    private JButton executeSelectedButton;
     private JButton clearButton;
     private JButton catalogButton;
     private JLabel statusLabel;
@@ -109,12 +109,7 @@ public class DatabaseGUI extends JFrame {
         executeButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
         executeButton.setBackground(new Color(76, 175, 80));
         executeButton.setForeground(Color.BLACK);
-        
-        executeSelectedButton = new JButton("执行选中");
-        executeSelectedButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        executeSelectedButton.setBackground(new Color(52, 152, 219));
-        executeSelectedButton.setForeground(Color.WHITE);
-        executeSelectedButton.setToolTipText("执行选中的SQL语句");
+        executeButton.setToolTipText("执行SQL语句（有选中文本时执行选中部分，否则执行全部）");
         
         clearButton = new JButton("清空");
         clearButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
@@ -171,7 +166,6 @@ public class DatabaseGUI extends JFrame {
         // 按钮面板
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         buttonPanel.add(executeButton);
-        buttonPanel.add(executeSelectedButton);
         buttonPanel.add(clearButton);
         buttonPanel.add(catalogButton);
         
@@ -332,14 +326,13 @@ public class DatabaseGUI extends JFrame {
         executeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                executeSQL();
-            }
-        });
-        
-        executeSelectedButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                executeSelectedSQL();
+                // 智能执行：有选中文本时执行选中部分，否则执行全部
+                String selectedText = sqlInputArea.getSelectedText();
+                if (selectedText != null && !selectedText.trim().isEmpty()) {
+                    executeSelectedSQL();
+                } else {
+                    executeSQL();
+                }
             }
         });
         
@@ -531,7 +524,12 @@ public class DatabaseGUI extends JFrame {
                     
                     // 获取选择的存储格式
                     String selectedStorageFormat = (String) storageFormatComboBox.getSelectedItem();
-                    resultTabbedPane.showMessage("使用存储格式: " + selectedStorageFormat);
+                    
+                    // 获取表实际的存储格式
+                    String actualStorageFormat = getActualStorageFormat(sql);
+                    if (actualStorageFormat != null) {
+                        resultTabbedPane.showMessage("表存储格式: " + actualStorageFormat);
+                    }
                     
                     // 设置数据库引擎的索引类型
                     databaseEngine.setIndexType(selectedIndexType);
@@ -639,6 +637,114 @@ public class DatabaseGUI extends JFrame {
         }
     }
     
+    
+    /**
+     * 获取表实际的存储格式
+     */
+    private String getActualStorageFormat(String sql) {
+        try {
+            // 从SQL中提取表名
+            String tableName = extractTableNameFromSQL(sql);
+            if (tableName == null) {
+                return null;
+            }
+            
+            // 通过数据库引擎获取表的实际存储格式
+            if (databaseEngine != null) {
+                // 检查表是否存在
+                if (databaseEngine.getCatalogManager().tableExists(tableName)) {
+                    TableInfo tableInfo = databaseEngine.getCatalogManager().getTable(tableName);
+                    if (tableInfo != null) {
+                        String storageFormat = tableInfo.getStorageFormat();
+                        if ("COLUMN".equals(storageFormat)) {
+                            return "列式存储";
+                        } else if ("ROW".equals(storageFormat)) {
+                            return "行式存储";
+                        } else {
+                            return "行式存储"; // 默认
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // 如果获取失败，不显示存储格式信息
+            System.err.println("获取表存储格式失败: " + e.getMessage());
+        }
+        return null;
+    }
+    
+    /**
+     * 从SQL语句中提取表名
+     */
+    private String extractTableNameFromSQL(String sql) {
+        if (sql == null || sql.trim().isEmpty()) {
+            return null;
+        }
+        
+        String upperSql = sql.toUpperCase().trim();
+        
+        // 处理SELECT语句
+        if (upperSql.startsWith("SELECT")) {
+            // 查找FROM关键字
+            int fromIndex = upperSql.indexOf(" FROM ");
+            if (fromIndex != -1) {
+                String afterFrom = upperSql.substring(fromIndex + 6).trim();
+                // 取第一个词作为表名（忽略别名）
+                String[] parts = afterFrom.split("\\s+");
+                if (parts.length > 0) {
+                    return parts[0].toLowerCase();
+                }
+            }
+        }
+        // 处理INSERT语句
+        else if (upperSql.startsWith("INSERT")) {
+            int intoIndex = upperSql.indexOf(" INTO ");
+            if (intoIndex != -1) {
+                String afterInto = upperSql.substring(intoIndex + 6).trim();
+                String[] parts = afterInto.split("\\s+");
+                if (parts.length > 0) {
+                    return parts[0].toLowerCase();
+                }
+            }
+        }
+        // 处理UPDATE语句
+        else if (upperSql.startsWith("UPDATE")) {
+            String afterUpdate = upperSql.substring(6).trim();
+            String[] parts = afterUpdate.split("\\s+");
+            if (parts.length > 0) {
+                return parts[0].toLowerCase();
+            }
+        }
+        // 处理DELETE语句
+        else if (upperSql.startsWith("DELETE")) {
+            int fromIndex = upperSql.indexOf(" FROM ");
+            if (fromIndex != -1) {
+                String afterFrom = upperSql.substring(fromIndex + 6).trim();
+                String[] parts = afterFrom.split("\\s+");
+                if (parts.length > 0) {
+                    return parts[0].toLowerCase();
+                }
+            }
+        }
+        // 处理CREATE TABLE语句
+        else if (upperSql.startsWith("CREATE TABLE")) {
+            String afterCreate = upperSql.substring(12).trim();
+            String[] parts = afterCreate.split("\\s+");
+            if (parts.length > 0) {
+                return parts[0].toLowerCase();
+            }
+        }
+        // 处理DROP TABLE语句
+        else if (upperSql.startsWith("DROP TABLE")) {
+            String afterDrop = upperSql.substring(10).trim();
+            String[] parts = afterDrop.split("\\s+");
+            if (parts.length > 0) {
+                return parts[0].toLowerCase();
+            }
+        }
+        
+        return null;
+    }
     
     /**
      * 清空所有区域

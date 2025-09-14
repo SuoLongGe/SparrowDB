@@ -37,8 +37,11 @@ public class DatabaseEngine {
         // 初始化目录管理器
         this.catalogManager = new CatalogManager(storageEngine);
         
+        // 初始化存储适配器
+        StorageAdapter storageAdapter = new StorageAdapter(dataDirectory);
+        
         // 初始化执行引擎
-        this.executor = new Executor(new StorageAdapter(dataDirectory), catalogManager);
+        this.executor = new Executor(storageAdapter, catalogManager);
         
         // 初始化SQL编译器 - 使用CatalogManager的Catalog实例
         this.sqlCompiler = new SQLCompiler(catalogManager.getCatalog());
@@ -46,6 +49,8 @@ public class DatabaseEngine {
         // 初始化日志管理器
         try {
             this.logManager = new LogManager(dataDirectory);
+            // 设置回滚回调
+            this.logManager.setRollbackCallback(storageAdapter);
         } catch (Exception e) {
             throw new RuntimeException("初始化日志管理器失败: " + e.getMessage(), e);
         }
@@ -713,5 +718,45 @@ public class DatabaseEngine {
      */
     public String getDataDirectory() {
         return dataDirectory;
+    }
+    
+    /**
+     * 手动回滚指定事务
+     */
+    public boolean rollbackTransaction(long transactionId) {
+        try {
+            System.out.println("开始回滚事务: " + transactionId);
+            logManager.executeRollback(transactionId);
+            System.out.println("事务 " + transactionId + " 回滚成功");
+            return true;
+        } catch (Exception e) {
+            System.err.println("回滚事务失败: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * 获取活跃事务列表
+     */
+    public List<Long> getActiveTransactions() {
+        try {
+            return new ArrayList<>(logManager.getTransactionLsnMap().keySet());
+        } catch (Exception e) {
+            System.err.println("获取活跃事务失败: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * 获取事务的日志条目
+     */
+    public List<com.database.logging.LogEntry> getTransactionLogs(long transactionId) {
+        try {
+            return logManager.getTransactionLogs(transactionId);
+        } catch (Exception e) {
+            System.err.println("获取事务日志失败: " + e.getMessage());
+            return new ArrayList<>();
+        }
     }
 }

@@ -37,16 +37,46 @@ public class Executor {
      * 根据索引类型查询表数据
      */
     private List<Map<String, Object>> queryTableWithIndex(String tableName, TablePlan tablePlan) {
-        switch (currentIndexType) {
-            case "B+树索引":
-                return queryWithBPlusTreeIndex(tableName, tablePlan);
-            case "哈希索引":
-                return queryWithHashIndex(tableName, tablePlan);
-            case "线性查找":
-                return queryWithLinearSearch(tableName, tablePlan);
-            case "智能选择":
-            default:
-                return queryWithIntelligentSelection(tableName, tablePlan);
+        // 检查是否为列式存储表
+        if (storageAdapter.isColumnarStorageTable(tableName)) {
+            return queryWithColumnarStorage(tableName, tablePlan);
+        } else {
+            // 行式存储表使用索引查询
+            switch (currentIndexType) {
+                case "B+树索引":
+                    return queryWithBPlusTreeIndex(tableName, tablePlan);
+                case "哈希索引":
+                    return queryWithHashIndex(tableName, tablePlan);
+                case "线性查找":
+                    return queryWithLinearSearch(tableName, tablePlan);
+                case "智能选择":
+                default:
+                    return queryWithIntelligentSelection(tableName, tablePlan);
+            }
+        }
+    }
+    
+    /**
+     * 使用列式存储优化查询
+     */
+    private List<Map<String, Object>> queryWithColumnarStorage(String tableName, TablePlan tablePlan) {
+        try {
+            // 获取列式存储引擎
+            var columnarEngine = storageAdapter.getColumnarStorageEngine();
+            
+            // 模拟列式存储的优化延迟
+            Thread.sleep(10); // 列式存储查询延迟较小
+            
+            System.out.println("使用列式存储查询表: " + tableName);
+            
+            // 直接使用列式存储引擎的scanTable方法
+            // 这里可以进一步优化，根据WHERE条件和SELECT列表进行优化
+            return columnarEngine.scanTable(tableName);
+            
+        } catch (Exception e) {
+            System.err.println("列式存储查询失败: " + e.getMessage());
+            // 回退到普通查询
+            return storageAdapter.scanTable(tableName);
         }
     }
     
