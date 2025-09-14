@@ -33,6 +33,33 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
         return new BatchPlan(plans);
     }
     @Override
+    public ExecutionPlan visit(CreateViewStatement node) throws CompilationException {
+        // 将视图的SELECT语句转换为字符串（简化处理）
+        String originalQuery = node.getSelectStatement().toString();
+        return new CreateViewPlan(node.getViewName(), node.getSelectStatement(), originalQuery);
+    }
+    
+    @Override
+    public ExecutionPlan visit(DropViewStatement node) throws CompilationException {
+        return new DropViewPlan(node.getViewName(), node.isIfExists());
+    }
+    
+    @Override
+    public ExecutionPlan visit(CreateFunctionStatement node) throws CompilationException {
+        return new CreateFunctionPlan(node);
+    }
+    
+    @Override
+    public ExecutionPlan visit(DropFunctionStatement node) throws CompilationException {
+        return new DropFunctionPlan(node);
+    }
+    
+    @Override
+    public ExecutionPlan visit(CallStatement node) throws CompilationException {
+        return new CallPlan(node);
+    }
+    
+    @Override
     public ExecutionPlan visit(CreateTableStatement node) throws CompilationException {
         List<ColumnPlan> columns = new ArrayList<>();
         List<ConstraintPlan> constraints = new ArrayList<>();
@@ -279,8 +306,12 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
             return new IdentifierExpressionPlan(dot.getTableName() + "." + dot.getFieldName());
         } else if (expr instanceof FunctionCallExpression) {
             FunctionCallExpression func = (FunctionCallExpression) expr;
-            // 简化处理：将函数调用转换为标识符表达式
-            return new IdentifierExpressionPlan(func.getFunctionName() + "()");
+            // 转换函数参数
+            List<ExpressionPlan> arguments = new java.util.ArrayList<>();
+            for (Expression arg : func.getArguments()) {
+                arguments.add(convertExpression(arg));
+            }
+            return new FunctionCallExpressionPlan(func.getFunctionName(), arguments);
         } else {
             throw new CompilationException("不支持的表达式类型: " + expr.getClass().getSimpleName(), 
                                         expr.getPosition(), "执行计划生成错误");

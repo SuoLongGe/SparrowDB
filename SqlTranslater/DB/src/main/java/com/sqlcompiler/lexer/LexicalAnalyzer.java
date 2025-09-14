@@ -45,7 +45,16 @@ public class LexicalAnalyzer {
         keywordMap.put("DROP", TokenType.DROP);
         keywordMap.put("ALTER", TokenType.ALTER);
         keywordMap.put("UPDATE", TokenType.UPDATE);
+        keywordMap.put("VIEW", TokenType.VIEW);
         keywordMap.put("SET", TokenType.SET);
+        keywordMap.put("FUNCTION", TokenType.FUNCTION);
+        keywordMap.put("PROCEDURE", TokenType.PROCEDURE);
+        keywordMap.put("CALL", TokenType.CALL);
+        keywordMap.put("BEGIN", TokenType.BEGIN);
+        keywordMap.put("END", TokenType.END);
+        keywordMap.put("RETURN", TokenType.RETURN);
+        keywordMap.put("RETURNS", TokenType.RETURNS);
+        keywordMap.put("DECLARE", TokenType.DECLARE);
         keywordMap.put("AND", TokenType.AND);
         keywordMap.put("OR", TokenType.OR);
         keywordMap.put("NOT", TokenType.NOT);
@@ -67,6 +76,9 @@ public class LexicalAnalyzer {
         keywordMap.put("NULL", TokenType.NULL);
         keywordMap.put("TRUE", TokenType.TRUE);
         keywordMap.put("FALSE", TokenType.FALSE);
+        keywordMap.put("PERMANENT", TokenType.PERMANENT);
+        keywordMap.put("IF", TokenType.IF);
+        keywordMap.put("EXISTS", TokenType.EXISTS);
         
         // 数据类型
         keywordMap.put("INT", TokenType.INT);
@@ -111,6 +123,42 @@ public class LexicalAnalyzer {
         keywordMap.put("AVG", TokenType.AVG);
         keywordMap.put("MAX", TokenType.MAX);
         keywordMap.put("MIN", TokenType.MIN);
+        
+        // 数学函数
+        keywordMap.put("ABS", TokenType.ABS);
+        keywordMap.put("CEIL", TokenType.CEIL);
+        keywordMap.put("FLOOR", TokenType.FLOOR);
+        keywordMap.put("ROUND", TokenType.ROUND);
+        keywordMap.put("SQRT", TokenType.SQRT);
+        keywordMap.put("POWER", TokenType.POWER);
+        keywordMap.put("MOD", TokenType.MOD);
+        keywordMap.put("RAND", TokenType.RAND);
+        
+        // 字符串函数
+        keywordMap.put("UPPER", TokenType.UPPER);
+        keywordMap.put("LOWER", TokenType.LOWER);
+        keywordMap.put("LENGTH", TokenType.LENGTH);
+        keywordMap.put("SUBSTRING", TokenType.SUBSTRING);
+        keywordMap.put("CONCAT", TokenType.CONCAT);
+        keywordMap.put("TRIM", TokenType.TRIM);
+        keywordMap.put("LTRIM", TokenType.LTRIM);
+        keywordMap.put("RTRIM", TokenType.RTRIM);
+        keywordMap.put("REPLACE", TokenType.REPLACE);
+        
+        // 日期函数
+        keywordMap.put("NOW", TokenType.NOW);
+        keywordMap.put("CURRENT_DATE", TokenType.CURRENT_DATE);
+        keywordMap.put("CURRENT_TIME", TokenType.CURRENT_TIME);
+        keywordMap.put("CURRENT_TIMESTAMP", TokenType.CURRENT_TIMESTAMP);
+        keywordMap.put("YEAR", TokenType.YEAR);
+        keywordMap.put("MONTH", TokenType.MONTH);
+        keywordMap.put("DAY", TokenType.DAY);
+        keywordMap.put("HOUR", TokenType.HOUR);
+        keywordMap.put("MINUTE", TokenType.MINUTE);
+        keywordMap.put("SECOND", TokenType.SECOND);
+        keywordMap.put("DATE_ADD", TokenType.DATE_ADD);
+        keywordMap.put("DATE_SUB", TokenType.DATE_SUB);
+        keywordMap.put("DATEDIFF", TokenType.DATEDIFF);
         
 
         return keywordMap;

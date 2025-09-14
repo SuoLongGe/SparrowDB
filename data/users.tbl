@@ -8,6 +8,5 @@ COLUMN=age:INT:0
 
 # End Metadata
 
-RECORD:name=Test User|id=6|email=test@example.com|age=25
 RECORD:name=Another User|id=7|email=another@example.com|age=30
-RECORD:name=¾ÅÑý|id=91|email=91@91.com|age=91
+RECORD:name=ï¿½ï¿½ï¿½ï¿½|id=91|email=91@91.com|age=91

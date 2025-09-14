@@ -1,7 +1,8 @@
 package com.database;
 
-import com.database.engine.*;
-import com.sqlcompiler.execution.*;
+import com.database.engine.DatabaseEngine;
+import com.database.engine.ExecutionResult;
+import com.sqlcompiler.execution.ColumnPlan;
 import java.util.*;
 
 /**

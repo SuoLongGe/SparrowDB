@@ -12,10 +12,12 @@ import java.util.*;
 public class Executor {
     private final StorageAdapter storageAdapter;
     private final CatalogManager catalogManager;
+    private final ViewManager viewManager;
     
-    public Executor(StorageAdapter storageAdapter, CatalogManager catalogManager) {
+    public Executor(StorageAdapter storageAdapter, CatalogManager catalogManager, ViewManager viewManager) {
         this.storageAdapter = storageAdapter;
         this.catalogManager = catalogManager;
+        this.viewManager = viewManager;
     }
     
     /**
@@ -30,8 +32,20 @@ public class Executor {
             return executeSelect((SelectPlan) plan);
         } else if (plan instanceof DeletePlan) {
             return executeDelete((DeletePlan) plan);
+        } else if (plan instanceof UpdatePlan) {
+            return executeUpdate((UpdatePlan) plan);
         } else if (plan instanceof BatchPlan) {
             return executeBatch((BatchPlan) plan);
+        } else if (plan instanceof CreateViewPlan) {
+            return executeCreateView((CreateViewPlan) plan);
+        } else if (plan instanceof DropViewPlan) {
+            return executeDropView((DropViewPlan) plan);
+        } else if (plan instanceof CreateFunctionPlan) {
+            return executeCreateFunction((CreateFunctionPlan) plan);
+        } else if (plan instanceof CallPlan) {
+            return executeCall((CallPlan) plan);
+        } else if (plan instanceof DropFunctionPlan) {
+            return executeDropFunction((DropFunctionPlan) plan);
         } else {
             return new ExecutionResult(false, "不支持的执行计划类型: " + plan.getPlanType(), null);
         }
@@ -249,6 +263,78 @@ public class Executor {
     }
     
     /**
+     * 执行UPDATE
+     */
+    private ExecutionResult executeUpdate(UpdatePlan plan) {
+        try {
+            String tableName = plan.getTableName();
+            
+            if (!catalogManager.tableExists(tableName)) {
+                return new ExecutionResult(false, "表 " + tableName + " 不存在", null);
+            }
+            
+            TableInfo tableInfo = catalogManager.getTable(tableName);
+            int updatedRows = 0;
+            
+            // 扫描所有记录
+            List<Map<String, Object>> allRecords = storageAdapter.scanTable(tableName);
+            List<Map<String, Object>> recordsToUpdate = new ArrayList<>();
+            List<Map<String, Object>> newRecords = new ArrayList<>();
+            
+            for (Map<String, Object> row : allRecords) {
+                // 检查WHERE条件
+                boolean shouldUpdate = true;
+                if (plan.getWhereClause() != null) {
+                    shouldUpdate = evaluateWhereCondition(row, plan.getWhereClause(), tableInfo);
+                }
+                
+                if (shouldUpdate) {
+                    // 创建更新后的记录
+                    Map<String, Object> updatedRecord = new HashMap<>(row);
+                    
+                    // 应用SET子句
+                    for (Map.Entry<String, ExpressionPlan> setEntry : plan.getSetClause().entrySet()) {
+                        String columnName = setEntry.getKey();
+                        ExpressionPlan valueExpr = setEntry.getValue();
+                        
+                        // 验证列是否存在
+                        ColumnInfo columnInfo = tableInfo.getColumn(columnName);
+                        if (columnInfo == null) {
+                            return new ExecutionResult(false, "列 " + columnName + " 不存在", null);
+                        }
+                        
+                        // 计算新值
+                        Object newValue = evaluateExpression(valueExpr, row, tableInfo);
+                        
+                        // 类型验证和转换
+                        Object convertedValue = convertValueToType(newValue, columnInfo.getDataType());
+                        updatedRecord.put(columnName, convertedValue);
+                    }
+                    
+                    recordsToUpdate.add(row); // 原记录
+                    newRecords.add(updatedRecord); // 新记录
+                    updatedRows++;
+                }
+            }
+            
+            // 执行更新
+            for (int i = 0; i < recordsToUpdate.size(); i++) {
+                Map<String, Object> oldRecord = recordsToUpdate.get(i);
+                Map<String, Object> newRecord = newRecords.get(i);
+                
+                if (!storageAdapter.updateRecord(tableName, oldRecord, newRecord)) {
+                    return new ExecutionResult(false, "更新记录失败", null);
+                }
+            }
+            
+            return new ExecutionResult(true, updatedRows + " 行已更新", null);
+            
+        } catch (Exception e) {
+            return new ExecutionResult(false, "更新数据时发生错误: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
      * 执行批量计划
      */
     private ExecutionResult executeBatch(BatchPlan plan) {
@@ -298,23 +384,36 @@ public class Executor {
     }
     
     private boolean evaluateWhereCondition(Map<String, Object> row, ExpressionPlan whereClause, TableInfo tableInfo) {
-        // 简化的WHERE条件评估
+        // 改进的WHERE条件评估 - 支持数值比较
         if (whereClause instanceof BinaryExpressionPlan) {
             BinaryExpressionPlan binary = (BinaryExpressionPlan) whereClause;
-            String leftValue = getColumnValue(row, binary.getLeft(), tableInfo);
-            String rightValue = getColumnValue(row, binary.getRight(), tableInfo);
+            Object leftValue = getColumnValueAsObject(row, binary.getLeft(), tableInfo);
+            Object rightValue = getColumnValueAsObject(row, binary.getRight(), tableInfo);
             String operator = binary.getOperator();
+            
+            // 处理NULL值
+            if (leftValue == null || rightValue == null) {
+                return false;
+            }
             
             switch (operator) {
                 case "=":
-                    return leftValue.equals(rightValue);
+                    return compareValues(leftValue, rightValue) == 0;
                 case "!=":
-                    return !leftValue.equals(rightValue);
+                case "<>":
+                    return compareValues(leftValue, rightValue) != 0;
                 case ">":
-                    return leftValue.compareTo(rightValue) > 0;
+                    return compareValues(leftValue, rightValue) > 0;
                 case "<":
-                    return leftValue.compareTo(rightValue) < 0;
+                    return compareValues(leftValue, rightValue) < 0;
+                case ">=":
+                    return compareValues(leftValue, rightValue) >= 0;
+                case "<=":
+                    return compareValues(leftValue, rightValue) <= 0;
+                case "LIKE":
+                    return evaluateLikeCondition(leftValue.toString(), rightValue.toString());
                 default:
+                    System.err.println("不支持的操作符: " + operator);
                     return false;
             }
         }
@@ -331,6 +430,221 @@ public class Executor {
         return "NULL";
     }
     
+    /**
+     * 获取列值作为适当的对象类型
+     */
+    private Object getColumnValueAsObject(Map<String, Object> row, ExpressionPlan expr, TableInfo tableInfo) {
+        if (expr instanceof IdentifierExpressionPlan) {
+            String columnName = ((IdentifierExpressionPlan) expr).getName();
+            Object value = row.get(columnName);
+            if (value == null) {
+                return null;
+            }
+            
+            // 根据列类型转换值
+            ColumnInfo columnInfo = tableInfo.getColumn(columnName);
+            if (columnInfo != null) {
+                return convertValueToType(value, columnInfo.getDataType());
+            }
+            return value;
+        } else if (expr instanceof LiteralExpressionPlan) {
+            LiteralExpressionPlan literal = (LiteralExpressionPlan) expr;
+            return convertLiteralValue(literal.getValue(), literal.getType());
+        }
+        return null;
+    }
+    
+    /**
+     * 根据数据类型转换值
+     */
+    private Object convertValueToType(Object value, String dataType) {
+        if (value == null) return null;
+        
+        String strValue = value.toString();
+        try {
+            switch (dataType.toUpperCase()) {
+                case "INT":
+                case "INTEGER":
+                    return Integer.parseInt(strValue);
+                case "BIGINT":
+                case "LONG":
+                    return Long.parseLong(strValue);
+                case "DECIMAL":
+                case "DOUBLE":
+                case "FLOAT":
+                    return Double.parseDouble(strValue);
+                case "BOOLEAN":
+                    return Boolean.parseBoolean(strValue);
+                default:
+                    return strValue; // VARCHAR, TEXT等字符串类型
+            }
+        } catch (NumberFormatException e) {
+            System.err.println("数值转换失败: " + strValue + " -> " + dataType);
+            return strValue;
+        }
+    }
+    
+    /**
+     * 转换字面量值
+     */
+    private Object convertLiteralValue(String value, String type) {
+        if (value == null) return null;
+        
+        try {
+            switch (type.toUpperCase()) {
+                case "NUMBER":
+                case "INTEGER":
+                    // 尝试解析为整数或浮点数
+                    if (value.contains(".")) {
+                        return Double.parseDouble(value);
+                    } else {
+                        return Integer.parseInt(value);
+                    }
+                case "STRING":
+                default:
+                    return value;
+            }
+        } catch (NumberFormatException e) {
+            return value; // 解析失败时返回字符串
+        }
+    }
+    
+    /**
+     * 比较两个值
+     */
+    @SuppressWarnings("unchecked")
+    private int compareValues(Object left, Object right) {
+        // 如果类型相同，直接比较
+        if (left.getClass() == right.getClass() && left instanceof Comparable) {
+            return ((Comparable<Object>) left).compareTo(right);
+        }
+        
+        // 尝试数值比较
+        if (isNumeric(left) && isNumeric(right)) {
+            double leftNum = getNumericValue(left);
+            double rightNum = getNumericValue(right);
+            return Double.compare(leftNum, rightNum);
+        }
+        
+        // 默认字符串比较
+        return left.toString().compareTo(right.toString());
+    }
+    
+    /**
+     * 判断对象是否为数值类型
+     */
+    private boolean isNumeric(Object obj) {
+        return obj instanceof Number;
+    }
+    
+    /**
+     * 获取对象的数值
+     */
+    private double getNumericValue(Object obj) {
+        if (obj instanceof Number) {
+            return ((Number) obj).doubleValue();
+        }
+        try {
+            return Double.parseDouble(obj.toString());
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+    }
+    
+    /**
+     * 评估LIKE条件
+     */
+    private boolean evaluateLikeCondition(String value, String pattern) {
+        if (value == null || pattern == null) {
+            return false;
+        }
+        
+        // 将SQL的LIKE模式转换为正则表达式
+        String regex = pattern
+            .replace("%", ".*")  // % 匹配任意字符串
+            .replace("_", ".");  // _ 匹配单个字符
+        
+        try {
+            return value.matches(regex);
+        } catch (Exception e) {
+            System.err.println("LIKE条件评估失败: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 评估表达式值
+     */
+    private Object evaluateExpression(ExpressionPlan expr, Map<String, Object> row, TableInfo tableInfo) {
+        if (expr instanceof LiteralExpressionPlan) {
+            LiteralExpressionPlan literal = (LiteralExpressionPlan) expr;
+            return convertLiteralValue(literal.getValue(), literal.getType());
+        } else if (expr instanceof IdentifierExpressionPlan) {
+            String columnName = ((IdentifierExpressionPlan) expr).getName();
+            return row.get(columnName);
+        } else if (expr instanceof BinaryExpressionPlan) {
+            // 支持简单的二元表达式（如算术运算）
+            BinaryExpressionPlan binary = (BinaryExpressionPlan) expr;
+            Object left = evaluateExpression(binary.getLeft(), row, tableInfo);
+            Object right = evaluateExpression(binary.getRight(), row, tableInfo);
+            return evaluateBinaryExpression(left, binary.getOperator(), right);
+        } else if (expr instanceof com.sqlcompiler.execution.FunctionCallExpressionPlan) {
+            // 处理函数调用表达式
+            com.sqlcompiler.execution.FunctionCallExpressionPlan funcPlan = 
+                (com.sqlcompiler.execution.FunctionCallExpressionPlan) expr;
+            
+            // 评估函数参数
+            List<Object> arguments = new ArrayList<>();
+            for (ExpressionPlan argPlan : funcPlan.getArguments()) {
+                Object argValue = evaluateExpression(argPlan, row, tableInfo);
+                arguments.add(argValue);
+            }
+            
+            // 调用函数计算器
+            return FunctionEvaluator.evaluateFunction(funcPlan.getFunctionName(), arguments);
+        }
+        return null;
+    }
+    
+    /**
+     * 评估二元表达式
+     */
+    private Object evaluateBinaryExpression(Object left, String operator, Object right) {
+        if (left == null || right == null) {
+            return null;
+        }
+        
+        // 数值运算
+        if (isNumeric(left) && isNumeric(right)) {
+            double leftNum = getNumericValue(left);
+            double rightNum = getNumericValue(right);
+            
+            switch (operator) {
+                case "+":
+                    return leftNum + rightNum;
+                case "-":
+                    return leftNum - rightNum;
+                case "*":
+                    return leftNum * rightNum;
+                case "/":
+                    if (rightNum != 0) {
+                        return leftNum / rightNum;
+                    } else {
+                        throw new ArithmeticException("除零错误");
+                    }
+                default:
+                    return left; // 不支持的运算符，返回左值
+            }
+        }
+        
+        // 字符串连接
+        if (operator.equals("+") || operator.equals("||")) {
+            return left.toString() + right.toString();
+        }
+        
+        return left; // 默认返回左值
+    }
+    
     private Map<String, Object> applyProjection(Map<String, Object> row, List<ExpressionPlan> selectList, TableInfo tableInfo) {
         Map<String, Object> projectedRow = new HashMap<>();
         
@@ -343,6 +657,19 @@ public class Executor {
                 } else {
                     projectedRow.put(columnName, row.getOrDefault(columnName, "NULL"));
                 }
+            } else if (expr instanceof com.sqlcompiler.execution.FunctionCallExpressionPlan) {
+                // 处理函数调用表达式
+                com.sqlcompiler.execution.FunctionCallExpressionPlan funcPlan = 
+                    (com.sqlcompiler.execution.FunctionCallExpressionPlan) expr;
+                
+                Object result = evaluateExpression(expr, row, tableInfo);
+                String alias = funcPlan.getFunctionName() + "()"; // 使用函数名作为别名
+                projectedRow.put(alias, result);
+            } else {
+                // 处理其他表达式
+                Object result = evaluateExpression(expr, row, tableInfo);
+                String alias = expr.getType() + "_result"; // 使用表达式类型作为别名
+                projectedRow.put(alias, result);
             }
         }
         
@@ -400,6 +727,92 @@ public class Executor {
                 return ConstraintInfo.ConstraintType.AUTO_INCREMENT;
             default:
                 throw new IllegalArgumentException("未知的约束类型: " + type);
+        }
+    }
+    
+    /**
+     * 执行CREATE VIEW
+     */
+    private ExecutionResult executeCreateView(CreateViewPlan plan) {
+        try {
+            String viewName = plan.getViewName();
+            
+            // 检查视图名是否已存在
+            if (viewManager.viewExists(viewName)) {
+                return new ExecutionResult(false, "视图 " + viewName + " 已存在", null);
+            }
+            
+            // 检查是否与表名冲突
+            if (catalogManager.tableExists(viewName)) {
+                return new ExecutionResult(false, "名称 " + viewName + " 已被表使用", null);
+            }
+            
+            // 创建视图
+            viewManager.createView(viewName, plan.getSelectStatement(), plan.getOriginalQuery());
+            
+            return new ExecutionResult(true, "视图 " + viewName + " 创建成功", null);
+            
+        } catch (Exception e) {
+            return new ExecutionResult(false, "创建视图失败: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
+     * 执行DROP VIEW
+     */
+    private ExecutionResult executeDropView(DropViewPlan plan) {
+        try {
+            String viewName = plan.getViewName();
+            boolean ifExists = plan.isIfExists();
+            
+            // 删除视图
+            boolean success = viewManager.dropView(viewName, ifExists);
+            
+            if (success) {
+                return new ExecutionResult(true, "视图 " + viewName + " 删除成功", null);
+            } else {
+                return new ExecutionResult(false, "删除视图失败", null);
+            }
+            
+        } catch (Exception e) {
+            return new ExecutionResult(false, "删除视图失败: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
+     * 执行CREATE FUNCTION
+     */
+    private ExecutionResult executeCreateFunction(CreateFunctionPlan plan) {
+        try {
+            // 委托给执行计划自己处理，因为它需要访问DatabaseEngine
+            // 这里我们需要找到一种方式来获取DatabaseEngine实例
+            return new ExecutionResult(false, "CREATE FUNCTION执行需要通过DatabaseEngine", null);
+        } catch (Exception e) {
+            return new ExecutionResult(false, "创建函数失败: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
+     * 执行CALL
+     */
+    private ExecutionResult executeCall(CallPlan plan) {
+        try {
+            // 委托给执行计划自己处理
+            return new ExecutionResult(false, "CALL执行需要通过DatabaseEngine", null);
+        } catch (Exception e) {
+            return new ExecutionResult(false, "调用函数失败: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
+     * 执行DROP FUNCTION
+     */
+    private ExecutionResult executeDropFunction(DropFunctionPlan plan) {
+        try {
+            // 委托给执行计划自己处理
+            return new ExecutionResult(false, "DROP FUNCTION执行需要通过DatabaseEngine", null);
+        } catch (Exception e) {
+            return new ExecutionResult(false, "删除函数失败: " + e.getMessage(), null);
         }
     }
 }

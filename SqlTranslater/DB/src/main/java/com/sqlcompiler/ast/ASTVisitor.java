@@ -8,6 +8,11 @@ import com.sqlcompiler.exception.CompilationException;
 public interface ASTVisitor<T> {
     T visit(Statement node) throws CompilationException;
     T visit(CreateTableStatement node) throws CompilationException;
+    T visit(CreateViewStatement node) throws CompilationException;
+    T visit(DropViewStatement node) throws CompilationException;
+    T visit(CreateFunctionStatement node) throws CompilationException;
+    T visit(CallStatement node) throws CompilationException;
+    T visit(DropFunctionStatement node) throws CompilationException;
     T visit(BatchStatement node) throws CompilationException;
     T visit(InsertStatement node) throws CompilationException;
     T visit(SelectStatement node) throws CompilationException;

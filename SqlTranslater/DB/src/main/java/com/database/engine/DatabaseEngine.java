@@ -14,6 +14,8 @@ import java.util.Arrays;
 public class DatabaseEngine {
     private final StorageEngine storageEngine;
     private final CatalogManager catalogManager;
+    private final ViewManager viewManager;
+    private final FunctionManager functionManager;
     private final Executor executor;
     private final SQLCompiler sqlCompiler;
     private final LogManager logManager;
@@ -34,8 +36,14 @@ public class DatabaseEngine {
         // 初始化目录管理器
         this.catalogManager = new CatalogManager(storageEngine);
         
+        // 初始化视图管理器
+        this.viewManager = new ViewManager(storageEngine);
+        
+        // 初始化增强的函数管理器
+        this.functionManager = new EnhancedFunctionManager(new StorageAdapter(dataDirectory));
+        
         // 初始化执行引擎
-        this.executor = new Executor(new StorageAdapter(dataDirectory), catalogManager);
+        this.executor = new Executor(new StorageAdapter(dataDirectory), catalogManager, viewManager);
         
         // 初始化SQL编译器 - 使用CatalogManager的Catalog实例
         this.sqlCompiler = new SQLCompiler(catalogManager.getCatalog());
@@ -118,7 +126,32 @@ public class DatabaseEngine {
             }
             
             // 执行计划
-            ExecutionResult result = executor.execute(plan);
+            ExecutionResult result;
+            
+            // 特殊处理函数相关的执行计划
+            if (plan instanceof CreateFunctionPlan) {
+                try {
+                    result = ((CreateFunctionPlan) plan).execute(this);
+                } catch (Exception e) {
+                    result = new ExecutionResult(false, "创建函数失败: " + e.getMessage(), null);
+                }
+            } else if (plan instanceof CallPlan) {
+                try {
+                    result = ((CallPlan) plan).execute(this);
+                } catch (Exception e) {
+                    result = new ExecutionResult(false, "调用函数失败: " + e.getMessage(), null);
+                }
+            } else if (plan instanceof DropFunctionPlan) {
+                try {
+                    result = ((DropFunctionPlan) plan).execute(this);
+                } catch (Exception e) {
+                    result = new ExecutionResult(false, "删除函数失败: " + e.getMessage(), null);
+                }
+            } else if (plan instanceof BatchPlan) {
+                result = executeBatchWithFunctionSupport((BatchPlan) plan);
+            } else {
+                result = executor.execute(plan);
+            }
             
             // 记录执行结果
             if (result.isSuccess()) {
@@ -453,7 +486,7 @@ public class DatabaseEngine {
             return new CreateTablePlan(tableName, columns, new ArrayList<>());
         } catch (Exception e) {
             System.err.println("解析CREATE TABLE失败: " + e.getMessage());
-        return null;
+            return null;
         }
     }
     
@@ -511,7 +544,7 @@ public class DatabaseEngine {
             return new InsertPlan(tableName, new ArrayList<>(), valuePlans);
         } catch (Exception e) {
             System.err.println("解析INSERT失败: " + e.getMessage());
-        return null;
+            return null;
         }
     }
     
@@ -552,7 +585,7 @@ public class DatabaseEngine {
             return new SelectPlan(false, selectList, fromClause, whereClause, null, null, null, null);
         } catch (Exception e) {
             System.err.println("解析SELECT失败: " + e.getMessage());
-        return null;
+            return null;
         }
     }
     
@@ -577,9 +610,9 @@ public class DatabaseEngine {
             return new DeletePlan(tableName, whereClause);
         } catch (Exception e) {
             System.err.println("解析DELETE失败: " + e.getMessage());
-        return null;
+            return null;
+        }
     }
-}
 
     /**
      * 获取目录管理器
@@ -596,9 +629,74 @@ public class DatabaseEngine {
     }
     
     /**
+     * 获取函数管理器
+     */
+    public FunctionManager getFunctionManager() {
+        return functionManager;
+    }
+    
+    /**
      * 获取数据目录路径
      */
     public String getDataDirectory() {
         return dataDirectory;
+    }
+    
+    /**
+     * 执行批量计划（支持函数）
+     */
+    private ExecutionResult executeBatchWithFunctionSupport(BatchPlan plan) {
+        try {
+            List<ExecutionResult> results = new ArrayList<>();
+            int successCount = 0;
+            int totalCount = plan.getPlans().size();
+            
+            for (ExecutionPlan subPlan : plan.getPlans()) {
+                ExecutionResult result;
+                
+                // 对函数相关的执行计划特殊处理
+                if (subPlan instanceof CreateFunctionPlan) {
+                    try {
+                        result = ((CreateFunctionPlan) subPlan).execute(this);
+                    } catch (Exception e) {
+                        result = new ExecutionResult(false, "创建函数失败: " + e.getMessage(), null);
+                    }
+                } else if (subPlan instanceof CallPlan) {
+                    try {
+                        result = ((CallPlan) subPlan).execute(this);
+                    } catch (Exception e) {
+                        result = new ExecutionResult(false, "调用函数失败: " + e.getMessage(), null);
+                    }
+                } else if (subPlan instanceof DropFunctionPlan) {
+                    try {
+                        result = ((DropFunctionPlan) subPlan).execute(this);
+                    } catch (Exception e) {
+                        result = new ExecutionResult(false, "删除函数失败: " + e.getMessage(), null);
+                    }
+                } else {
+                    // 其他类型的计划使用标准执行器
+                    result = executor.execute(subPlan);
+                }
+                
+                results.add(result);
+                
+                if (result.isSuccess()) {
+                    successCount++;
+                } else {
+                    // 如果任何一个语句失败，返回失败结果
+                    return new ExecutionResult(false, 
+                        String.format("批量执行失败: %d/%d 成功, 错误: %s", 
+                            successCount, totalCount, result.getMessage()), 
+                        results, true);
+                }
+            }
+            
+            return new ExecutionResult(true, 
+                String.format("批量执行成功: %d/%d 语句执行成功", successCount, totalCount), 
+                results, true);
+                
+        } catch (Exception e) {
+            return new ExecutionResult(false, "批量执行时发生错误: " + e.getMessage(), null);
+        }
     }
 }

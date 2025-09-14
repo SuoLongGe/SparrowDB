@@ -180,6 +180,28 @@ public class StorageAdapter {
     }
     
     /**
+     * 更新记录
+     */
+    public boolean updateRecord(String tableName, Map<String, Object> oldRecord, Map<String, Object> newRecord) {
+        try {
+            TableStorageInfo storageInfo = tableStorageMap.get(tableName);
+            if (storageInfo == null) {
+                return false;
+            }
+            
+            if (bufferPoolManager != null) {
+                return updateRecordWithBufferPool(tableName, oldRecord, newRecord);
+            } else {
+                return updateRecordWithFileStorage(tableName, oldRecord, newRecord);
+            }
+            
+        } catch (Exception e) {
+            System.err.println("更新记录失败: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
      * 获取表统计信息
      */
     public TableStats getTableStats(String tableName) {
@@ -231,8 +253,25 @@ public class StorageAdapter {
     // ========== 私有辅助方法 ==========
     
     private void initializeSystemTables() {
-        tableStorageMap.put("__system_tables__", new TableStorageInfo("__system_tables__"));
-        nextPageIdMap.put("__system_tables__", 1);
+        // 注册所有系统表
+        String[] systemTables = {
+            "__system_tables__",
+            "__system_columns__", 
+            "__system_functions__",
+            "__system_constraints__"
+        };
+        
+        for (String systemTable : systemTables) {
+            tableStorageMap.put(systemTable, new TableStorageInfo(systemTable));
+            nextPageIdMap.put(systemTable, 1);
+            
+            // 检查文件是否存在，如果存在则动态注册
+            String tableFile = getTableFilePath(systemTable);
+            File file = new File(tableFile);
+            if (file.exists()) {
+                System.out.println("StorageAdapter发现并注册系统表: " + systemTable);
+            }
+        }
     }
     
     /**
@@ -546,6 +585,74 @@ public class StorageAdapter {
         }
     }
     
+    private boolean updateRecordWithBufferPool(String tableName, Map<String, Object> oldRecord, Map<String, Object> newRecord) {
+        // 使用缓冲池的更新实现 - 简化版本
+        try {
+            // 先删除旧记录，再插入新记录
+            if (deleteRecordWithBufferPool(tableName, oldRecord)) {
+                String serializedRecord = serializeRecord(newRecord);
+                return insertRecordWithBufferPool(tableName, serializedRecord);
+            }
+            return false;
+        } catch (Exception e) {
+            System.err.println("使用缓冲池更新记录失败: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    private boolean updateRecordWithFileStorage(String tableName, Map<String, Object> oldRecord, Map<String, Object> newRecord) {
+        try {
+            String tableFile = getTableFilePath(tableName);
+            File file = new File(tableFile);
+            if (!file.exists()) {
+                return false;
+            }
+            
+            // 读取所有内容
+            List<String> allLines = new ArrayList<>();
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    allLines.add(line);
+                }
+            }
+            
+            // 重写文件，替换要更新的记录
+            boolean recordUpdated = false;
+            try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
+                boolean inDataSection = false;
+                
+                for (String line : allLines) {
+                    if (line.startsWith("# End Metadata")) {
+                        writer.println(line);
+                        inDataSection = true;
+                        continue;
+                    }
+                    
+                    if (inDataSection && line.startsWith("RECORD:")) {
+                        String recordData = line.substring(7);
+                        Map<String, Object> currentRecord = deserializeRecord(recordData);
+                        
+                        if (currentRecord != null && recordsEqual(currentRecord, oldRecord) && !recordUpdated) {
+                            // 替换为新记录
+                            String newRecordData = serializeRecord(newRecord);
+                            writer.println("RECORD:" + newRecordData);
+                            recordUpdated = true;
+                            continue;
+                        }
+                    }
+                    
+                    writer.println(line);
+                }
+            }
+            
+            return recordUpdated;
+        } catch (IOException e) {
+            System.err.println("文件存储更新记录失败: " + e.getMessage());
+            return false;
+        }
+    }
+    
     private boolean recordsEqual(Map<String, Object> record1, Map<String, Object> record2) {
         if (record1.size() != record2.size()) {
             return false;
@@ -613,5 +720,74 @@ public class StorageAdapter {
         public String toString() {
             return String.format("表 %s: %d 页, %d 条记录", tableName, pageCount, recordCount);
         }
+    }
+    
+    /**
+     * 检查表是否存在
+     */
+    public boolean tableExists(String tableName) {
+        return tableStorageMap.containsKey(tableName.toLowerCase()) ||
+               new File(dataDirectory, tableName.toLowerCase() + ".tbl").exists();
+    }
+    
+    /**
+     * 创建系统表
+     */
+    public boolean createSystemTable(String tableName, List<String> columnDefinitions) {
+        try {
+            // 构建简单的表信息
+            TableInfo tableInfo = new TableInfo(tableName);
+            for (String columnDef : columnDefinitions) {
+                String[] parts = columnDef.split("\\s+");
+                if (parts.length >= 2) {
+                    ColumnInfo columnInfo = new ColumnInfo(parts[0], parts[1], 255);
+                    tableInfo.addColumn(columnInfo);
+                }
+            }
+            
+            return createTable(tableName, tableInfo);
+        } catch (Exception e) {
+            System.err.println("创建系统表失败: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 向系统表插入数据
+     */
+    public boolean insertIntoSystemTable(String tableName, Map<String, Object> data) {
+        return insertRecord(tableName, data);
+    }
+    
+    /**
+     * 从系统表删除数据
+     */
+    public boolean deleteFromSystemTable(String tableName, Map<String, Object> condition) {
+        try {
+            List<Map<String, Object>> records = scanTable(tableName);
+            for (Map<String, Object> record : records) {
+                boolean matches = true;
+                for (Map.Entry<String, Object> entry : condition.entrySet()) {
+                    if (!Objects.equals(record.get(entry.getKey()), entry.getValue())) {
+                        matches = false;
+                        break;
+                    }
+                }
+                if (matches) {
+                    return deleteRecord(tableName, record);
+                }
+            }
+            return true; // 没有匹配的记录也认为删除成功
+        } catch (Exception e) {
+            System.err.println("从系统表删除数据失败: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 查询系统表所有数据
+     */
+    public List<Map<String, Object>> selectAll(String tableName) {
+        return scanTable(tableName);
     }
 }

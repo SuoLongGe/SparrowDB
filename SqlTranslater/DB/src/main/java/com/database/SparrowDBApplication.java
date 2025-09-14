@@ -1,8 +1,9 @@
 package com.database;
 
-import com.database.engine.*;
+import com.database.engine.DatabaseEngine;
+import com.database.engine.ExecutionResult;
 import com.database.config.DatabaseConfig;
-import com.sqlcompiler.execution.*;
+import com.sqlcompiler.execution.ColumnPlan;
 import java.util.*;
 import java.util.Scanner;
 
@@ -204,6 +205,12 @@ public class SparrowDBApplication {
                 showExamples();
             } else if (command.startsWith("benchmark")) {
                 runBenchmark();
+            } else if (command.equals("test functions") || command.equals("test-functions")) {
+                testFunctions();
+            } else if (command.equals("test views") || command.equals("test-views")) {
+                testViews();
+            } else if (command.equals("test all") || command.equals("test-all")) {
+                testAllFeatures();
             } else {
                 // 执行SQL语句
                 executeSQLCommand(input);
@@ -227,6 +234,9 @@ public class SparrowDBApplication {
         System.out.println("  info, status                      - 显示数据库信息");
         System.out.println("  examples                          - 显示示例查询");
         System.out.println("  benchmark                         - 运行性能测试");
+        System.out.println("  test functions, test-functions    - 测试函数功能");
+        System.out.println("  test views, test-views           - 测试视图功能");
+        System.out.println("  test all, test-all               - 测试所有功能");
         System.out.println("  help, h                          - 显示此帮助");
         System.out.println("  quit, exit, q                    - 退出程序");
         System.out.println("");
@@ -272,6 +282,17 @@ public class SparrowDBApplication {
         System.out.println("  SELECT * FROM users");
         System.out.println("  SELECT name, age FROM users WHERE age > 25");
         System.out.println("  SELECT * FROM products WHERE category = 'Electronics'");
+        System.out.println("");
+        System.out.println("函数使用:");
+        System.out.println("  SELECT UPPER(name), LENGTH(name) FROM users");
+        System.out.println("  SELECT name, ABS(age - 30) AS age_diff FROM users");
+        System.out.println("  SELECT CONCAT(name, ' - ', email) FROM users");
+        System.out.println("  SELECT ROUND(price, 2) FROM products");
+        System.out.println("");
+        System.out.println("视图操作:");
+        System.out.println("  CREATE VIEW young_users AS SELECT * FROM users WHERE age < 30");
+        System.out.println("  CREATE VIEW expensive_products AS SELECT * FROM products WHERE price > 50");
+        System.out.println("  DROP VIEW young_users");
         System.out.println("");
         System.out.println("插入数据:");
         System.out.println("  INSERT INTO users VALUES (6, 'Frank Miller', 'frank@example.com', 40)");
@@ -427,6 +448,123 @@ public class SparrowDBApplication {
         } catch (Exception e) {
             System.err.println("加载表元数据失败: " + e.getMessage());
         }
+    }
+    
+    private void testFunctions() {
+        System.out.println("\n=== 函数功能测试 ===");
+        
+        String[] functionTests = {
+            // 数学函数测试
+            "SELECT name, ABS(age - 30) AS age_diff FROM users LIMIT 3",
+            "SELECT name, ROUND(age * 1.5, 2) AS adjusted_age FROM users LIMIT 3", 
+            "SELECT name, SQRT(age) AS sqrt_age FROM users LIMIT 3",
+            "SELECT name, POWER(age, 2) AS age_squared FROM users LIMIT 3",
+            "SELECT name, MOD(age, 10) AS age_mod FROM users LIMIT 3",
+            
+            // 字符串函数测试
+            "SELECT UPPER(name) AS upper_name FROM users LIMIT 3",
+            "SELECT LOWER(email) AS lower_email FROM users LIMIT 3",
+            "SELECT name, LENGTH(name) AS name_length FROM users LIMIT 3",
+            "SELECT CONCAT(name, ' (', age, ')') AS name_age FROM users LIMIT 3",
+            "SELECT TRIM('  test  ') AS trimmed FROM users LIMIT 1"
+        };
+        
+        int passed = 0;
+        int total = functionTests.length;
+        
+        for (String sql : functionTests) {
+            System.out.print("测试: " + sql + " ... ");
+            ExecutionResult result = engine.executeSQL(sql);
+            if (result.isSuccess()) {
+                System.out.println("✓ 通过");
+                passed++;
+            } else {
+                System.out.println("✗ 失败: " + result.getMessage());
+            }
+        }
+        
+        System.out.println("\n函数测试结果: " + passed + "/" + total + " 通过");
+        if (passed == total) {
+            System.out.println("🎉 所有函数测试通过！");
+        } else {
+            System.out.println("⚠ 部分函数测试失败，请检查实现");
+        }
+    }
+    
+    private void testViews() {
+        System.out.println("\n=== 视图功能测试 ===");
+        
+        String[] viewTests = {
+            // 视图创建测试
+            "CREATE VIEW test_young_users AS SELECT name, age FROM users WHERE age < 30",
+            "CREATE VIEW test_old_users AS SELECT name, age FROM users WHERE age >= 30",
+            "CREATE VIEW test_expensive_products AS SELECT name, price FROM products WHERE price > 50",
+            
+            // 视图删除测试
+            "DROP VIEW test_young_users",
+            "DROP VIEW IF EXISTS test_nonexistent_view",
+            "DROP VIEW IF EXISTS test_old_users",
+            "DROP VIEW IF EXISTS test_expensive_products"
+        };
+        
+        int passed = 0;
+        int total = viewTests.length;
+        
+        for (String sql : viewTests) {
+            System.out.print("测试: " + sql + " ... ");
+            ExecutionResult result = engine.executeSQL(sql);
+            if (result.isSuccess()) {
+                System.out.println("✓ 通过");
+                passed++;
+            } else {
+                System.out.println("✗ 失败: " + result.getMessage());
+            }
+        }
+        
+        System.out.println("\n视图测试结果: " + passed + "/" + total + " 通过");
+        if (passed == total) {
+            System.out.println("🎉 所有视图测试通过！");
+        } else {
+            System.out.println("⚠ 部分视图测试失败，请检查实现");
+        }
+    }
+    
+    private void testAllFeatures() {
+        System.out.println("\n=== 综合功能测试 ===");
+        
+        // 先测试函数
+        testFunctions();
+        
+        // 再测试视图
+        testViews();
+        
+        // 测试复合功能
+        System.out.println("\n=== 复合功能测试 ===");
+        String[] complexTests = {
+            "CREATE VIEW test_user_summary AS SELECT UPPER(name) AS name, ROUND(age * 1.2, 2) AS adjusted_age FROM users",
+            "CREATE VIEW test_product_info AS SELECT CONCAT(name, ' - $', price) AS product_desc FROM products",
+            "DROP VIEW IF EXISTS test_user_summary",
+            "DROP VIEW IF EXISTS test_product_info"
+        };
+        
+        int passed = 0;
+        int total = complexTests.length;
+        
+        for (String sql : complexTests) {
+            System.out.print("测试: " + sql + " ... ");
+            ExecutionResult result = engine.executeSQL(sql);
+            if (result.isSuccess()) {
+                System.out.println("✓ 通过");
+                passed++;
+            } else {
+                System.out.println("✗ 失败: " + result.getMessage());
+            }
+        }
+        
+        System.out.println("\n复合功能测试结果: " + passed + "/" + total + " 通过");
+        
+        System.out.println("\n=== 总体测试完成 ===");
+        System.out.println("建议: 如有测试失败，请检查相应的实现代码");
     }
     
     private void cleanup() {
