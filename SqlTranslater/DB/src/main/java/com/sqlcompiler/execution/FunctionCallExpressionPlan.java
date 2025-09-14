@@ -34,11 +34,15 @@ public class FunctionCallExpressionPlan extends ExpressionPlan {
         sb.append(")");
         return sb.toString();
     }
-    
+
     @Override
     public String toJSON() {
         StringBuilder sb = new StringBuilder();
-        sb.append("{\"type\":\"FunctionCall\",\"function\":\"").append(functionName).append("\",\"args\":[");
+        sb.append("{");
+        sb.append("\"type\": \"FUNCTION_CALL\", ");
+        sb.append("\"functionName\": \"").append(functionName).append("\", ");
+        sb.append("\"arguments\": [");
+
         for (int i = 0; i < arguments.size(); i++) {
             if (i > 0) sb.append(",");
             sb.append(arguments.get(i).toJSON());

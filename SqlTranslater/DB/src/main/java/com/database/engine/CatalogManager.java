@@ -12,13 +12,21 @@ import java.nio.charset.StandardCharsets;
 public class CatalogManager {
     private final Catalog catalog;
     private final StorageEngine storageEngine;
+    private StorageAdapter storageAdapter;
     private final String systemTableName = "__system_tables__";
     private final String systemColumnsName = "__system_columns__";
     private final String systemConstraintsName = "__system_constraints__";
+    private final String systemFunctionsName = "__system_functions__";
     
     public CatalogManager(StorageEngine storageEngine) {
         this.catalog = new Catalog();
         this.storageEngine = storageEngine;
+        // 延迟初始化系统表，等待StorageAdapter设置
+    }
+    
+    public void setStorageAdapter(StorageAdapter storageAdapter) {
+        this.storageAdapter = storageAdapter;
+        // 现在可以安全地初始化系统表
         initializeSystemTables();
     }
     
@@ -222,10 +230,37 @@ public class CatalogManager {
         systemConstraintsInfo.addColumn(new ColumnInfo("default_value", "VARCHAR", 255, false, false, false, false, null, false));
         catalog.addTable(systemConstraintsInfo);
         
-        // 创建存储
-        storageEngine.createTableStorage(systemTableName, systemTablesInfo);
-        storageEngine.createTableStorage(systemColumnsName, systemColumnsInfo);
-        storageEngine.createTableStorage(systemConstraintsName, systemConstraintsInfo);
+        // 创建系统函数表
+        TableInfo systemFunctionsInfo = new TableInfo(systemFunctionsName);
+        systemFunctionsInfo.addColumn(new ColumnInfo("function_name", "VARCHAR", 255, true, false, false, false, null, false));
+        systemFunctionsInfo.addColumn(new ColumnInfo("signature", "VARCHAR", 500, false, false, false, false, null, false));
+        systemFunctionsInfo.addColumn(new ColumnInfo("return_type", "VARCHAR", 50, false, false, false, false, null, false));
+        systemFunctionsInfo.addColumn(new ColumnInfo("body", "TEXT", 10000, false, false, false, false, null, false));
+        systemFunctionsInfo.addColumn(new ColumnInfo("is_permanent", "BOOLEAN", 1, false, false, false, false, "false", false));
+        systemFunctionsInfo.addColumn(new ColumnInfo("create_time", "BIGINT", 8, false, false, false, false, null, false));
+        catalog.addTable(systemFunctionsInfo);
+        
+        // 只在系统表不存在时才创建存储
+        if (storageAdapter != null) {
+            if (!storageAdapter.tableExists(systemTableName)) {
+                storageEngine.createTableStorage(systemTableName, systemTablesInfo);
+            }
+            if (!storageAdapter.tableExists(systemColumnsName)) {
+                storageEngine.createTableStorage(systemColumnsName, systemColumnsInfo);
+            }
+            if (!storageAdapter.tableExists(systemConstraintsName)) {
+                storageEngine.createTableStorage(systemConstraintsName, systemConstraintsInfo);
+            }
+            if (!storageAdapter.tableExists(systemFunctionsName)) {
+                storageEngine.createTableStorage(systemFunctionsName, systemFunctionsInfo);
+            }
+        } else {
+            // 如果没有StorageAdapter，总是创建系统表（向后兼容）
+            storageEngine.createTableStorage(systemTableName, systemTablesInfo);
+            storageEngine.createTableStorage(systemColumnsName, systemColumnsInfo);
+            storageEngine.createTableStorage(systemConstraintsName, systemConstraintsInfo);
+            storageEngine.createTableStorage(systemFunctionsName, systemFunctionsInfo);
+        }
     }
     
     private void persistTableMetadata(TableInfo tableInfo) {

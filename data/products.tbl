@@ -7,3 +7,6 @@ COLUMN=price:DECIMAL:10
 COLUMN=category:VARCHAR:50
 # End Metadata
 
+RECORD:price=999.99|name=Laptop|id=1|category=Electronics
+RECORD:price=29.99|name=Mouse|id=2|category=Electronics
+RECORD:price=15.50|name=Book|id=3|category=Education

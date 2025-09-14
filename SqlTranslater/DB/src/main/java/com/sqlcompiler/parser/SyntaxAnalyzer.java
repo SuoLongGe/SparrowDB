@@ -89,7 +89,7 @@ public class SyntaxAnalyzer {
         
         switch (token.getType()) {
             case CREATE:
-                return parseCreateTableStatement();
+                return parseCreateStatement();
             case INSERT:
                 return parseInsertStatement();
             case SELECT:
@@ -99,16 +99,127 @@ public class SyntaxAnalyzer {
             case DELETE:
                 return parseDeleteStatement();
             case DROP:
-                return parseDropTableStatement();
+                return parseDropStatement();
+            case CALL:
+                return parseCallStatement();
             default:
                 throw new SyntaxException(
                     String.format("不支持的语句类型 '%s'", token.getValue()),
                     token.getPosition(),
-                    "CREATE TABLE, INSERT INTO, SELECT, UPDATE, DELETE FROM, DROP TABLE"
+                    "CREATE TABLE/VIEW/FUNCTION, INSERT INTO, SELECT, UPDATE, DELETE FROM, DROP VIEW/FUNCTION, CALL"
                 );
         }
     }
-    
+
+    /**
+     * 解析CREATE语句 (TABLE 或 VIEW)
+     */
+    private Statement parseCreateStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+
+        // CREATE
+        expect(TokenType.CREATE);
+
+        Token nextToken = currentToken();
+        if (nextToken.getType() == TokenType.TABLE) {
+            // 回退一步，让parseCreateTableStatement重新处理CREATE
+            currentTokenIndex--;
+            return parseCreateTableStatement();
+        } else if (nextToken.getType() == TokenType.VIEW) {
+            return parseCreateViewStatement();
+        } else if (nextToken.getType() == TokenType.FUNCTION) {
+            return parseCreateFunctionStatement(false); // 非持久化函数
+        } else if (nextToken.getType() == TokenType.PERMANENT) {
+            // CREATE PERMANENT FUNCTION
+            nextToken(); // 消费 PERMANENT
+            // 不需要 expect(TokenType.FUNCTION)，因为 parseCreateFunctionStatement 会处理
+            return parseCreateFunctionStatement(true); // 持久化函数
+        } else {
+            throw new SyntaxException(
+                String.format("CREATE后面应该是TABLE、VIEW、FUNCTION或PERMANENT FUNCTION，而不是 '%s'", nextToken.getValue()),
+                nextToken.getPosition(),
+                "TABLE、VIEW、FUNCTION 或 PERMANENT FUNCTION"
+                );
+        }
+    }
+
+    /**
+     * 解析DROP语句 (VIEW)
+     */
+    private Statement parseDropStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+
+        // DROP
+        expect(TokenType.DROP);
+
+        Token nextToken = currentToken();
+        if (nextToken.getType() == TokenType.VIEW) {
+            return parseDropViewStatement();
+        } else if (nextToken.getType() == TokenType.FUNCTION) {
+            return parseDropFunctionStatement();
+        } else {
+            throw new SyntaxException(
+                String.format("DROP后面应该是VIEW或FUNCTION，而不是 '%s'", nextToken.getValue()),
+                nextToken.getPosition(),
+                "VIEW 或 FUNCTION"
+            );
+        }
+    }
+
+    /**
+     * 解析CREATE VIEW语句
+     */
+    private CreateViewStatement parseCreateViewStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+
+        // VIEW
+        expect(TokenType.VIEW);
+
+        // 视图名
+        String viewName = expectIdentifier();
+
+        // AS
+        expect(TokenType.AS);
+
+        // SELECT查询
+        SelectStatement selectStatement = parseSelectStatement();
+
+        // 可选的分号
+        if (currentToken().getType() == TokenType.SEMICOLON) {
+            nextToken();
+        }
+
+        return new CreateViewStatement(viewName, selectStatement, startPos);
+    }
+
+    /**
+     * 解析DROP VIEW语句
+     */
+    private DropViewStatement parseDropViewStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+
+        // VIEW
+        expect(TokenType.VIEW);
+
+        // 可选的IF EXISTS
+        boolean ifExists = false;
+        if (currentToken().getType() == TokenType.IF) {
+            nextToken(); // IF
+            expect(TokenType.EXISTS);
+            ifExists = true;
+        }
+
+        // 视图名
+        String viewName = expectIdentifier();
+
+        // 可选的分号
+        if (currentToken().getType() == TokenType.SEMICOLON) {
+            nextToken();
+        }
+
+        return new DropViewStatement(viewName, ifExists, startPos);
+    }
+
     /**
      * 解析CREATE TABLE语句
      */
@@ -150,12 +261,12 @@ public class SyntaxAnalyzer {
         String storageFormat = "ROW"; // 默认行式存储
         if (currentToken().getType() == TokenType.STORAGE) {
             nextToken(); // 跳过 STORAGE
-            
-            if (currentToken().getType() == TokenType.ROW || 
+
+            if (currentToken().getType() == TokenType.ROW ||
                 currentToken().getType() == TokenType.ROW_STORAGE) {
                 storageFormat = "ROW";
                 nextToken();
-            } else if (currentToken().getType() == TokenType.COLUMN || 
+            } else if (currentToken().getType() == TokenType.COLUMN ||
                       currentToken().getType() == TokenType.COLUMN_STORAGE) {
                 storageFormat = "COLUMN";
                 nextToken();
@@ -167,7 +278,7 @@ public class SyntaxAnalyzer {
                 );
             }
         }
-        
+
         // 可选的分号
         if (currentToken().getType() == TokenType.SEMICOLON) {
             nextToken();
@@ -512,7 +623,7 @@ public class SyntaxAnalyzer {
     private Expression parseSelectItem() throws SyntaxException {
         Expression expr;
         Position startPos = currentToken().getPosition();
-        
+
         // 检查是否为 * 通配符
         if (currentToken().getType() == TokenType.MULTIPLY) {
             expr = new IdentifierExpression("*", currentToken().getPosition());
@@ -811,11 +922,11 @@ public class SyntaxAnalyzer {
      */
     private DropTableStatement parseDropTableStatement() throws SyntaxException {
         Position startPos = currentToken().getPosition();
-        
+
         // DROP TABLE
         expect(TokenType.DROP);
         expect(TokenType.TABLE);
-        
+
         // 可选的IF EXISTS
         boolean ifExists = false;
         if (currentToken().getType() == TokenType.IF) {
@@ -823,18 +934,18 @@ public class SyntaxAnalyzer {
             expect(TokenType.EXISTS);
             ifExists = true;
         }
-        
+
         // 表名
         String tableName = expectIdentifier();
-        
+
         // 可选的分号
         if (currentToken().getType() == TokenType.SEMICOLON) {
             nextToken();
         }
-        
+
         return new DropTableStatement(tableName, ifExists, startPos);
     }
-    
+
     /**
      * 解析表达式
      */
@@ -1129,6 +1240,39 @@ public class SyntaxAnalyzer {
             case AVG:
             case MAX:
             case MIN:
+            // 数学函数
+            case ABS:
+            case CEIL:
+            case FLOOR:
+            case ROUND:
+            case SQRT:
+            case POWER:
+            case MOD:
+            case RAND:
+            // 字符串函数
+            case UPPER:
+            case LOWER:
+            case LENGTH:
+            case SUBSTRING:
+            case CONCAT:
+            case TRIM:
+            case LTRIM:
+            case RTRIM:
+            case REPLACE:
+            // 日期函数
+            case NOW:
+            case CURRENT_DATE:
+            case CURRENT_TIME:
+            case CURRENT_TIMESTAMP:
+            case YEAR:
+            case MONTH:
+            case DAY:
+            case HOUR:
+            case MINUTE:
+            case SECOND:
+            case DATE_ADD:
+            case DATE_SUB:
+            case DATEDIFF:
                 return parseFunctionCallExpression();
             default:
                 throw new SyntaxException("意外的token: " + token.getValue(), 
@@ -1281,7 +1425,26 @@ public class SyntaxAnalyzer {
         // 聚合函数关键字在某些上下文中可以作为标识符（如别名）
         return type == TokenType.COUNT || type == TokenType.SUM || 
                type == TokenType.AVG || type == TokenType.MAX || 
-               type == TokenType.MIN;
+               type == TokenType.MIN ||
+               // 数学函数
+               type == TokenType.ABS || type == TokenType.CEIL ||
+               type == TokenType.FLOOR || type == TokenType.ROUND ||
+               type == TokenType.SQRT || type == TokenType.POWER ||
+               type == TokenType.MOD || type == TokenType.RAND ||
+               // 字符串函数
+               type == TokenType.UPPER || type == TokenType.LOWER ||
+               type == TokenType.LENGTH || type == TokenType.SUBSTRING ||
+               type == TokenType.CONCAT || type == TokenType.TRIM ||
+               type == TokenType.LTRIM || type == TokenType.RTRIM ||
+               type == TokenType.REPLACE ||
+               // 日期函数
+               type == TokenType.NOW || type == TokenType.CURRENT_DATE ||
+               type == TokenType.CURRENT_TIME || type == TokenType.CURRENT_TIMESTAMP ||
+               type == TokenType.YEAR || type == TokenType.MONTH ||
+               type == TokenType.DAY || type == TokenType.HOUR ||
+               type == TokenType.MINUTE || type == TokenType.SECOND ||
+               type == TokenType.DATE_ADD || type == TokenType.DATE_SUB ||
+               type == TokenType.DATEDIFF;
     }
     
     /**
@@ -1333,5 +1496,151 @@ public class SyntaxAnalyzer {
         }
         nextToken();
         return token.getValue();
+    }
+
+    /**
+     * 解析CREATE FUNCTION语句
+     */
+    private CreateFunctionStatement parseCreateFunctionStatement(boolean isPermanent) throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+
+        // FUNCTION
+        expect(TokenType.FUNCTION);
+
+        // 可选的OR REPLACE
+        boolean orReplace = false;
+        if (currentToken().getType() == TokenType.OR) {
+            nextToken(); // OR
+            expect(TokenType.REPLACE);
+            orReplace = true;
+        }
+
+        // 函数名
+        String functionName = expectIdentifier();
+
+        // 参数列表
+        expect(TokenType.LEFT_PAREN);
+        List<CreateFunctionStatement.FunctionParameter> parameters = new ArrayList<>();
+
+        if (currentToken().getType() != TokenType.RIGHT_PAREN) {
+            do {
+                String paramName = expectIdentifier();
+                String paramType = expectDataType();
+                parameters.add(new CreateFunctionStatement.FunctionParameter(paramName, paramType));
+
+                if (currentToken().getType() == TokenType.COMMA) {
+                    nextToken();
+                } else {
+                    break;
+                }
+            } while (true);
+        }
+
+        expect(TokenType.RIGHT_PAREN);
+
+        // RETURNS
+        expect(TokenType.RETURNS);
+        String returnType = expectDataType();
+
+        // BEGIN
+        expect(TokenType.BEGIN);
+
+        // 函数体 - 增强实现，支持复杂控制结构
+        String functionBody = parseComplexFunctionBody();
+
+        return new CreateFunctionStatement(functionName, parameters, returnType, functionBody, orReplace, isPermanent, startPos);
+    }
+
+    /**
+     * 解析DROP FUNCTION语句
+     */
+    private DropFunctionStatement parseDropFunctionStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+
+        // FUNCTION
+        expect(TokenType.FUNCTION);
+
+        // 可选的IF EXISTS
+        boolean ifExists = false;
+        if (currentToken().getType() == TokenType.IF) {
+            nextToken(); // IF
+            expect(TokenType.EXISTS);
+            ifExists = true;
+        }
+
+        // 函数名
+        String functionName = expectIdentifier();
+
+        return new DropFunctionStatement(functionName, ifExists, startPos);
+    }
+
+    /**
+     * 解析CALL语句
+     */
+    private CallStatement parseCallStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+
+        // CALL
+        expect(TokenType.CALL);
+
+        // 函数名
+        String functionName = expectIdentifier();
+
+        // 参数列表
+        expect(TokenType.LEFT_PAREN);
+        List<Expression> arguments = new ArrayList<>();
+
+        if (currentToken().getType() != TokenType.RIGHT_PAREN) {
+            do {
+                arguments.add(parseExpression());
+
+                if (currentToken().getType() == TokenType.COMMA) {
+                    nextToken();
+                } else {
+                    break;
+                }
+            } while (true);
+        }
+
+        expect(TokenType.RIGHT_PAREN);
+
+        return new CallStatement(functionName, arguments, startPos);
+    }
+
+    /**
+     * 解析复杂的函数体 - 支持控制结构
+     */
+    private String parseComplexFunctionBody() throws SyntaxException {
+        StringBuilder bodyBuilder = new StringBuilder();
+        int nestingLevel = 0;
+
+        while (currentToken().getType() != TokenType.EOF) {
+            TokenType currentType = currentToken().getType();
+            String currentValue = currentToken().getValue();
+
+            // 处理嵌套结构
+            if (currentType == TokenType.BEGIN ||
+                currentType == TokenType.IF ||
+                currentType == TokenType.WHILE ||
+                currentType == TokenType.CASE) {
+                nestingLevel++;
+            } else if (currentType == TokenType.END) {
+                if (nestingLevel == 0) {
+                    // 到达函数体结束
+                    expect(TokenType.END);
+                    break;
+                } else {
+                    nestingLevel--;
+                }
+            } else if (currentType == TokenType.ENDIF ||
+                       currentType == TokenType.ENDLOOP) {
+                nestingLevel--;
+            }
+
+            bodyBuilder.append(currentValue).append(" ");
+            nextToken();
+        }
+
+        return bodyBuilder.toString().trim();
     }
 }

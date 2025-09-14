@@ -13,11 +13,15 @@ import java.util.Arrays;
 public class Executor {
     private final StorageAdapter storageAdapter;
     private final CatalogManager catalogManager;
+    private final DatabaseEngine databaseEngine;
     private String currentIndexType = "智能选择";
-    
-    public Executor(StorageAdapter storageAdapter, CatalogManager catalogManager) {
+    private ViewManager viewManager;
+
+    public Executor(StorageAdapter storageAdapter, CatalogManager catalogManager, DatabaseEngine databaseEngine) {
         this.storageAdapter = storageAdapter;
         this.catalogManager = catalogManager;
+        this.databaseEngine = databaseEngine;
+        this.viewManager = null; // TODO: 需要正确初始化ViewManager
     }
     
     /**
@@ -169,8 +173,20 @@ public class Executor {
             return executeDelete((DeletePlan) plan);
         } else if (plan instanceof DropTablePlan) {
             return executeDropTable((DropTablePlan) plan);
+        } else if (plan instanceof UpdatePlan) {
+            return executeUpdate((UpdatePlan) plan);
         } else if (plan instanceof BatchPlan) {
             return executeBatch((BatchPlan) plan);
+        } else if (plan instanceof CreateViewPlan) {
+            return executeCreateView((CreateViewPlan) plan);
+        } else if (plan instanceof DropViewPlan) {
+            return executeDropView((DropViewPlan) plan);
+        } else if (plan instanceof CreateFunctionPlan) {
+            return executeCreateFunction((CreateFunctionPlan) plan);
+        } else if (plan instanceof CallPlan) {
+            return executeCall((CallPlan) plan);
+        } else if (plan instanceof DropFunctionPlan) {
+            return executeDropFunction((DropFunctionPlan) plan);
         } else {
             return new ExecutionResult(false, "不支持的执行计划类型: " + plan.getPlanType(), null);
         }
@@ -374,15 +390,15 @@ public class Executor {
         
         // 为左表数据添加表别名前缀
         List<Map<String, Object>> aliasedMainData = new ArrayList<>();
-        for (Map<String, Object> row : mainTableData) {
-            Map<String, Object> aliasedRow = new HashMap<>();
-            for (Map.Entry<String, Object> entry : row.entrySet()) {
-                String key = entry.getKey();
-                if (mainTableAlias != null) {
-                    key = mainTableAlias + "." + key;
+            for (Map<String, Object> row : mainTableData) {
+                Map<String, Object> aliasedRow = new HashMap<>();
+                for (Map.Entry<String, Object> entry : row.entrySet()) {
+                    String key = entry.getKey();
+                    if (mainTableAlias != null) {
+                        key = mainTableAlias + "." + key;
+                    }
+                    aliasedRow.put(key, entry.getValue());
                 }
-                aliasedRow.put(key, entry.getValue());
-            }
             aliasedMainData.add(aliasedRow);
         }
         
@@ -454,7 +470,7 @@ public class Executor {
         if (condition instanceof BinaryExpressionPlan) {
             BinaryExpressionPlan binary = (BinaryExpressionPlan) condition;
             String operator = binary.getOperator();
-            
+
             // 处理逻辑操作符
             if ("AND".equals(operator)) {
                 boolean leftResult = evaluateJoinCondition(row, binary.getLeft());
@@ -468,7 +484,7 @@ public class Executor {
                 // 处理比较操作符
                 String leftValue = getColumnValueFromRow(row, binary.getLeft());
                 String rightValue = getColumnValueFromRow(row, binary.getRight());
-                
+
                 // 处理特殊操作符
                 switch (operator) {
                     case "LIKE":
@@ -559,7 +575,7 @@ public class Executor {
             // 应用WHERE条件（包括相关子查询的条件）
             List<Map<String, Object>> filteredRecords = new ArrayList<>();
             for (Map<String, Object> row : joinedRecords) {
-                // 合并外层上下文和当前行，但优先保留子查询的列
+                // 合并外层上下文和当前行
                 Map<String, Object> contextRow = new HashMap<>(outerContext);
                 // 先添加子查询的列，这样不会被外层查询的列覆盖
                 for (Map.Entry<String, Object> entry : row.entrySet()) {
@@ -671,7 +687,79 @@ public class Executor {
             return new ExecutionResult(false, "删除表时发生错误: " + e.getMessage(), null);
         }
     }
-    
+
+    /**
+     * 执行UPDATE
+     */
+    private ExecutionResult executeUpdate(UpdatePlan plan) {
+        try {
+            String tableName = plan.getTableName();
+
+            if (!catalogManager.tableExists(tableName)) {
+                return new ExecutionResult(false, "表 " + tableName + " 不存在", null);
+            }
+
+            TableInfo tableInfo = catalogManager.getTable(tableName);
+            int updatedRows = 0;
+
+            // 扫描所有记录
+            List<Map<String, Object>> allRecords = storageAdapter.scanTable(tableName);
+            List<Map<String, Object>> recordsToUpdate = new ArrayList<>();
+            List<Map<String, Object>> newRecords = new ArrayList<>();
+
+            for (Map<String, Object> row : allRecords) {
+                // 检查WHERE条件
+                boolean shouldUpdate = true;
+                if (plan.getWhereClause() != null) {
+                    shouldUpdate = evaluateWhereCondition(row, plan.getWhereClause(), tableInfo);
+                }
+
+                if (shouldUpdate) {
+                    // 创建更新后的记录
+                    Map<String, Object> updatedRecord = new HashMap<>(row);
+
+                    // 应用SET子句
+                    for (Map.Entry<String, ExpressionPlan> setEntry : plan.getSetClause().entrySet()) {
+                        String columnName = setEntry.getKey();
+                        ExpressionPlan valueExpr = setEntry.getValue();
+
+                        // 验证列是否存在
+                        ColumnInfo columnInfo = tableInfo.getColumn(columnName);
+                        if (columnInfo == null) {
+                            return new ExecutionResult(false, "列 " + columnName + " 不存在", null);
+                        }
+
+                        // 计算新值
+                        Object newValue = evaluateExpression(valueExpr, row, tableInfo);
+
+                        // 类型验证和转换
+                        Object convertedValue = convertValueToType(newValue, columnInfo.getDataType());
+                        updatedRecord.put(columnName, convertedValue);
+                    }
+
+                    recordsToUpdate.add(row); // 原记录
+                    newRecords.add(updatedRecord); // 新记录
+                    updatedRows++;
+                }
+            }
+
+            // 执行更新
+            for (int i = 0; i < recordsToUpdate.size(); i++) {
+                Map<String, Object> oldRecord = recordsToUpdate.get(i);
+                Map<String, Object> newRecord = newRecords.get(i);
+
+                if (!storageAdapter.updateRecord(tableName, oldRecord, newRecord)) {
+                    return new ExecutionResult(false, "更新记录失败", null);
+                }
+            }
+
+            return new ExecutionResult(true, updatedRows + " 行已更新", null);
+
+        } catch (Exception e) {
+            return new ExecutionResult(false, "更新数据时发生错误: " + e.getMessage(), null);
+        }
+    }
+
     /**
      * 执行批量计划
      */
@@ -722,10 +810,11 @@ public class Executor {
     }
     
     private boolean evaluateWhereCondition(Map<String, Object> row, ExpressionPlan whereClause, TableInfo tableInfo) {
+        // 简化的WHERE条件评估
         if (whereClause instanceof BinaryExpressionPlan) {
             BinaryExpressionPlan binary = (BinaryExpressionPlan) whereClause;
             String operator = binary.getOperator();
-            
+
             // 处理逻辑操作符
             if ("AND".equals(operator)) {
                 boolean leftResult = evaluateWhereCondition(row, binary.getLeft(), tableInfo);
@@ -743,7 +832,7 @@ public class Executor {
                 // 处理比较操作符
                 String leftValue = getColumnValueFromRow(row, binary.getLeft());
                 String rightValue = getColumnValueFromRow(row, binary.getRight());
-                
+
                 // 处理特殊操作符
                 switch (operator) {
                     case "LIKE":
@@ -764,7 +853,7 @@ public class Executor {
         }
         return true;
     }
-    
+
     /**
      * 评估LIKE操作符 - 支持通配符匹配
      */
@@ -772,17 +861,17 @@ public class Executor {
         if (leftValue == null || rightValue == null) {
             return false;
         }
-        
+
         // 将SQL通配符转换为Java正则表达式
         String pattern = rightValue
             .replace("%", ".*")  // % 匹配任意字符序列
             .replace("_", ".");  // _ 匹配单个字符
-        
+
         // 转义其他正则表达式特殊字符
         pattern = pattern.replaceAll("([\\\\\\[\\]{}()*+?^$|.])", "\\\\$1");
         // 重新处理通配符
         pattern = pattern.replace("\\\\.\\*", ".*").replace("\\\\.", ".");
-        
+
         try {
             return leftValue.matches(pattern);
         } catch (Exception e) {
@@ -790,7 +879,7 @@ public class Executor {
             return false;
         }
     }
-    
+
     /**
      * 评估BETWEEN操作符 - 范围查询
      */
@@ -798,14 +887,14 @@ public class Executor {
         if (leftValue == null) {
             return false;
         }
-        
+
         // BETWEEN操作符的右操作数应该是一个包含两个值的列表
         if (rightExpr instanceof FunctionCallExpressionPlan) {
             FunctionCallExpressionPlan func = (FunctionCallExpressionPlan) rightExpr;
             if ("BETWEEN".equals(func.getFunctionName()) && func.getArguments().size() == 2) {
                 String lowerBound = getColumnValueFromRow(new HashMap<>(), func.getArguments().get(0));
                 String upperBound = getColumnValueFromRow(new HashMap<>(), func.getArguments().get(1));
-                
+
                 try {
                     // 尝试数字比较
                     double leftNum = Double.parseDouble(leftValue);
@@ -820,7 +909,7 @@ public class Executor {
         }
         return false;
     }
-    
+
     /**
      * 评估IN操作符 - 值列表查询
      */
@@ -828,7 +917,7 @@ public class Executor {
         if (leftValue == null) {
             return false;
         }
-        
+
         // IN操作符的右操作数应该是一个值列表
         if (rightExpr instanceof FunctionCallExpressionPlan) {
             FunctionCallExpressionPlan func = (FunctionCallExpressionPlan) rightExpr;
@@ -843,7 +932,7 @@ public class Executor {
         }
         return false;
     }
-    
+
     /**
      * 评估EXISTS操作符 - 子查询存在性检查
      */
@@ -860,7 +949,7 @@ public class Executor {
             return false;
         }
     }
-    
+
     /**
      * 评估IS NULL / IS NOT NULL操作符
      */
@@ -872,7 +961,7 @@ public class Executor {
         }
         return false;
     }
-    
+
     /**
      * 评估基本比较操作符
      */
@@ -881,7 +970,7 @@ public class Executor {
         try {
             double leftNum = Double.parseDouble(leftValue);
             double rightNum = Double.parseDouble(rightValue);
-            
+
             switch (operator) {
                 case "=":
                     return Math.abs(leftNum - rightNum) < 1e-9; // 浮点数比较
@@ -917,9 +1006,19 @@ public class Executor {
                     return false;
             }
         }
+        return true;
     }
     
-    
+    private String getColumnValue(Map<String, Object> row, ExpressionPlan expr, TableInfo tableInfo) {
+        if (expr instanceof IdentifierExpressionPlan) {
+            String columnName = ((IdentifierExpressionPlan) expr).getName();
+            return (String) row.getOrDefault(columnName, "NULL");
+        } else if (expr instanceof LiteralExpressionPlan) {
+            return ((LiteralExpressionPlan) expr).getValue();
+        }
+        return "NULL";
+    }
+
     private Map<String, Object> applyProjection(Map<String, Object> row, List<ExpressionPlan> selectList, TableInfo tableInfo) {
         Map<String, Object> projectedRow = new HashMap<>();
         
@@ -1343,7 +1442,7 @@ public class Executor {
                         // 如果列名包含表别名，去掉表别名前缀
                         actualColumnName = columnName.substring(columnName.lastIndexOf(".") + 1);
                     }
-                    
+
                     // 首先尝试使用原始列名（带表别名）
                     value = row.getOrDefault(columnName, null);
                     if (value == null && !columnName.equals(actualColumnName)) {
@@ -1432,5 +1531,65 @@ public class Executor {
             }
         }
         return a.toString().compareTo(b.toString());
+    }
+
+    /**
+     * 执行创建视图操作
+     */
+    private ExecutionResult executeCreateView(CreateViewPlan plan) {
+        // TODO: 实现创建视图功能
+        return new ExecutionResult(false, "视图功能暂未完整实现", null);
+    }
+
+    /**
+     * 执行删除视图操作
+     */
+    private ExecutionResult executeDropView(DropViewPlan plan) {
+        // TODO: 实现删除视图功能
+        return new ExecutionResult(false, "视图功能暂未完整实现", null);
+    }
+
+    /**
+     * 执行创建函数操作
+     */
+    private ExecutionResult executeCreateFunction(CreateFunctionPlan plan) {
+        // TODO: 实现创建函数功能
+        return new ExecutionResult(false, "函数功能暂未完整实现", null);
+    }
+
+    /**
+     * 执行调用函数操作
+     */
+    private ExecutionResult executeCall(CallPlan plan) {
+        try {
+            // 直接调用CallPlan的execute方法，它已经实现了完整的函数调用逻辑
+            return plan.execute(databaseEngine);
+        } catch (Exception e) {
+            return new ExecutionResult(false, "调用函数失败: " + e.getMessage(), null);
+        }
+    }
+
+    /**
+     * 执行删除函数操作
+     */
+    private ExecutionResult executeDropFunction(DropFunctionPlan plan) {
+        // TODO: 实现删除函数功能
+        return new ExecutionResult(false, "函数功能暂未完整实现", null);
+    }
+
+    /**
+     * 评估表达式
+     */
+    private Object evaluateExpression(ExpressionPlan expr, Map<String, Object> row, TableInfo tableInfo) {
+        // TODO: 实现表达式评估功能
+        return null;
+    }
+
+    /**
+     * 将值转换为指定类型
+     */
+    private Object convertValueToType(Object value, String dataType) {
+        // TODO: 实现类型转换功能
+        return value;
     }
 }
