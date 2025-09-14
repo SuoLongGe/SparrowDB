@@ -243,6 +243,40 @@ public class StorageAdapter implements RollbackCallback {
     }
 
     /**
+     * 使用缓冲池更新记录
+     */
+    private boolean updateRecordWithBufferPool(String tableName, Map<String, Object> oldRecord, Map<String, Object> newRecord) {
+        try {
+            // 先删除旧记录
+            if (!deleteRecordWithBufferPool(tableName, oldRecord)) {
+                return false;
+            }
+            // 再插入新记录
+            return insertRecordWithBufferPool(tableName, serializeRecord(newRecord));
+        } catch (Exception e) {
+            System.err.println("使用缓冲池更新记录失败: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 使用文件存储更新记录
+     */
+    private boolean updateRecordWithFileStorage(String tableName, Map<String, Object> oldRecord, Map<String, Object> newRecord) {
+        try {
+            // 先删除旧记录
+            if (!deleteRecordWithFileStorage(tableName, oldRecord)) {
+                return false;
+            }
+            // 再插入新记录
+            return insertRecordWithFileStorage(tableName, serializeRecord(newRecord));
+        } catch (Exception e) {
+            System.err.println("使用文件存储更新记录失败: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
      * 获取表统计信息
      */
     public TableStats getTableStats(String tableName) {
@@ -586,15 +620,22 @@ public class StorageAdapter implements RollbackCallback {
     private boolean insertRecordWithFileStorage(String tableName, String serializedRecord) {
         try {
             String tableFile = getTableFilePath(tableName);
+            System.out.println("🔍 准备写入文件: " + tableFile);
+            System.out.println("🔍 序列化记录: " + serializedRecord);
             
             // 追加记录到文件 - 使用UTF-8编码
             try (FileWriter writer = new FileWriter(tableFile, StandardCharsets.UTF_8, true)) {
-                writer.write("RECORD:" + serializedRecord + "\n");
+                String recordLine = "RECORD:" + serializedRecord + "\n";
+                System.out.println("🔍 写入记录行: " + recordLine);
+                writer.write(recordLine);
+                writer.flush(); // 强制刷新缓冲区
             }
             
+            System.out.println("🔍 文件写入完成");
             return true;
         } catch (IOException e) {
             System.err.println("文件存储插入记录失败: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -604,32 +645,44 @@ public class StorageAdapter implements RollbackCallback {
         
         try {
             String tableFile = getTableFilePath(tableName);
+            System.out.println("🔍 扫描文件: " + tableFile);
             File file = new File(tableFile);
             if (!file.exists()) {
+                System.out.println("🔍 文件不存在: " + tableFile);
                 return records;
             }
             
+            System.out.println("🔍 文件存在，开始读取");
             try (BufferedReader reader = new BufferedReader(new FileReader(tableFile, StandardCharsets.UTF_8))) {
                 String line;
                 boolean inDataSection = false;
+                int lineNum = 0;
                 
                 while ((line = reader.readLine()) != null) {
+                    lineNum++;
                     if (line.startsWith("# End Metadata")) {
                         inDataSection = true;
+                        System.out.println("🔍 找到数据段开始，行号: " + lineNum);
                         continue;
                     }
                     
                     if (inDataSection && line.startsWith("RECORD:")) {
                         String recordData = line.substring(7); // 移除"RECORD:"前缀
+                        System.out.println("🔍 找到记录，行号: " + lineNum + ", 数据: " + recordData);
                         Map<String, Object> record = deserializeRecord(recordData);
                         if (record != null) {
                             records.add(record);
+                            System.out.println("🔍 成功解析记录: " + record);
+                        } else {
+                            System.out.println("🔍 记录解析失败");
                         }
                     }
                 }
             }
+            System.out.println("🔍 扫描完成，共找到 " + records.size() + " 条记录");
         } catch (IOException e) {
             System.err.println("文件存储扫描表失败: " + e.getMessage());
+            e.printStackTrace();
         }
         
         return records;

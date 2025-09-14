@@ -597,7 +597,8 @@ public class DatabaseGUI extends JFrame {
                trimmedSql.startsWith("show") || 
                trimmedSql.startsWith("describe") || 
                trimmedSql.startsWith("desc") ||
-               trimmedSql.startsWith("explain");
+               trimmedSql.startsWith("explain") ||
+               trimmedSql.startsWith("call");
     }
     
     /**

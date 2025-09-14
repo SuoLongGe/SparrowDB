@@ -13,13 +13,15 @@ import java.util.Arrays;
 public class Executor {
     private final StorageAdapter storageAdapter;
     private final CatalogManager catalogManager;
+    private final DatabaseEngine databaseEngine;
     private String currentIndexType = "智能选择";
-    private final ViewManager viewManager;
+    private ViewManager viewManager;
 
-    public Executor(StorageAdapter storageAdapter, CatalogManager catalogManager) {
+    public Executor(StorageAdapter storageAdapter, CatalogManager catalogManager, DatabaseEngine databaseEngine) {
         this.storageAdapter = storageAdapter;
         this.catalogManager = catalogManager;
-        this.viewManager = viewManager;
+        this.databaseEngine = databaseEngine;
+        this.viewManager = null; // TODO: 需要正确初始化ViewManager
     }
 
     /**
@@ -508,8 +510,9 @@ public class Executor {
                         return leftValue.compareTo(rightValue) >= 0;
                     case "<=":
                         return leftValue.compareTo(rightValue) <= 0;
-                default:
-                    return false;
+                    default:
+                        return false;
+                }
             }
         }
         return true;
@@ -1379,5 +1382,65 @@ public class Executor {
             }
         }
         return a.toString().compareTo(b.toString());
+    }
+
+    /**
+     * 执行创建视图操作
+     */
+    private ExecutionResult executeCreateView(CreateViewPlan plan) {
+        // TODO: 实现创建视图功能
+        return new ExecutionResult(false, "视图功能暂未完整实现", null);
+    }
+
+    /**
+     * 执行删除视图操作
+     */
+    private ExecutionResult executeDropView(DropViewPlan plan) {
+        // TODO: 实现删除视图功能
+        return new ExecutionResult(false, "视图功能暂未完整实现", null);
+    }
+
+    /**
+     * 执行创建函数操作
+     */
+    private ExecutionResult executeCreateFunction(CreateFunctionPlan plan) {
+        // TODO: 实现创建函数功能
+        return new ExecutionResult(false, "函数功能暂未完整实现", null);
+    }
+
+    /**
+     * 执行调用函数操作
+     */
+    private ExecutionResult executeCall(CallPlan plan) {
+        try {
+            // 直接调用CallPlan的execute方法，它已经实现了完整的函数调用逻辑
+            return plan.execute(databaseEngine);
+        } catch (Exception e) {
+            return new ExecutionResult(false, "调用函数失败: " + e.getMessage(), null);
+        }
+    }
+
+    /**
+     * 执行删除函数操作
+     */
+    private ExecutionResult executeDropFunction(DropFunctionPlan plan) {
+        // TODO: 实现删除函数功能
+        return new ExecutionResult(false, "函数功能暂未完整实现", null);
+    }
+
+    /**
+     * 评估表达式
+     */
+    private Object evaluateExpression(ExpressionPlan expr, Map<String, Object> row, TableInfo tableInfo) {
+        // TODO: 实现表达式评估功能
+        return null;
+    }
+
+    /**
+     * 将值转换为指定类型
+     */
+    private Object convertValueToType(Object value, String dataType) {
+        // TODO: 实现类型转换功能
+        return value;
     }
 }

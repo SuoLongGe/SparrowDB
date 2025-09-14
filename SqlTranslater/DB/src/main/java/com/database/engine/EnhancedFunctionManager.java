@@ -539,7 +539,10 @@ public class EnhancedFunctionManager extends FunctionManager {
      * 保存函数到存储
      */
     private void saveFunctionToStorage(UserDefinedFunction function) {
+        System.out.println("🔍 开始保存函数到存储: " + function.getName());
+        
         if (!(function instanceof EnhancedUserDefinedFunction)) {
+            System.out.println("🔍 函数不是增强型函数，跳过保存");
             return; // 只保存增强型函数
         }
         
@@ -547,6 +550,7 @@ public class EnhancedFunctionManager extends FunctionManager {
         
         // 只有标记为永久的函数才会被保存
         if (!enhancedFunction.isPermanent()) {
+            System.out.println("🔍 函数不是永久函数，跳过保存");
             return;
         }
         
@@ -555,20 +559,25 @@ public class EnhancedFunctionManager extends FunctionManager {
             Map<String, Object> record = new HashMap<>();
             record.put("function_name", enhancedFunction.getName());
             
-            // 序列化参数类型到signature字段
-            StringBuilder paramTypes = new StringBuilder();
+            // 序列化参数信息到signature字段（包含参数名和类型）
+            StringBuilder paramInfo = new StringBuilder();
             for (int i = 0; i < enhancedFunction.getParameters().size(); i++) {
-                if (i > 0) paramTypes.append(",");
-                paramTypes.append(enhancedFunction.getParameters().get(i).getType());
+                if (i > 0) paramInfo.append(",");
+                CreateFunctionStatement.FunctionParameter param = enhancedFunction.getParameters().get(i);
+                paramInfo.append(param.getName()).append(":").append(param.getType());
             }
-            record.put("signature", paramTypes.toString());
+            record.put("signature", paramInfo.toString());
             record.put("return_type", enhancedFunction.getReturnType());
             record.put("body", enhancedFunction.getBody());
             record.put("is_permanent", enhancedFunction.isPermanent());
             record.put("create_time", System.currentTimeMillis());
             
+            System.out.println("🔍 准备插入记录: " + record);
+            
             // 插入到系统函数表
             boolean success = storageAdapter.insertRecord("__system_functions__", record);
+            System.out.println("🔍 insertRecord返回结果: " + success);
+            
             if (success) {
                 System.out.println("✅ 函数 '" + enhancedFunction.getName() + "' 已持久化保存");
             } else {
@@ -576,6 +585,7 @@ public class EnhancedFunctionManager extends FunctionManager {
             }
         } catch (Exception e) {
             System.err.println("❌ 保存函数到存储失败: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
@@ -797,13 +807,19 @@ public class EnhancedFunctionManager extends FunctionManager {
      */
     private void loadStoredFunctions() {
         try {
+            System.out.println("🔍 开始加载持久化函数");
+            
             if (!storageAdapter.tableExists("__system_functions__")) {
                 System.out.println("ℹ️ 系统函数表不存在，跳过加载持久化函数");
                 return;
             }
             
+            System.out.println("🔍 系统函数表存在，开始扫描");
+            
             // 查询所有存储的函数
             List<Map<String, Object>> records = storageAdapter.scanTable("__system_functions__");
+            System.out.println("🔍 scanTable返回记录数: " + (records != null ? records.size() : "null"));
+            
             if (records == null || records.isEmpty()) {
                 System.out.println("ℹ️ 没有找到已保存的持久化函数");
                 return;
@@ -853,11 +869,21 @@ public class EnhancedFunctionManager extends FunctionManager {
                                 if (parameterTypesStr.startsWith("[")) {
                                     parameters = parseParametersFromJson(parameterTypesStr);
                                 } else {
-                                    // 解析逗号分隔的类型字符串
-                                    String[] types = parameterTypesStr.split(",");
-                                    for (int i = 0; i < types.length; i++) {
-                                        parameters.add(new CreateFunctionStatement.FunctionParameter(
-                                            "param" + (i + 1), types[i].trim()));
+                                    // 解析逗号分隔的参数信息字符串（格式：name:type,name:type）
+                                    String[] paramInfos = parameterTypesStr.split(",");
+                                    for (String paramInfo : paramInfos) {
+                                        String[] parts = paramInfo.split(":");
+                                        if (parts.length == 2) {
+                                            String paramName = parts[0].trim();
+                                            String paramType = parts[1].trim();
+                                            parameters.add(new CreateFunctionStatement.FunctionParameter(paramName, paramType));
+                                        } else {
+                                            // 兼容旧格式：只有类型，没有参数名
+                                            // 尝试从函数体中提取参数名
+                                            String paramName = extractParameterNameFromBody(functionBody, parameters.size());
+                                            parameters.add(new CreateFunctionStatement.FunctionParameter(
+                                                paramName, paramInfo.trim()));
+                                        }
                                     }
                                 }
                             } catch (Exception e) {
@@ -949,5 +975,32 @@ public class EnhancedFunctionManager extends FunctionManager {
         }
         
         return params;
+    }
+    
+    /**
+     * 从函数体中提取参数名（用于兼容旧格式）
+     */
+    private String extractParameterNameFromBody(String functionBody, int paramIndex) {
+        if (functionBody == null || functionBody.trim().isEmpty()) {
+            return "param" + (paramIndex + 1);
+        }
+        
+        // 简单的参数名提取逻辑
+        // 常见的参数名模式
+        String[] commonParamNames = {"a", "b", "c", "d", "x", "y", "z", "n", "m", "p", "q", "r", "s", "t"};
+        
+        // 遍历所有常见的参数名，找到在函数体中出现的参数名
+        int foundCount = 0;
+        for (String candidateName : commonParamNames) {
+            if (functionBody.contains(candidateName)) {
+                if (foundCount == paramIndex) {
+                    return candidateName;
+                }
+                foundCount++;
+            }
+        }
+        
+        // 如果找不到匹配的参数名，使用默认名称
+        return "param" + (paramIndex + 1);
     }
 }

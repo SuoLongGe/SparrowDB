@@ -89,7 +89,7 @@ public class SyntaxAnalyzer {
         
         switch (token.getType()) {
             case CREATE:
-                return parseCreateTableStatement();
+                return parseCreateStatement();
             case INSERT:
                 return parseInsertStatement();
             case SELECT:

@@ -36,20 +36,21 @@ public class DatabaseEngine {
         // 初始化存储引擎（整合Java存储系统）
         this.storageEngine = new StorageEngine(dataDirectory);
         
+        // 初始化存储适配器
+        StorageAdapter storageAdapter = new StorageAdapter(dataDirectory);
+
         // 初始化目录管理器
         this.catalogManager = new CatalogManager(storageEngine);
+        this.catalogManager.setStorageAdapter(storageAdapter);
         
         // 初始化视图管理器
         this.viewManager = new ViewManager(storageEngine);
 
         // 初始化增强的函数管理器
-        this.functionManager = new EnhancedFunctionManager(new StorageAdapter(dataDirectory));
-
-        // 初始化存储适配器
-        StorageAdapter storageAdapter = new StorageAdapter(dataDirectory);
+        this.functionManager = new EnhancedFunctionManager(storageAdapter);
 
         // 初始化执行引擎
-        this.executor = new Executor(storageAdapter, catalogManager);
+        this.executor = new Executor(storageAdapter, catalogManager, this);
         
         // 初始化SQL编译器 - 使用CatalogManager的Catalog实例
         this.sqlCompiler = new SQLCompiler(catalogManager.getCatalog());
