@@ -511,6 +511,7 @@ public class SyntaxAnalyzer {
      */
     private Expression parseSelectItem() throws SyntaxException {
         Expression expr;
+        Position startPos = currentToken().getPosition();
         
         // 检查是否为 * 通配符
         if (currentToken().getType() == TokenType.MULTIPLY) {
@@ -524,9 +525,8 @@ public class SyntaxAnalyzer {
         if (currentToken().getType() == TokenType.AS) {
             nextToken();
             String alias = expectIdentifier();
-            // 对于有别名的情况，我们暂时返回原表达式
-            // 在实际实现中，可能需要创建一个带别名的表达式类型
-            return expr;
+            // 创建带别名的表达式
+            return new AliasExpression(expr, alias, startPos);
         }
         // 注意：我们不处理没有AS关键字的别名，因为这可能与FROM子句冲突
         
