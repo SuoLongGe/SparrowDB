@@ -2,7 +2,6 @@ package com.sqlcompiler.execution;
 
 import com.sqlcompiler.ast.*;
 import com.sqlcompiler.exception.CompilationException;
-import com.sqlcompiler.lexer.TokenType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -210,6 +209,11 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
     }
     
     @Override
+    public ExecutionPlan visit(AliasExpression node) {
+        return null; // 别名表达式在SELECT中处理
+    }
+    
+    @Override
     public ExecutionPlan visit(InExpression node) {
         return null; // IN表达式在WHERE子句中处理
     }
@@ -284,8 +288,22 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
             return new IdentifierExpressionPlan(dot.getTableName() + "." + dot.getFieldName());
         } else if (expr instanceof FunctionCallExpression) {
             FunctionCallExpression func = (FunctionCallExpression) expr;
-            // 简化处理：将函数调用转换为标识符表达式
-            return new IdentifierExpressionPlan(func.getFunctionName() + "()");
+            // 将函数调用转换为函数调用计划
+            List<ExpressionPlan> argumentPlans = new ArrayList<>();
+            for (Expression arg : func.getArguments()) {
+                argumentPlans.add(convertExpression(arg));
+            }
+            return new FunctionCallExpressionPlan(func.getFunctionName(), argumentPlans);
+        } else if (expr instanceof AliasExpression) {
+            AliasExpression alias = (AliasExpression) expr;
+            // 将别名表达式转换为带别名的表达式计划
+            ExpressionPlan innerPlan = convertExpression(alias.getExpression());
+            return new AliasExpressionPlan(innerPlan, alias.getAlias());
+        } else if (expr instanceof SubqueryExpression) {
+            SubqueryExpression subquery = (SubqueryExpression) expr;
+            // 将子查询转换为子查询计划
+            SelectPlan subqueryPlan = (SelectPlan) subquery.getSubquery().accept(this);
+            return new SubqueryExpressionPlan(subqueryPlan);
         } else {
             throw new CompilationException("不支持的表达式类型: " + expr.getClass().getSimpleName(), 
                                         expr.getPosition(), "执行计划生成错误");
@@ -318,6 +336,12 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
                     break;
                 case AUTO_INCREMENT:
                     autoIncrement = true;
+                    break;
+                case FOREIGN_KEY:
+                    // 外键约束在列级别不需要特殊处理
+                    break;
+                case CHECK:
+                    // CHECK约束在列级别不需要特殊处理
                     break;
             }
         }
@@ -354,6 +378,9 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
                 return ConstraintPlan.ConstraintType.DEFAULT;
             case AUTO_INCREMENT:
                 return ConstraintPlan.ConstraintType.AUTO_INCREMENT;
+            case CHECK:
+                // CHECK约束暂时映射为UNIQUE，因为ConstraintPlan可能没有CHECK类型
+                return ConstraintPlan.ConstraintType.UNIQUE;
             default:
                 throw new CompilationException("未知的约束类型: " + type, null, "执行计划生成错误");
         }

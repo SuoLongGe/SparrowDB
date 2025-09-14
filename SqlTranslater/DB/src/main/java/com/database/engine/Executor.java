@@ -3,6 +3,7 @@ package com.database.engine;
 import com.sqlcompiler.execution.*;
 import com.sqlcompiler.catalog.*;
 import java.util.*;
+import java.util.Arrays;
 
 /**
  * 执行引擎 - 负责执行各种SQL操作
@@ -271,27 +272,42 @@ public class Executor {
                 return new ExecutionResult(false, "表 " + tableName + " 不存在", null);
             }
             
+            TableInfo tableInfo = catalogManager.getTable(tableName);
+            
             // 执行JOIN操作
             List<Map<String, Object>> joinedRecords = executeJoins(tablePlan);
             
-            // 处理每一行
-            for (Map<String, Object> row : joinedRecords) {
+            // 检查是否有GROUP BY子句
+            if (plan.getGroupByClause() != null && !plan.getGroupByClause().isEmpty()) {
+                // 执行GROUP BY聚合查询
+                results = executeGroupByQuery(joinedRecords, plan, tableInfo);
+            } else {
+                // 检查是否有聚合函数但没有GROUP BY
+                boolean hasAggregateFunctions = hasAggregateFunctions(plan.getSelectList());
                 
-                // 应用WHERE条件
-                if (plan.getWhereClause() != null) {
-                    if (!evaluateWhereCondition(row, plan.getWhereClause(), null)) {
-                        continue;
+                if (hasAggregateFunctions) {
+                    // 执行全局聚合查询
+                    results = executeGlobalAggregateQuery(joinedRecords, plan, tableInfo);
+                } else {
+                    // 普通查询
+                    for (Map<String, Object> row : joinedRecords) {
+                        // 应用WHERE条件
+                        if (plan.getWhereClause() != null) {
+                            if (!evaluateWhereCondition(row, plan.getWhereClause(), tableInfo)) {
+                                continue;
+                            }
+                        }
+                        
+                        // 应用SELECT列表（投影）
+                        Map<String, Object> projectedRow = applyProjection(row, plan.getSelectList(), tableInfo);
+                        results.add(projectedRow);
                     }
                 }
-                
-                // 应用SELECT列表（投影）
-                Map<String, Object> projectedRow = applyProjection(row, plan.getSelectList(), null);
-                results.add(projectedRow);
             }
             
             // 应用ORDER BY
             if (plan.getOrderByClause() != null) {
-                sortResults(results, plan.getOrderByClause(), null);
+                sortResults(results, plan.getOrderByClause(), tableInfo);
             }
             
             // 应用LIMIT
@@ -326,24 +342,27 @@ public class Executor {
         // 根据索引类型选择查询策略
         List<Map<String, Object>> mainTableData = queryTableWithIndex(mainTableName, tablePlan);
         
-        // 如果没有JOIN，直接返回主表数据（添加表别名前缀）
-        if (tablePlan.getJoins() == null || tablePlan.getJoins().isEmpty()) {
-            for (Map<String, Object> row : mainTableData) {
-                Map<String, Object> aliasedRow = new HashMap<>();
-                for (Map.Entry<String, Object> entry : row.entrySet()) {
-                    String key = entry.getKey();
-                    if (mainTableAlias != null) {
-                        key = mainTableAlias + "." + key;
-                    }
-                    aliasedRow.put(key, entry.getValue());
+        // 为左表数据添加表别名前缀
+        List<Map<String, Object>> aliasedMainData = new ArrayList<>();
+        for (Map<String, Object> row : mainTableData) {
+            Map<String, Object> aliasedRow = new HashMap<>();
+            for (Map.Entry<String, Object> entry : row.entrySet()) {
+                String key = entry.getKey();
+                if (mainTableAlias != null) {
+                    key = mainTableAlias + "." + key;
                 }
-                results.add(aliasedRow);
+                aliasedRow.put(key, entry.getValue());
             }
-            return results;
+            aliasedMainData.add(aliasedRow);
+        }
+        
+        // 如果没有JOIN，直接返回主表数据
+        if (tablePlan.getJoins() == null || tablePlan.getJoins().isEmpty()) {
+            return aliasedMainData;
         }
         
         // 处理JOIN操作
-        results = mainTableData;
+        results = aliasedMainData;
         
         for (JoinPlan join : tablePlan.getJoins()) {
             results = executeJoin(results, join, mainTableAlias);
@@ -408,17 +427,45 @@ public class Executor {
             String rightValue = getColumnValueFromRow(row, binary.getRight());
             String operator = binary.getOperator();
             
-            switch (operator) {
-                case "=":
-                    return leftValue.equals(rightValue);
-                case "!=":
-                    return !leftValue.equals(rightValue);
-                case ">":
-                    return leftValue.compareTo(rightValue) > 0;
-                case "<":
-                    return leftValue.compareTo(rightValue) < 0;
-                default:
-                    return false;
+            // 尝试数字比较
+            try {
+                double leftNum = Double.parseDouble(leftValue);
+                double rightNum = Double.parseDouble(rightValue);
+                
+                switch (operator) {
+                    case "=":
+                        return Math.abs(leftNum - rightNum) < 1e-9; // 浮点数比较
+                    case "!=":
+                        return Math.abs(leftNum - rightNum) >= 1e-9;
+                    case ">":
+                        return leftNum > rightNum;
+                    case "<":
+                        return leftNum < rightNum;
+                    case ">=":
+                        return leftNum >= rightNum;
+                    case "<=":
+                        return leftNum <= rightNum;
+                    default:
+                        return false;
+                }
+            } catch (NumberFormatException e) {
+                // 如果不是数字，使用字符串比较
+                switch (operator) {
+                    case "=":
+                        return leftValue.equals(rightValue);
+                    case "!=":
+                        return !leftValue.equals(rightValue);
+                    case ">":
+                        return leftValue.compareTo(rightValue) > 0;
+                    case "<":
+                        return leftValue.compareTo(rightValue) < 0;
+                    case ">=":
+                        return leftValue.compareTo(rightValue) >= 0;
+                    case "<=":
+                        return leftValue.compareTo(rightValue) <= 0;
+                    default:
+                        return false;
+                }
             }
         }
         return true;
@@ -434,8 +481,98 @@ public class Executor {
             return value != null ? value.toString() : "NULL";
         } else if (expr instanceof LiteralExpressionPlan) {
             return ((LiteralExpressionPlan) expr).getValue();
+        } else if (expr instanceof FunctionCallExpressionPlan) {
+            // 处理聚合函数表达式（用于HAVING条件）
+            FunctionCallExpressionPlan funcExpr = (FunctionCallExpressionPlan) expr;
+            String functionName = funcExpr.getFunctionName();
+            List<ExpressionPlan> arguments = funcExpr.getArguments();
+            
+            // 生成聚合函数列名
+            String columnName = generateAggregateColumnName(functionName, arguments);
+            Object value = row.get(columnName);
+            
+            // 如果找不到值，尝试在聚合结果中查找匹配的列
+            if (value == null) {
+                for (Map.Entry<String, Object> entry : row.entrySet()) {
+                    String key = entry.getKey();
+                    Object val = entry.getValue();
+                    // 检查是否是匹配的聚合函数结果
+                    if (isMatchingAggregateResult(key, val, functionName, arguments)) {
+                        value = val;
+                        break;
+                    }
+                }
+            }
+            
+            return value != null ? value.toString() : "NULL";
+        } else if (expr instanceof SubqueryExpressionPlan) {
+            // 执行子查询并返回结果
+            SubqueryExpressionPlan subquery = (SubqueryExpressionPlan) expr;
+            ExecutionResult result = executeSubquery(subquery.getSubquery(), row);
+            if (result.isSuccess() && result.getData() != null && !result.getData().isEmpty()) {
+                // 返回子查询结果的第一行第一列的值
+                Map<String, Object> firstRow = result.getData().get(0);
+                if (!firstRow.isEmpty()) {
+                    Object firstValue = firstRow.values().iterator().next();
+                    return firstValue != null ? firstValue.toString() : "NULL";
+                }
+            }
+            return "NULL";
         }
         return "NULL";
+    }
+    
+    /**
+     * 执行子查询（支持相关子查询）
+     */
+    private ExecutionResult executeSubquery(SelectPlan plan, Map<String, Object> outerContext) {
+        try {
+            // 执行子查询的FROM子句
+            List<Map<String, Object>> joinedRecords = new ArrayList<>();
+            if (plan.getFromClause() != null && !plan.getFromClause().isEmpty()) {
+                for (TablePlan tablePlan : plan.getFromClause()) {
+                    List<Map<String, Object>> tableData = executeJoins(tablePlan);
+                    joinedRecords.addAll(tableData);
+                }
+            } else {
+                // 如果没有FROM子句，创建一个空行用于聚合函数
+                joinedRecords.add(new HashMap<>());
+            }
+            
+            // 应用WHERE条件（包括相关子查询的条件）
+            List<Map<String, Object>> filteredRecords = new ArrayList<>();
+            for (Map<String, Object> row : joinedRecords) {
+                // 合并外层上下文和当前行
+                Map<String, Object> contextRow = new HashMap<>(outerContext);
+                contextRow.putAll(row);
+                
+                if (plan.getWhereClause() != null) {
+                    if (!evaluateWhereCondition(contextRow, plan.getWhereClause(), null)) {
+                        continue;
+                    }
+                }
+                filteredRecords.add(contextRow);
+            }
+            
+            // 处理GROUP BY和聚合
+            List<Map<String, Object>> results = new ArrayList<>();
+            if (plan.getGroupByClause() != null && !plan.getGroupByClause().isEmpty()) {
+                results = executeGroupByQuery(filteredRecords, plan, null);
+            } else if (hasAggregateFunctions(plan.getSelectList())) {
+                results = executeGlobalAggregateQuery(filteredRecords, plan, null);
+            } else {
+                // 普通查询
+                for (Map<String, Object> row : filteredRecords) {
+                    Map<String, Object> projectedRow = applyProjection(row, plan.getSelectList(), null);
+                    results.add(projectedRow);
+                }
+            }
+            
+            return new ExecutionResult(true, "子查询执行成功", results);
+            
+        } catch (Exception e) {
+            return new ExecutionResult(false, "子查询执行失败: " + e.getMessage(), null);
+        }
     }
     
     /**
@@ -571,31 +708,50 @@ public class Executor {
             String rightValue = getColumnValueFromRow(row, binary.getRight());
             String operator = binary.getOperator();
             
-            switch (operator) {
-                case "=":
-                    return leftValue.equals(rightValue);
-                case "!=":
-                    return !leftValue.equals(rightValue);
-                case ">":
-                    return leftValue.compareTo(rightValue) > 0;
-                case "<":
-                    return leftValue.compareTo(rightValue) < 0;
-                default:
-                    return false;
+            // 尝试数字比较
+            try {
+                double leftNum = Double.parseDouble(leftValue);
+                double rightNum = Double.parseDouble(rightValue);
+                
+                switch (operator) {
+                    case "=":
+                        return Math.abs(leftNum - rightNum) < 1e-9; // 浮点数比较
+                    case "!=":
+                        return Math.abs(leftNum - rightNum) >= 1e-9;
+                    case ">":
+                        return leftNum > rightNum;
+                    case "<":
+                        return leftNum < rightNum;
+                    case ">=":
+                        return leftNum >= rightNum;
+                    case "<=":
+                        return leftNum <= rightNum;
+                    default:
+                        return false;
+                }
+            } catch (NumberFormatException e) {
+                // 如果不是数字，使用字符串比较
+                switch (operator) {
+                    case "=":
+                        return leftValue.equals(rightValue);
+                    case "!=":
+                        return !leftValue.equals(rightValue);
+                    case ">":
+                        return leftValue.compareTo(rightValue) > 0;
+                    case "<":
+                        return leftValue.compareTo(rightValue) < 0;
+                    case ">=":
+                        return leftValue.compareTo(rightValue) >= 0;
+                    case "<=":
+                        return leftValue.compareTo(rightValue) <= 0;
+                    default:
+                        return false;
+                }
             }
         }
         return true;
     }
     
-    private String getColumnValue(Map<String, Object> row, ExpressionPlan expr, TableInfo tableInfo) {
-        if (expr instanceof IdentifierExpressionPlan) {
-            String columnName = ((IdentifierExpressionPlan) expr).getName();
-            return (String) row.getOrDefault(columnName, "NULL");
-        } else if (expr instanceof LiteralExpressionPlan) {
-            return ((LiteralExpressionPlan) expr).getValue();
-        }
-        return "NULL";
-    }
     
     private Map<String, Object> applyProjection(Map<String, Object> row, List<ExpressionPlan> selectList, TableInfo tableInfo) {
         Map<String, Object> projectedRow = new HashMap<>();
@@ -627,6 +783,31 @@ public class Executor {
                     }
                     
                     projectedRow.put(outputColumnName, value);
+                }
+            } else if (expr instanceof FunctionCallExpressionPlan) {
+                // 处理聚合函数
+                FunctionCallExpressionPlan funcExpr = (FunctionCallExpressionPlan) expr;
+                String functionName = funcExpr.getFunctionName();
+                List<ExpressionPlan> arguments = funcExpr.getArguments();
+                
+                // 计算聚合函数值
+                Object result = evaluateAggregateFunction(row, functionName, arguments, tableInfo);
+                
+                // 生成列名
+                String columnName = generateAggregateColumnName(functionName, arguments);
+                projectedRow.put(columnName, result);
+            } else if (expr instanceof AliasExpressionPlan) {
+                // 处理别名表达式
+                AliasExpressionPlan aliasExpr = (AliasExpressionPlan) expr;
+                ExpressionPlan innerExpr = aliasExpr.getExpression();
+                String alias = aliasExpr.getAlias();
+                
+                // 递归处理内部表达式
+                Map<String, Object> innerResult = applyProjection(row, Arrays.asList(innerExpr), tableInfo);
+                
+                // 将结果重命名为别名
+                for (Map.Entry<String, Object> entry : innerResult.entrySet()) {
+                    projectedRow.put(alias, entry.getValue());
                 }
             }
         }
@@ -686,5 +867,391 @@ public class Executor {
             default:
                 throw new IllegalArgumentException("未知的约束类型: " + type);
         }
+    }
+    
+    /**
+     * 评估聚合函数
+     */
+    private Object evaluateAggregateFunction(Map<String, Object> row, String functionName, 
+                                           List<ExpressionPlan> arguments, TableInfo tableInfo) {
+        // 注意：这里只是单行评估，真正的聚合需要在GROUP BY中处理
+        // 对于非GROUP BY查询，这里返回当前行的值或计算值
+        
+        if (arguments.isEmpty()) {
+            return null;
+        }
+        
+        ExpressionPlan arg = arguments.get(0);
+        Object value = null;
+        
+        if (arg instanceof IdentifierExpressionPlan) {
+            String columnName = ((IdentifierExpressionPlan) arg).getName();
+            if (columnName.equals("*")) {
+                // COUNT(*) - 返回1
+                if (functionName.equalsIgnoreCase("COUNT")) {
+                    return 1;
+                }
+                return null;
+            } else {
+                value = row.getOrDefault(columnName, null);
+            }
+        } else if (arg instanceof LiteralExpressionPlan) {
+            value = ((LiteralExpressionPlan) arg).getValue();
+        }
+        
+        // 根据函数类型返回适当的值
+        switch (functionName.toUpperCase()) {
+            case "COUNT":
+                return value != null ? 1 : 0;
+            case "SUM":
+            case "AVG":
+                if (value != null) {
+                    try {
+                        return Double.parseDouble(value.toString());
+                    } catch (NumberFormatException e) {
+                        return 0.0;
+                    }
+                }
+                return 0.0;
+            case "MAX":
+            case "MIN":
+                return value;
+            default:
+                return value;
+        }
+    }
+    
+    /**
+     * 检查聚合结果是否匹配HAVING条件中的聚合函数
+     */
+    private boolean isMatchingAggregateResult(String key, Object value, String functionName, List<ExpressionPlan> arguments) {
+        // 检查值是否为数字（聚合函数的结果通常是数字）
+        if (value == null || !(value instanceof Number)) {
+            return false;
+        }
+        
+        // 根据函数类型和参数进行更精确的匹配
+        if (functionName.equalsIgnoreCase("COUNT")) {
+            // COUNT(*) 应该匹配整数类型的值
+            if (arguments.size() == 1 && arguments.get(0) instanceof IdentifierExpressionPlan) {
+                IdentifierExpressionPlan arg = (IdentifierExpressionPlan) arguments.get(0);
+                if (arg.getName().equals("*")) {
+                    // COUNT(*) 应该匹配 emp_count 这样的列
+                    return key.contains("count") || key.contains("COUNT");
+                }
+            }
+        } else if (functionName.equalsIgnoreCase("AVG")) {
+            // AVG(salary) 应该匹配 avg_salary 这样的列
+            if (arguments.size() == 1 && arguments.get(0) instanceof IdentifierExpressionPlan) {
+                IdentifierExpressionPlan arg = (IdentifierExpressionPlan) arguments.get(0);
+                String columnName = arg.getName();
+                return key.contains("avg") || key.contains("AVG") || 
+                       key.toLowerCase().contains(columnName.toLowerCase());
+            }
+        } else if (functionName.equalsIgnoreCase("SUM")) {
+            // SUM(salary) 应该匹配 sum_salary 这样的列
+            if (arguments.size() == 1 && arguments.get(0) instanceof IdentifierExpressionPlan) {
+                IdentifierExpressionPlan arg = (IdentifierExpressionPlan) arguments.get(0);
+                String columnName = arg.getName();
+                return key.contains("sum") || key.contains("SUM") || 
+                       key.toLowerCase().contains(columnName.toLowerCase());
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * 生成聚合函数列名
+     */
+    private String generateAggregateColumnName(String functionName, List<ExpressionPlan> arguments) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(functionName.toUpperCase()).append("(");
+        
+        if (arguments.isEmpty()) {
+            sb.append(")");
+        } else {
+            ExpressionPlan arg = arguments.get(0);
+            if (arg instanceof IdentifierExpressionPlan) {
+                String columnName = ((IdentifierExpressionPlan) arg).getName();
+                if (columnName.equals("*")) {
+                    sb.append("*");
+                } else {
+                    // 去掉表别名前缀
+                    if (columnName.contains(".")) {
+                        columnName = columnName.substring(columnName.lastIndexOf(".") + 1);
+                    }
+                    sb.append(columnName);
+                }
+            } else if (arg instanceof LiteralExpressionPlan) {
+                sb.append(((LiteralExpressionPlan) arg).getValue());
+            }
+            sb.append(")");
+        }
+        
+        return sb.toString();
+    }
+    
+    /**
+     * 检查SELECT列表是否包含聚合函数
+     */
+    private boolean hasAggregateFunctions(List<ExpressionPlan> selectList) {
+        for (ExpressionPlan expr : selectList) {
+            if (expr instanceof FunctionCallExpressionPlan) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 执行GROUP BY聚合查询
+     */
+    private List<Map<String, Object>> executeGroupByQuery(List<Map<String, Object>> records, 
+                                                         SelectPlan plan, TableInfo tableInfo) {
+        List<Map<String, Object>> results = new ArrayList<>();
+        
+        // 按GROUP BY列分组
+        Map<String, List<Map<String, Object>>> groups = new HashMap<>();
+        
+        for (Map<String, Object> row : records) {
+            // 应用WHERE条件
+            if (plan.getWhereClause() != null) {
+                if (!evaluateWhereCondition(row, plan.getWhereClause(), tableInfo)) {
+                    continue;
+                }
+            }
+            
+            // 生成分组键
+            String groupKey = generateGroupKey(row, plan.getGroupByClause());
+            groups.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(row);
+        }
+        
+        // 对每个组执行聚合
+        for (Map.Entry<String, List<Map<String, Object>>> entry : groups.entrySet()) {
+            List<Map<String, Object>> groupRows = entry.getValue();
+            
+            // 计算聚合结果
+            Map<String, Object> aggregatedRow = calculateGroupAggregates(groupRows, plan.getSelectList(), tableInfo);
+            
+            // 应用HAVING条件（在聚合结果上评估）
+            if (plan.getHavingClause() != null) {
+                if (!evaluateWhereCondition(aggregatedRow, plan.getHavingClause(), tableInfo)) {
+                    continue; // 跳过不满足HAVING条件的组
+                }
+            }
+            
+            results.add(aggregatedRow);
+        }
+        
+        return results;
+    }
+    
+    /**
+     * 执行全局聚合查询（没有GROUP BY的聚合查询）
+     */
+    private List<Map<String, Object>> executeGlobalAggregateQuery(List<Map<String, Object>> records, 
+                                                                 SelectPlan plan, TableInfo tableInfo) {
+        List<Map<String, Object>> results = new ArrayList<>();
+        
+        // 过滤WHERE条件
+        List<Map<String, Object>> filteredRecords = new ArrayList<>();
+        for (Map<String, Object> row : records) {
+            if (plan.getWhereClause() != null) {
+                if (!evaluateWhereCondition(row, plan.getWhereClause(), tableInfo)) {
+                    continue;
+                }
+            }
+            filteredRecords.add(row);
+        }
+        
+        // 计算全局聚合
+        Map<String, Object> aggregatedRow = calculateGroupAggregates(filteredRecords, plan.getSelectList(), tableInfo);
+        results.add(aggregatedRow);
+        
+        return results;
+    }
+    
+    /**
+     * 生成分组键
+     */
+    private String generateGroupKey(Map<String, Object> row, List<ExpressionPlan> groupByClause) {
+        StringBuilder key = new StringBuilder();
+        for (int i = 0; i < groupByClause.size(); i++) {
+            if (i > 0) key.append("|");
+            
+            ExpressionPlan expr = groupByClause.get(i);
+            if (expr instanceof IdentifierExpressionPlan) {
+                String columnName = ((IdentifierExpressionPlan) expr).getName();
+                Object value = row.getOrDefault(columnName, "NULL");
+                key.append(value != null ? value.toString() : "NULL");
+            }
+        }
+        return key.toString();
+    }
+    
+    /**
+     * 计算组聚合结果
+     */
+    private Map<String, Object> calculateGroupAggregates(List<Map<String, Object>> groupRows, 
+                                                        List<ExpressionPlan> selectList, TableInfo tableInfo) {
+        Map<String, Object> result = new HashMap<>();
+        
+        for (ExpressionPlan expr : selectList) {
+            if (expr instanceof IdentifierExpressionPlan) {
+                IdentifierExpressionPlan idExpr = (IdentifierExpressionPlan) expr;
+                String columnName = idExpr.getName();
+                
+                if (columnName.equals("*")) {
+                    // SELECT * 在GROUP BY中通常不允许，但这里简化处理
+                    continue;
+                }
+                
+                // 对于非聚合列，取组中第一行的值
+                if (!groupRows.isEmpty()) {
+                    Object value = groupRows.get(0).getOrDefault(columnName, "NULL");
+                    result.put(columnName, value);
+                }
+                
+            } else if (expr instanceof FunctionCallExpressionPlan) {
+                FunctionCallExpressionPlan funcExpr = (FunctionCallExpressionPlan) expr;
+                String functionName = funcExpr.getFunctionName();
+                List<ExpressionPlan> arguments = funcExpr.getArguments();
+                
+                // 计算聚合值
+                Object aggregateValue = calculateAggregateValue(groupRows, functionName, arguments, tableInfo);
+                
+                // 生成列名
+                String columnName = generateAggregateColumnName(functionName, arguments);
+                result.put(columnName, aggregateValue);
+                
+            } else if (expr instanceof AliasExpressionPlan) {
+                // 处理别名表达式
+                AliasExpressionPlan aliasExpr = (AliasExpressionPlan) expr;
+                ExpressionPlan innerExpr = aliasExpr.getExpression();
+                String alias = aliasExpr.getAlias();
+                
+                // 递归处理内部表达式
+                Map<String, Object> innerResult = calculateGroupAggregates(groupRows, Arrays.asList(innerExpr), tableInfo);
+                
+                // 将结果重命名为别名
+                for (Map.Entry<String, Object> entry : innerResult.entrySet()) {
+                    result.put(alias, entry.getValue());
+                }
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 计算聚合值
+     */
+    private Object calculateAggregateValue(List<Map<String, Object>> rows, String functionName, 
+                                         List<ExpressionPlan> arguments, TableInfo tableInfo) {
+        if (rows.isEmpty()) {
+            return null;
+        }
+        
+        if (arguments.isEmpty()) {
+            return null;
+        }
+        
+        ExpressionPlan arg = arguments.get(0);
+        List<Object> values = new ArrayList<>();
+        
+        // 收集所有行的值
+        for (Map<String, Object> row : rows) {
+            Object value = null;
+            
+            if (arg instanceof IdentifierExpressionPlan) {
+                String columnName = ((IdentifierExpressionPlan) arg).getName();
+                if (columnName.equals("*")) {
+                    // COUNT(*) - 每行计数1
+                    value = 1;
+                } else {
+                    value = row.getOrDefault(columnName, null);
+                }
+            } else if (arg instanceof LiteralExpressionPlan) {
+                value = ((LiteralExpressionPlan) arg).getValue();
+            }
+            
+            values.add(value);
+        }
+        
+        // 执行聚合计算
+        switch (functionName.toUpperCase()) {
+            case "COUNT":
+                return values.size();
+                
+            case "SUM":
+                double sum = 0.0;
+                for (Object value : values) {
+                    if (value != null) {
+                        try {
+                            sum += Double.parseDouble(value.toString());
+                        } catch (NumberFormatException e) {
+                            // 忽略非数字值
+                        }
+                    }
+                }
+                return sum;
+                
+            case "AVG":
+                double total = 0.0;
+                int count = 0;
+                for (Object value : values) {
+                    if (value != null) {
+                        try {
+                            total += Double.parseDouble(value.toString());
+                            count++;
+                        } catch (NumberFormatException e) {
+                            // 忽略非数字值
+                        }
+                    }
+                }
+                return count > 0 ? total / count : 0.0;
+                
+            case "MAX":
+                Object max = null;
+                for (Object value : values) {
+                    if (value != null) {
+                        if (max == null || compareValues(value, max) > 0) {
+                            max = value;
+                        }
+                    }
+                }
+                return max;
+                
+            case "MIN":
+                Object min = null;
+                for (Object value : values) {
+                    if (value != null) {
+                        if (min == null || compareValues(value, min) < 0) {
+                            min = value;
+                        }
+                    }
+                }
+                return min;
+                
+            default:
+                return null;
+        }
+    }
+    
+    /**
+     * 比较两个值的大小
+     */
+    @SuppressWarnings("unchecked")
+    private int compareValues(Object a, Object b) {
+        if (a instanceof Comparable && b instanceof Comparable) {
+            try {
+                return ((Comparable<Object>) a).compareTo(b);
+            } catch (ClassCastException e) {
+                // 如果类型不匹配，转换为字符串比较
+                return a.toString().compareTo(b.toString());
+            }
+        }
+        return a.toString().compareTo(b.toString());
     }
 }

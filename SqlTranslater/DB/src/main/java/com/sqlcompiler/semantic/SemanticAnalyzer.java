@@ -318,6 +318,13 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
     }
     
     @Override
+    public Void visit(AliasExpression node) throws CompilationException {
+        // 验证别名表达式中的内部表达式
+        node.getExpression().accept(this);
+        return null;
+    }
+    
+    @Override
     public Void visit(InExpression node) throws CompilationException {
         // 验证左侧表达式
         node.getLeft().accept(this);
