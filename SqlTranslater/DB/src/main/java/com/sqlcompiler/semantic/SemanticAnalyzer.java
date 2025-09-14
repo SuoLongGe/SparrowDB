@@ -54,6 +54,37 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         return null;
     }
     @Override
+    public Void visit(CreateViewStatement node) throws CompilationException {
+        String viewName = node.getViewName();
+        
+        // 检查视图名是否已存在（这里简化处理，实际应该有专门的视图目录）
+        if (catalog.tableExists(viewName)) {
+            errors.add(String.format("[语义错误, %s, 名称 '%s' 已被表使用]", 
+                                   node.getPosition(), viewName));
+            return null;
+        }
+        
+        // 分析视图的SELECT语句
+        SelectStatement selectStatement = node.getSelectStatement();
+        selectStatement.accept(this);
+        
+        return null;
+    }
+    
+    @Override
+    public Void visit(DropViewStatement node) throws CompilationException {
+        String viewName = node.getViewName();
+        
+        // 这里简化处理，实际应该检查视图是否存在
+        // 如果不是IF EXISTS语义，应该验证视图存在性
+        if (!node.isIfExists()) {
+            // 应该检查视图是否存在，这里暂时跳过
+        }
+        
+        return null;
+    }
+    
+    @Override
     public Void visit(CreateTableStatement node) throws CompilationException {
         String tableName = node.getTableName();
         
@@ -401,6 +432,27 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         if (node.getOffset() != null) {
             node.getOffset().accept(this);
         }
+        return null;
+    }
+    
+    @Override
+    public Void visit(CreateFunctionStatement node) throws CompilationException {
+        // Function semantic validation could be added here
+        return null;
+    }
+    
+    @Override
+    public Void visit(CallStatement node) throws CompilationException {
+        // Call statement semantic validation could be added here
+        for (Expression arg : node.getArguments()) {
+            arg.accept(this);
+        }
+        return null;
+    }
+    
+    @Override
+    public Void visit(DropFunctionStatement node) throws CompilationException {
+        // Drop function semantic validation could be added here
         return null;
     }
     

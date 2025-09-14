@@ -31,6 +31,30 @@ public class ASTPrinter implements ASTVisitor<String> {
         return "Statement";
     }
     @Override
+    public String visit(CreateViewStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("CreateViewStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("viewName: \"").append(node.getViewName()).append("\"\n");
+        sb.append(getIndent()).append("selectStatement: ").append(node.getSelectStatement().accept(this)).append("\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(DropViewStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("DropViewStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("viewName: \"").append(node.getViewName()).append("\"\n");
+        sb.append(getIndent()).append("ifExists: ").append(node.isIfExists()).append("\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
     public String visit(BatchStatement node) throws CompilationException {
         StringBuilder sb = new StringBuilder();
         sb.append("BatchStatement {\n");
@@ -418,6 +442,58 @@ public class ASTPrinter implements ASTVisitor<String> {
         if (node.getOffset() != null) {
             sb.append(getIndent()).append("offset: ").append(node.getOffset().accept(this)).append("\n");
         }
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(CreateFunctionStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("CreateFunctionStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("functionName: '").append(node.getFunctionName()).append("'\n");
+        sb.append(getIndent()).append("parameters: [\n");
+        increaseIndent();
+        for (CreateFunctionStatement.FunctionParameter param : node.getParameters()) {
+            sb.append(getIndent()).append(param.getName()).append(" ").append(param.getType()).append(",\n");
+        }
+        decreaseIndent();
+        sb.append(getIndent()).append("]\n");
+        sb.append(getIndent()).append("returnType: '").append(node.getReturnType()).append("'\n");
+        sb.append(getIndent()).append("ifNotExists: ").append(node.hasIfNotExists()).append("\n");
+        sb.append(getIndent()).append("isPermanent: ").append(node.isPermanent()).append("\n");
+        sb.append(getIndent()).append("body: '").append(node.getFunctionBody()).append("'\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(CallStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("CallStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("functionName: '").append(node.getFunctionName()).append("'\n");
+        sb.append(getIndent()).append("arguments: [\n");
+        increaseIndent();
+        for (Expression arg : node.getArguments()) {
+            sb.append(getIndent()).append(arg.accept(this)).append(",\n");
+        }
+        decreaseIndent();
+        sb.append(getIndent()).append("]\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(DropFunctionStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("DropFunctionStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("functionName: '").append(node.getFunctionName()).append("'\n");
+        sb.append(getIndent()).append("ifExists: ").append(node.hasIfExists()).append("\n");
         decreaseIndent();
         sb.append(getIndent()).append("}");
         return sb.toString();

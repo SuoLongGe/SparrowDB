@@ -22,7 +22,7 @@ public class StorageAdapter implements RollbackCallback {
     
     // 列式存储引擎
     private final ColumnarStorageEngine columnarStorageEngine;
-    
+
     // 存储系统配置
     private static final int BUFFER_POOL_SIZE = 50;
     private static final String REPLACEMENT_POLICY = "LRU";
@@ -32,7 +32,7 @@ public class StorageAdapter implements RollbackCallback {
         this.tableStorageMap = new HashMap<>();
         this.nextPageIdMap = new HashMap<>();
         this.columnarStorageEngine = new ColumnarStorageEngine(dataDirectory);
-        
+
         // 确保数据目录存在
         File dir = new File(dataDirectory);
         if (!dir.exists()) {
@@ -59,7 +59,7 @@ public class StorageAdapter implements RollbackCallback {
     public ColumnarStorageEngine getColumnarStorageEngine() {
         return columnarStorageEngine;
     }
-    
+
     /**
      * 初始化存储系统
      */
@@ -103,7 +103,7 @@ public class StorageAdapter implements RollbackCallback {
             return false;
         }
     }
-    
+
     /**
      * 创建行式存储表
      */
@@ -140,7 +140,7 @@ public class StorageAdapter implements RollbackCallback {
             if (isColumnarStorageTable(tableName)) {
                 return columnarStorageEngine.insertRecord(tableName, record);
             }
-            
+
             TableStorageInfo storageInfo = tableStorageMap.get(tableName);
             if (storageInfo == null) {
                 return false;
@@ -174,7 +174,7 @@ public class StorageAdapter implements RollbackCallback {
             if (isColumnarStorageTable(tableName)) {
                 return columnarStorageEngine.scanTable(tableName);
             }
-            
+
             // 确保表已注册
             ensureTableRegistered(tableName);
             
@@ -219,7 +219,29 @@ public class StorageAdapter implements RollbackCallback {
             return false;
         }
     }
-    
+
+    /**
+     * 更新记录
+     */
+    public boolean updateRecord(String tableName, Map<String, Object> oldRecord, Map<String, Object> newRecord) {
+        try {
+            TableStorageInfo storageInfo = tableStorageMap.get(tableName);
+            if (storageInfo == null) {
+                return false;
+            }
+
+            if (bufferPoolManager != null) {
+                return updateRecordWithBufferPool(tableName, oldRecord, newRecord);
+            } else {
+                return updateRecordWithFileStorage(tableName, oldRecord, newRecord);
+            }
+
+        } catch (Exception e) {
+            System.err.println("更新记录失败: " + e.getMessage());
+            return false;
+        }
+    }
+
     /**
      * 获取表统计信息
      */
@@ -246,7 +268,7 @@ public class StorageAdapter implements RollbackCallback {
             // 从内存中移除表信息
             tableStorageMap.remove(tableName);
             nextPageIdMap.remove(tableName);
-            
+
             // 删除表文件
             String tableFile = getTableFilePath(tableName);
             File file = new File(tableFile);
@@ -263,13 +285,13 @@ public class StorageAdapter implements RollbackCallback {
                 System.out.println("表文件不存在: " + tableName);
                 return true; // 文件不存在也算成功
             }
-            
+
         } catch (Exception e) {
             System.err.println("删除表失败: " + e.getMessage());
             return false;
         }
     }
-    
+
     /**
      * 获取缓存统计信息
      */
@@ -304,8 +326,25 @@ public class StorageAdapter implements RollbackCallback {
     // ========== 私有辅助方法 ==========
     
     private void initializeSystemTables() {
-        tableStorageMap.put("__system_tables__", new TableStorageInfo("__system_tables__"));
-        nextPageIdMap.put("__system_tables__", 1);
+        // 注册所有系统表
+        String[] systemTables = {
+            "__system_tables__",
+            "__system_columns__",
+            "__system_functions__",
+            "__system_constraints__"
+        };
+
+        for (String systemTable : systemTables) {
+            tableStorageMap.put(systemTable, new TableStorageInfo(systemTable));
+            nextPageIdMap.put(systemTable, 1);
+
+            // 检查文件是否存在，如果存在则动态注册
+            String tableFile = getTableFilePath(systemTable);
+            File file = new File(tableFile);
+            if (file.exists()) {
+                System.out.println("StorageAdapter发现并注册系统表: " + systemTable);
+            }
+        }
     }
     
     /**
@@ -373,11 +412,11 @@ public class StorageAdapter implements RollbackCallback {
         String columnarDir = dataDirectory + File.separator + tableName;
         String metaFile = columnarDir + File.separator + "metadata.txt";
         File file = new File(metaFile);
-        
+
         if (!file.exists()) {
             return false;
         }
-        
+
         try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -389,10 +428,10 @@ public class StorageAdapter implements RollbackCallback {
         } catch (IOException e) {
             // 如果读取失败，假设是行式存储
         }
-        
+
         return false;
     }
-    
+
     private void writeTableMetadata(String tableFile, TableInfo tableInfo) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(tableFile))) {
             writer.println("# Table Metadata");
@@ -715,9 +754,78 @@ public class StorageAdapter implements RollbackCallback {
             return String.format("表 %s: %d 页, %d 条记录", tableName, pageCount, recordCount);
         }
     }
-    
+
+    /**
+     * 检查表是否存在
+     */
+    public boolean tableExists(String tableName) {
+        return tableStorageMap.containsKey(tableName.toLowerCase()) ||
+               new File(dataDirectory, tableName.toLowerCase() + ".tbl").exists();
+    }
+
+    /**
+     * 创建系统表
+     */
+    public boolean createSystemTable(String tableName, List<String> columnDefinitions) {
+        try {
+            // 构建简单的表信息
+            TableInfo tableInfo = new TableInfo(tableName);
+            for (String columnDef : columnDefinitions) {
+                String[] parts = columnDef.split("\\s+");
+                if (parts.length >= 2) {
+                    ColumnInfo columnInfo = new ColumnInfo(parts[0], parts[1], 255);
+                    tableInfo.addColumn(columnInfo);
+                }
+            }
+
+            return createTable(tableName, tableInfo);
+        } catch (Exception e) {
+            System.err.println("创建系统表失败: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 向系统表插入数据
+     */
+    public boolean insertIntoSystemTable(String tableName, Map<String, Object> data) {
+        return insertRecord(tableName, data);
+    }
+
+    /**
+     * 从系统表删除数据
+     */
+    public boolean deleteFromSystemTable(String tableName, Map<String, Object> condition) {
+        try {
+            List<Map<String, Object>> records = scanTable(tableName);
+            for (Map<String, Object> record : records) {
+                boolean matches = true;
+                for (Map.Entry<String, Object> entry : condition.entrySet()) {
+                    if (!Objects.equals(record.get(entry.getKey()), entry.getValue())) {
+                        matches = false;
+                        break;
+                    }
+                }
+                if (matches) {
+                    return deleteRecord(tableName, record);
+                }
+            }
+            return true; // 没有匹配的记录也认为删除成功
+        } catch (Exception e) {
+            System.err.println("从系统表删除数据失败: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 查询系统表所有数据
+     */
+    public List<Map<String, Object>> selectAll(String tableName) {
+        return scanTable(tableName);
+    }
+
     // ==================== RollbackCallback 接口实现 ====================
-    
+
     @Override
     public void rollbackInsert(String tableName, Map<String, Object> record) throws IOException {
         System.out.println("回滚INSERT操作 - 删除记录从表: " + tableName + ", 记录: " + record);
@@ -725,7 +833,7 @@ public class StorageAdapter implements RollbackCallback {
         // 这里简化处理，通过主键查找并删除记录
         deleteRecordByKey(tableName, record);
     }
-    
+
     @Override
     public void rollbackUpdate(String tableName, Map<String, Object> record) throws IOException {
         System.out.println("回滚UPDATE操作 - 恢复记录到表: " + tableName + ", 记录: " + record);
@@ -733,25 +841,25 @@ public class StorageAdapter implements RollbackCallback {
         // 这里简化处理，直接更新记录
         updateRecord(tableName, record);
     }
-    
+
     @Override
     public void rollbackDelete(String tableName, Map<String, Object> record) throws IOException {
         System.out.println("回滚DELETE操作 - 重新插入记录到表: " + tableName + ", 记录: " + record);
         // 对于DELETE回滚，我们需要重新插入被删除的记录
         insertRecord(tableName, record);
     }
-    
+
     @Override
     public void rollbackCreateTable(String tableName, String metadata) throws IOException {
         System.out.println("回滚CREATE TABLE操作 - 删除表: " + tableName);
         // 对于CREATE TABLE回滚，我们需要删除创建的表
         dropTable(tableName);
     }
-    
+
     @Override
     public void rollbackDropTable(String tableName) throws IOException {
         System.out.println("回滚删除表: " + tableName);
-        
+
         // 删除行式存储表文件
         String tableFile = dataDirectory + File.separator + tableName + ".tbl";
         File file = new File(tableFile);
@@ -762,7 +870,7 @@ public class StorageAdapter implements RollbackCallback {
                 System.err.println("删除表文件失败: " + tableFile);
             }
         }
-        
+
         // 删除列式存储表目录
         String columnarDir = dataDirectory + File.separator + tableName;
         File dir = new File(columnarDir);
@@ -770,12 +878,12 @@ public class StorageAdapter implements RollbackCallback {
             deleteDirectory(dir);
             System.out.println("成功删除列式存储目录: " + columnarDir);
         }
-        
+
         // 从内存中移除表信息
         tableStorageMap.remove(tableName);
         nextPageIdMap.remove(tableName);
     }
-    
+
     /**
      * 递归删除目录
      */
@@ -794,7 +902,7 @@ public class StorageAdapter implements RollbackCallback {
             directory.delete();
         }
     }
-    
+
     /**
      * 根据主键删除记录（用于回滚INSERT操作）
      */
@@ -802,17 +910,17 @@ public class StorageAdapter implements RollbackCallback {
         // 简化实现：扫描表找到匹配的记录并删除
         List<Map<String, Object>> allRecords = scanTable(tableName);
         List<Map<String, Object>> filteredRecords = new ArrayList<>();
-        
+
         // 假设第一个字段是主键
         String primaryKey = record.keySet().iterator().next();
         Object primaryKeyValue = record.get(primaryKey);
-        
+
         for (Map<String, Object> existingRecord : allRecords) {
             if (!primaryKeyValue.equals(existingRecord.get(primaryKey))) {
                 filteredRecords.add(existingRecord);
             }
         }
-        
+
         // 重写表文件
         if (isColumnarStorageTable(tableName)) {
             // 列式存储：重写所有列文件
@@ -829,10 +937,10 @@ public class StorageAdapter implements RollbackCallback {
                 }
             }
         }
-        
+
         System.out.println("成功删除记录，主键: " + primaryKey + "=" + primaryKeyValue);
     }
-    
+
     /**
      * 更新记录（用于回滚UPDATE操作）
      */

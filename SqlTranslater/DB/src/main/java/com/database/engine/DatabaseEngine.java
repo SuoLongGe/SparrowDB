@@ -14,6 +14,8 @@ import java.util.Arrays;
 public class DatabaseEngine {
     private final StorageEngine storageEngine;
     private final CatalogManager catalogManager;
+    private final ViewManager viewManager;
+    private final FunctionManager functionManager;
     private final Executor executor;
     private final SQLCompiler sqlCompiler;
     private final LogManager logManager;
@@ -26,7 +28,7 @@ public class DatabaseEngine {
     
     // 存储格式设置
     private String currentStorageFormat = "行式存储";
-    
+
     public DatabaseEngine(String databaseName, String dataDirectory) {
         this.databaseName = databaseName;
         this.dataDirectory = dataDirectory;
@@ -37,9 +39,15 @@ public class DatabaseEngine {
         // 初始化目录管理器
         this.catalogManager = new CatalogManager(storageEngine);
         
+        // 初始化视图管理器
+        this.viewManager = new ViewManager(storageEngine);
+
+        // 初始化增强的函数管理器
+        this.functionManager = new EnhancedFunctionManager(new StorageAdapter(dataDirectory));
+
         // 初始化存储适配器
         StorageAdapter storageAdapter = new StorageAdapter(dataDirectory);
-        
+
         // 初始化执行引擎
         this.executor = new Executor(storageAdapter, catalogManager);
         
@@ -65,10 +73,10 @@ public class DatabaseEngine {
         try {
             // 从存储中加载目录信息
             catalogManager.loadFromStorage();
-            
+
             // 确保StorageAdapter中的列式存储表信息同步到CatalogManager
             syncColumnarTablesToCatalog();
-            
+
             initialized = true;
             return true;
         } catch (Exception e) {
@@ -83,15 +91,15 @@ public class DatabaseEngine {
     private void syncColumnarTablesToCatalog() {
         try {
             System.out.println("开始同步列式存储表到目录...");
-            
+
             // 获取StorageAdapter中的列式存储引擎
             StorageAdapter storageAdapter = executor.getStorageAdapter();
             ColumnarStorageEngine columnarEngine = storageAdapter.getColumnarStorageEngine();
-            
+
             // 获取所有列式存储表
             List<String> columnarTables = columnarEngine.getTableNames();
             System.out.println("发现列式存储表: " + columnarTables);
-            
+
             for (String tableName : columnarTables) {
                 // 检查表是否已经在目录中
                 if (!catalogManager.tableExists(tableName)) {
@@ -112,7 +120,7 @@ public class DatabaseEngine {
             e.printStackTrace();
         }
     }
-    
+
     /**
      * 执行SQL语句 - 整合SQL编译器和执行引擎，并记录日志
      */
@@ -137,7 +145,7 @@ public class DatabaseEngine {
             if (!modifiedSql.equals(sql)) {
                 System.out.println("修改后的SQL: " + modifiedSql);
             }
-            
+
             // 使用SQL编译器解析SQL并生成执行计划
             ExecutionPlan plan = null;
             try {
@@ -172,7 +180,32 @@ public class DatabaseEngine {
             }
             
             // 执行计划
-            ExecutionResult result = executor.execute(plan);
+            ExecutionResult result;
+
+            // 特殊处理函数相关的执行计划
+            if (plan instanceof CreateFunctionPlan) {
+                try {
+                    result = ((CreateFunctionPlan) plan).execute(this);
+                } catch (Exception e) {
+                    result = new ExecutionResult(false, "创建函数失败: " + e.getMessage(), null);
+                }
+            } else if (plan instanceof CallPlan) {
+                try {
+                    result = ((CallPlan) plan).execute(this);
+                } catch (Exception e) {
+                    result = new ExecutionResult(false, "调用函数失败: " + e.getMessage(), null);
+                }
+            } else if (plan instanceof DropFunctionPlan) {
+                try {
+                    result = ((DropFunctionPlan) plan).execute(this);
+                } catch (Exception e) {
+                    result = new ExecutionResult(false, "删除函数失败: " + e.getMessage(), null);
+                }
+            } else if (plan instanceof BatchPlan) {
+                result = executeBatchWithFunctionSupport((BatchPlan) plan);
+            } else {
+                result = executor.execute(plan);
+            }
             
             // 记录执行结果
             if (result.isSuccess()) {
@@ -409,14 +442,14 @@ public class DatabaseEngine {
         this.currentStorageFormat = storageFormat;
         System.out.println("存储格式已设置为: " + storageFormat);
     }
-    
+
     /**
      * 获取当前存储格式
      */
     public String getCurrentStorageFormat() {
         return currentStorageFormat;
     }
-    
+
     /**
      * 转换存储格式
      */
@@ -427,7 +460,7 @@ public class DatabaseEngine {
             return "ROW";
         }
     }
-    
+
     /**
      * 修改SQL语句以使用GUI选择的存储格式
      */
@@ -436,10 +469,10 @@ public class DatabaseEngine {
         if (!sql.trim().toUpperCase().startsWith("CREATE TABLE")) {
             return sql;
         }
-        
+
         // 获取GUI选择的存储格式
         String guiStorageFormat = convertStorageFormat(currentStorageFormat);
-        
+
         // 检查SQL中是否已经有STORAGE子句
         String upperSql = sql.toUpperCase();
         if (upperSql.contains("STORAGE")) {
@@ -458,10 +491,10 @@ public class DatabaseEngine {
                 return beforeParen + " STORAGE " + guiStorageFormat + afterParen;
             }
         }
-        
+
         return sql;
     }
-    
+
     /**
      * 获取日志管理器
      */
@@ -714,12 +747,19 @@ public class DatabaseEngine {
     }
     
     /**
+     * 获取函数管理器
+     */
+    public FunctionManager getFunctionManager() {
+        return functionManager;
+    }
+
+    /**
      * 获取数据目录路径
      */
     public String getDataDirectory() {
         return dataDirectory;
     }
-    
+
     /**
      * 手动回滚指定事务
      */
@@ -735,7 +775,7 @@ public class DatabaseEngine {
             return false;
         }
     }
-    
+
     /**
      * 获取活跃事务列表
      */
@@ -747,7 +787,7 @@ public class DatabaseEngine {
             return new ArrayList<>();
         }
     }
-    
+
     /**
      * 获取事务的日志条目
      */
@@ -757,6 +797,64 @@ public class DatabaseEngine {
         } catch (Exception e) {
             System.err.println("获取事务日志失败: " + e.getMessage());
             return new ArrayList<>();
+        }
+    }
+
+    /**
+     * 执行批量计划（支持函数）
+     */
+    private ExecutionResult executeBatchWithFunctionSupport(BatchPlan plan) {
+        try {
+            List<ExecutionResult> results = new ArrayList<>();
+            int successCount = 0;
+            int totalCount = plan.getPlans().size();
+
+            for (ExecutionPlan subPlan : plan.getPlans()) {
+                ExecutionResult result;
+
+                // 对函数相关的执行计划特殊处理
+                if (subPlan instanceof CreateFunctionPlan) {
+                    try {
+                        result = ((CreateFunctionPlan) subPlan).execute(this);
+                    } catch (Exception e) {
+                        result = new ExecutionResult(false, "创建函数失败: " + e.getMessage(), null);
+                    }
+                } else if (subPlan instanceof CallPlan) {
+                    try {
+                        result = ((CallPlan) subPlan).execute(this);
+                    } catch (Exception e) {
+                        result = new ExecutionResult(false, "调用函数失败: " + e.getMessage(), null);
+                    }
+                } else if (subPlan instanceof DropFunctionPlan) {
+                    try {
+                        result = ((DropFunctionPlan) subPlan).execute(this);
+                    } catch (Exception e) {
+                        result = new ExecutionResult(false, "删除函数失败: " + e.getMessage(), null);
+                    }
+                } else {
+                    // 其他类型的计划使用标准执行器
+                    result = executor.execute(subPlan);
+                }
+
+                results.add(result);
+
+                if (result.isSuccess()) {
+                    successCount++;
+                } else {
+                    // 如果任何一个语句失败，返回失败结果
+                    return new ExecutionResult(false,
+                        String.format("批量执行失败: %d/%d 成功, 错误: %s",
+                            successCount, totalCount, result.getMessage()),
+                        results, true);
+                }
+            }
+
+            return new ExecutionResult(true,
+                String.format("批量执行成功: %d/%d 语句执行成功", successCount, totalCount),
+                results, true);
+
+        } catch (Exception e) {
+            return new ExecutionResult(false, "批量执行时发生错误: " + e.getMessage(), null);
         }
     }
 }

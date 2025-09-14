@@ -2,6 +2,7 @@ package com.sqlcompiler.execution;
 
 import com.sqlcompiler.ast.*;
 import com.sqlcompiler.exception.CompilationException;
+import com.sqlcompiler.lexer.TokenType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,33 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
         
         return new BatchPlan(plans);
     }
+    @Override
+    public ExecutionPlan visit(CreateViewStatement node) throws CompilationException {
+        // 将视图的SELECT语句转换为字符串（简化处理）
+        String originalQuery = node.getSelectStatement().toString();
+        return new CreateViewPlan(node.getViewName(), node.getSelectStatement(), originalQuery);
+    }
+
+    @Override
+    public ExecutionPlan visit(DropViewStatement node) throws CompilationException {
+        return new DropViewPlan(node.getViewName(), node.isIfExists());
+    }
+
+    @Override
+    public ExecutionPlan visit(CreateFunctionStatement node) throws CompilationException {
+        return new CreateFunctionPlan(node);
+    }
+
+    @Override
+    public ExecutionPlan visit(DropFunctionStatement node) throws CompilationException {
+        return new DropFunctionPlan(node);
+    }
+
+    @Override
+    public ExecutionPlan visit(CallStatement node) throws CompilationException {
+        return new CallPlan(node);
+    }
+
     @Override
     public ExecutionPlan visit(CreateTableStatement node) throws CompilationException {
         List<ColumnPlan> columns = new ArrayList<>();
@@ -212,7 +240,7 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
     public ExecutionPlan visit(AliasExpression node) {
         return null; // 别名表达式在SELECT中处理
     }
-    
+
     @Override
     public ExecutionPlan visit(InExpression node) {
         return null; // IN表达式在WHERE子句中处理

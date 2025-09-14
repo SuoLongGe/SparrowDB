@@ -15,6 +15,7 @@ public class CatalogManager {
     private final String systemTableName = "__system_tables__";
     private final String systemColumnsName = "__system_columns__";
     private final String systemConstraintsName = "__system_constraints__";
+    private final String systemFunctionsName = "__system_functions__";
     
     public CatalogManager(StorageEngine storageEngine) {
         this.catalog = new Catalog();
@@ -222,10 +223,21 @@ public class CatalogManager {
         systemConstraintsInfo.addColumn(new ColumnInfo("default_value", "VARCHAR", 255, false, false, false, false, null, false));
         catalog.addTable(systemConstraintsInfo);
         
+        // 创建系统函数表
+        TableInfo systemFunctionsInfo = new TableInfo(systemFunctionsName);
+        systemFunctionsInfo.addColumn(new ColumnInfo("function_name", "VARCHAR", 255, true, false, false, false, null, false));
+        systemFunctionsInfo.addColumn(new ColumnInfo("signature", "VARCHAR", 500, false, false, false, false, null, false));
+        systemFunctionsInfo.addColumn(new ColumnInfo("return_type", "VARCHAR", 50, false, false, false, false, null, false));
+        systemFunctionsInfo.addColumn(new ColumnInfo("body", "TEXT", 10000, false, false, false, false, null, false));
+        systemFunctionsInfo.addColumn(new ColumnInfo("is_permanent", "BOOLEAN", 1, false, false, false, false, "false", false));
+        systemFunctionsInfo.addColumn(new ColumnInfo("create_time", "BIGINT", 8, false, false, false, false, null, false));
+        catalog.addTable(systemFunctionsInfo);
+        
         // 创建存储
         storageEngine.createTableStorage(systemTableName, systemTablesInfo);
         storageEngine.createTableStorage(systemColumnsName, systemColumnsInfo);
         storageEngine.createTableStorage(systemConstraintsName, systemConstraintsInfo);
+        storageEngine.createTableStorage(systemFunctionsName, systemFunctionsInfo);
     }
     
     private void persistTableMetadata(TableInfo tableInfo) {
