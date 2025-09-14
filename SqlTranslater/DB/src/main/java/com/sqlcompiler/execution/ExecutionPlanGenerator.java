@@ -1,9 +1,11 @@
 package com.sqlcompiler.execution;
 
 import com.sqlcompiler.ast.*;
+import com.sqlcompiler.catalog.*;
 import com.sqlcompiler.exception.CompilationException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +14,12 @@ import java.util.Map;
  * 将AST转换为逻辑执行计划
  */
 public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
+    private final Catalog catalog;
+    private List<TableReference> currentFromClause = null;
+    
+    public ExecutionPlanGenerator(Catalog catalog) {
+        this.catalog = catalog;
+    }
     
     @Override
     public ExecutionPlan visit(Statement node) throws CompilationException {
@@ -77,6 +85,9 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
         ExpressionPlan havingClause = null;
         List<OrderByItem> orderByClause = null;
         LimitPlan limitClause = null;
+        
+        // 设置当前FROM子句，用于列名解析
+        currentFromClause = node.getFromClause();
         
         // 转换SELECT列表
         for (Expression expr : node.getSelectList()) {
@@ -272,7 +283,15 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
             return new LiteralExpressionPlan(literal.getValue(), literal.getType().getValue());
         } else if (expr instanceof IdentifierExpression) {
             IdentifierExpression identifier = (IdentifierExpression) expr;
-            return new IdentifierExpressionPlan(identifier.getName());
+            String columnName = identifier.getName();
+            
+            // 在子查询中，尝试解析列名到表别名的映射
+            if (currentFromClause != null && !currentFromClause.isEmpty()) {
+                String resolvedColumnName = resolveColumnName(columnName, currentFromClause);
+                return new IdentifierExpressionPlan(resolvedColumnName);
+            }
+            
+            return new IdentifierExpressionPlan(columnName);
         } else if (expr instanceof BinaryExpression) {
             BinaryExpression binary = (BinaryExpression) expr;
             ExpressionPlan left = convertExpression(binary.getLeft());
@@ -304,6 +323,34 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
             // 将子查询转换为子查询计划
             SelectPlan subqueryPlan = (SelectPlan) subquery.getSubquery().accept(this);
             return new SubqueryExpressionPlan(subqueryPlan);
+        } else if (expr instanceof InExpression) {
+            InExpression inExpr = (InExpression) expr;
+            ExpressionPlan left = convertExpression(inExpr.getLeft());
+            if (inExpr.isSubquery()) {
+                // 子查询形式的IN
+                SelectPlan subqueryPlan = (SelectPlan) inExpr.getSubquery().accept(this);
+                return new BinaryExpressionPlan(left, "IN", new SubqueryExpressionPlan(subqueryPlan));
+            } else {
+                // 值列表形式的IN
+                List<ExpressionPlan> valuePlans = new ArrayList<>();
+                for (Expression value : inExpr.getValues()) {
+                    valuePlans.add(convertExpression(value));
+                }
+                return new BinaryExpressionPlan(left, "IN", new FunctionCallExpressionPlan("IN", valuePlans));
+            }
+        } else if (expr instanceof BetweenExpression) {
+            BetweenExpression betweenExpr = (BetweenExpression) expr;
+            ExpressionPlan left = convertExpression(betweenExpr.getLeft());
+            ExpressionPlan lowerBound = convertExpression(betweenExpr.getLowerBound());
+            ExpressionPlan upperBound = convertExpression(betweenExpr.getUpperBound());
+            // 将BETWEEN转换为BETWEEN操作符
+            return new BinaryExpressionPlan(left, "BETWEEN", new FunctionCallExpressionPlan("BETWEEN", 
+                Arrays.asList(lowerBound, upperBound)));
+        } else if (expr instanceof IsNullExpression) {
+            IsNullExpression isNullExpr = (IsNullExpression) expr;
+            ExpressionPlan left = convertExpression(isNullExpr.getLeft());
+            String operator = isNullExpr.isNot() ? "IS NOT NULL" : "IS NULL";
+            return new BinaryExpressionPlan(left, "IS", new LiteralExpressionPlan(operator, "STRING_LITERAL"));
         } else {
             throw new CompilationException("不支持的表达式类型: " + expr.getClass().getSimpleName(), 
                                         expr.getPosition(), "执行计划生成错误");
@@ -442,5 +489,40 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
             default:
                 return OrderByItem.SortOrder.ASC;
         }
+    }
+    
+    /**
+     * 解析列名到表别名的映射
+     */
+    private String resolveColumnName(String columnName, List<TableReference> fromClause) {
+        // 如果列名已经包含表别名，直接返回
+        if (columnName.contains(".")) {
+            return columnName;
+        }
+        
+        // 如果只有一个表且没有别名，直接返回原始列名
+        if (fromClause.size() == 1) {
+            TableReference tableRef = fromClause.get(0);
+            if (tableRef.getAlias() == null) {
+                return columnName;
+            }
+        }
+        
+        // 查找包含该列的表
+        for (TableReference tableRef : fromClause) {
+            String tableName = tableRef.getTableName();
+            String alias = tableRef.getAlias();
+            
+            // 检查表是否包含该列
+            TableInfo tableInfo = catalog.getTable(tableName);
+            if (tableInfo != null && tableInfo.columnExists(columnName)) {
+                // 如果表有别名，使用别名；否则使用表名
+                String prefix = alias != null ? alias : tableName;
+                return prefix + "." + columnName;
+            }
+        }
+        
+        // 如果找不到匹配的表，返回原始列名
+        return columnName;
     }
 }

@@ -27,7 +27,7 @@ public class EnhancedSQLCompiler {
     public EnhancedSQLCompiler() {
         this.catalog = new Catalog();
         this.semanticAnalyzer = new SemanticAnalyzer(catalog);
-        this.executionPlanGenerator = new ExecutionPlanGenerator();
+        this.executionPlanGenerator = new ExecutionPlanGenerator(catalog);
     }
     
     /**
@@ -36,7 +36,7 @@ public class EnhancedSQLCompiler {
     public EnhancedSQLCompiler(Catalog sharedCatalog) {
         this.catalog = sharedCatalog;
         this.semanticAnalyzer = new SemanticAnalyzer(catalog);
-        this.executionPlanGenerator = new ExecutionPlanGenerator();
+        this.executionPlanGenerator = new ExecutionPlanGenerator(catalog);
     }
     
     /**

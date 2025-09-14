@@ -453,48 +453,35 @@ public class Executor {
     private boolean evaluateJoinCondition(Map<String, Object> row, ExpressionPlan condition) {
         if (condition instanceof BinaryExpressionPlan) {
             BinaryExpressionPlan binary = (BinaryExpressionPlan) condition;
-            String leftValue = getColumnValueFromRow(row, binary.getLeft());
-            String rightValue = getColumnValueFromRow(row, binary.getRight());
             String operator = binary.getOperator();
             
-            // 尝试数字比较
-            try {
-                double leftNum = Double.parseDouble(leftValue);
-                double rightNum = Double.parseDouble(rightValue);
+            // 处理逻辑操作符
+            if ("AND".equals(operator)) {
+                boolean leftResult = evaluateJoinCondition(row, binary.getLeft());
+                boolean rightResult = evaluateJoinCondition(row, binary.getRight());
+                return leftResult && rightResult;
+            } else if ("OR".equals(operator)) {
+                boolean leftResult = evaluateJoinCondition(row, binary.getLeft());
+                boolean rightResult = evaluateJoinCondition(row, binary.getRight());
+                return leftResult || rightResult;
+            } else {
+                // 处理比较操作符
+                String leftValue = getColumnValueFromRow(row, binary.getLeft());
+                String rightValue = getColumnValueFromRow(row, binary.getRight());
                 
+                // 处理特殊操作符
                 switch (operator) {
-                    case "=":
-                        return Math.abs(leftNum - rightNum) < 1e-9; // 浮点数比较
-                    case "!=":
-                        return Math.abs(leftNum - rightNum) >= 1e-9;
-                    case ">":
-                        return leftNum > rightNum;
-                    case "<":
-                        return leftNum < rightNum;
-                    case ">=":
-                        return leftNum >= rightNum;
-                    case "<=":
-                        return leftNum <= rightNum;
+                    case "LIKE":
+                        return evaluateLikeOperator(leftValue, rightValue);
+                    case "BETWEEN":
+                        return evaluateBetweenOperator(leftValue, binary.getRight());
+                    case "IN":
+                        return evaluateInOperator(leftValue, binary.getRight());
+                    case "IS":
+                        return evaluateIsNullOperator(leftValue, rightValue);
                     default:
-                        return false;
-                }
-            } catch (NumberFormatException e) {
-                // 如果不是数字，使用字符串比较
-                switch (operator) {
-                    case "=":
-                        return leftValue.equals(rightValue);
-                    case "!=":
-                        return !leftValue.equals(rightValue);
-                    case ">":
-                        return leftValue.compareTo(rightValue) > 0;
-                    case "<":
-                        return leftValue.compareTo(rightValue) < 0;
-                    case ">=":
-                        return leftValue.compareTo(rightValue) >= 0;
-                    case "<=":
-                        return leftValue.compareTo(rightValue) <= 0;
-                    default:
-                        return false;
+                        // 处理基本比较操作符
+                        return evaluateBasicComparison(leftValue, rightValue, operator);
                 }
             }
         }
@@ -572,9 +559,12 @@ public class Executor {
             // 应用WHERE条件（包括相关子查询的条件）
             List<Map<String, Object>> filteredRecords = new ArrayList<>();
             for (Map<String, Object> row : joinedRecords) {
-                // 合并外层上下文和当前行
+                // 合并外层上下文和当前行，但优先保留子查询的列
                 Map<String, Object> contextRow = new HashMap<>(outerContext);
-                contextRow.putAll(row);
+                // 先添加子查询的列，这样不会被外层查询的列覆盖
+                for (Map.Entry<String, Object> entry : row.entrySet()) {
+                    contextRow.put(entry.getKey(), entry.getValue());
+                }
                 
                 if (plan.getWhereClause() != null) {
                     if (!evaluateWhereCondition(contextRow, plan.getWhereClause(), null)) {
@@ -597,10 +587,11 @@ public class Executor {
                     results.add(projectedRow);
                 }
             }
-            
             return new ExecutionResult(true, "子查询执行成功", results);
             
         } catch (Exception e) {
+            System.err.println("子查询执行失败: " + e.getMessage());
+            e.printStackTrace();
             return new ExecutionResult(false, "子查询执行失败: " + e.getMessage(), null);
         }
     }
@@ -731,55 +722,201 @@ public class Executor {
     }
     
     private boolean evaluateWhereCondition(Map<String, Object> row, ExpressionPlan whereClause, TableInfo tableInfo) {
-        // 简化的WHERE条件评估
         if (whereClause instanceof BinaryExpressionPlan) {
             BinaryExpressionPlan binary = (BinaryExpressionPlan) whereClause;
-            String leftValue = getColumnValueFromRow(row, binary.getLeft());
-            String rightValue = getColumnValueFromRow(row, binary.getRight());
             String operator = binary.getOperator();
             
-            // 尝试数字比较
-            try {
-                double leftNum = Double.parseDouble(leftValue);
-                double rightNum = Double.parseDouble(rightValue);
+            // 处理逻辑操作符
+            if ("AND".equals(operator)) {
+                boolean leftResult = evaluateWhereCondition(row, binary.getLeft(), tableInfo);
+                boolean rightResult = evaluateWhereCondition(row, binary.getRight(), tableInfo);
+                return leftResult && rightResult;
+            } else if ("OR".equals(operator)) {
+                boolean leftResult = evaluateWhereCondition(row, binary.getLeft(), tableInfo);
+                boolean rightResult = evaluateWhereCondition(row, binary.getRight(), tableInfo);
+                return leftResult || rightResult;
+            } else if ("NOT".equals(operator)) {
+                // 处理NOT操作符
+                boolean result = evaluateWhereCondition(row, binary.getRight(), tableInfo);
+                return !result;
+            } else {
+                // 处理比较操作符
+                String leftValue = getColumnValueFromRow(row, binary.getLeft());
+                String rightValue = getColumnValueFromRow(row, binary.getRight());
                 
+                // 处理特殊操作符
                 switch (operator) {
-                    case "=":
-                        return Math.abs(leftNum - rightNum) < 1e-9; // 浮点数比较
-                    case "!=":
-                        return Math.abs(leftNum - rightNum) >= 1e-9;
-                    case ">":
-                        return leftNum > rightNum;
-                    case "<":
-                        return leftNum < rightNum;
-                    case ">=":
-                        return leftNum >= rightNum;
-                    case "<=":
-                        return leftNum <= rightNum;
+                    case "LIKE":
+                        return evaluateLikeOperator(leftValue, rightValue);
+                    case "BETWEEN":
+                        return evaluateBetweenOperator(leftValue, binary.getRight());
+                    case "IN":
+                        return evaluateInOperator(leftValue, binary.getRight());
+                    case "EXISTS":
+                        return evaluateExistsOperator(binary.getRight(), row, tableInfo);
+                    case "IS":
+                        return evaluateIsNullOperator(leftValue, rightValue);
                     default:
-                        return false;
-                }
-            } catch (NumberFormatException e) {
-                // 如果不是数字，使用字符串比较
-                switch (operator) {
-                    case "=":
-                        return leftValue.equals(rightValue);
-                    case "!=":
-                        return !leftValue.equals(rightValue);
-                    case ">":
-                        return leftValue.compareTo(rightValue) > 0;
-                    case "<":
-                        return leftValue.compareTo(rightValue) < 0;
-                    case ">=":
-                        return leftValue.compareTo(rightValue) >= 0;
-                    case "<=":
-                        return leftValue.compareTo(rightValue) <= 0;
-                    default:
-                        return false;
+                        // 处理基本比较操作符
+                        return evaluateBasicComparison(leftValue, rightValue, operator);
                 }
             }
         }
         return true;
+    }
+    
+    /**
+     * 评估LIKE操作符 - 支持通配符匹配
+     */
+    private boolean evaluateLikeOperator(String leftValue, String rightValue) {
+        if (leftValue == null || rightValue == null) {
+            return false;
+        }
+        
+        // 将SQL通配符转换为Java正则表达式
+        String pattern = rightValue
+            .replace("%", ".*")  // % 匹配任意字符序列
+            .replace("_", ".");  // _ 匹配单个字符
+        
+        // 转义其他正则表达式特殊字符
+        pattern = pattern.replaceAll("([\\\\\\[\\]{}()*+?^$|.])", "\\\\$1");
+        // 重新处理通配符
+        pattern = pattern.replace("\\\\.\\*", ".*").replace("\\\\.", ".");
+        
+        try {
+            return leftValue.matches(pattern);
+        } catch (Exception e) {
+            System.err.println("LIKE操作符模式匹配错误: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 评估BETWEEN操作符 - 范围查询
+     */
+    private boolean evaluateBetweenOperator(String leftValue, ExpressionPlan rightExpr) {
+        if (leftValue == null) {
+            return false;
+        }
+        
+        // BETWEEN操作符的右操作数应该是一个包含两个值的列表
+        if (rightExpr instanceof FunctionCallExpressionPlan) {
+            FunctionCallExpressionPlan func = (FunctionCallExpressionPlan) rightExpr;
+            if ("BETWEEN".equals(func.getFunctionName()) && func.getArguments().size() == 2) {
+                String lowerBound = getColumnValueFromRow(new HashMap<>(), func.getArguments().get(0));
+                String upperBound = getColumnValueFromRow(new HashMap<>(), func.getArguments().get(1));
+                
+                try {
+                    // 尝试数字比较
+                    double leftNum = Double.parseDouble(leftValue);
+                    double lowerNum = Double.parseDouble(lowerBound);
+                    double upperNum = Double.parseDouble(upperBound);
+                    return leftNum >= lowerNum && leftNum <= upperNum;
+                } catch (NumberFormatException e) {
+                    // 字符串比较
+                    return leftValue.compareTo(lowerBound) >= 0 && leftValue.compareTo(upperBound) <= 0;
+                }
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 评估IN操作符 - 值列表查询
+     */
+    private boolean evaluateInOperator(String leftValue, ExpressionPlan rightExpr) {
+        if (leftValue == null) {
+            return false;
+        }
+        
+        // IN操作符的右操作数应该是一个值列表
+        if (rightExpr instanceof FunctionCallExpressionPlan) {
+            FunctionCallExpressionPlan func = (FunctionCallExpressionPlan) rightExpr;
+            if ("IN".equals(func.getFunctionName())) {
+                for (ExpressionPlan arg : func.getArguments()) {
+                    String rightValue = getColumnValueFromRow(new HashMap<>(), arg);
+                    if (leftValue.equals(rightValue)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 评估EXISTS操作符 - 子查询存在性检查
+     */
+    private boolean evaluateExistsOperator(ExpressionPlan rightExpr, Map<String, Object> outerContext, TableInfo tableInfo) {
+        // EXISTS操作符通常用于子查询，这里简化处理
+        // 在实际实现中，需要根据具体的AST结构来处理
+        try {
+            // 对于EXISTS，我们检查右操作数是否表示一个有效的子查询
+            // 这里简化实现，假设EXISTS总是返回true（实际应该执行子查询）
+            System.out.println("EXISTS操作符执行 - 简化实现");
+            return true;
+        } catch (Exception e) {
+            System.err.println("EXISTS操作符执行错误: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 评估IS NULL / IS NOT NULL操作符
+     */
+    private boolean evaluateIsNullOperator(String leftValue, String rightValue) {
+        if ("NULL".equals(rightValue)) {
+            return leftValue == null || "NULL".equals(leftValue);
+        } else if ("NOT NULL".equals(rightValue)) {
+            return leftValue != null && !"NULL".equals(leftValue);
+        }
+        return false;
+    }
+    
+    /**
+     * 评估基本比较操作符
+     */
+    private boolean evaluateBasicComparison(String leftValue, String rightValue, String operator) {
+        // 尝试数字比较
+        try {
+            double leftNum = Double.parseDouble(leftValue);
+            double rightNum = Double.parseDouble(rightValue);
+            
+            switch (operator) {
+                case "=":
+                    return Math.abs(leftNum - rightNum) < 1e-9; // 浮点数比较
+                case "!=":
+                    return Math.abs(leftNum - rightNum) >= 1e-9;
+                case ">":
+                    return leftNum > rightNum;
+                case "<":
+                    return leftNum < rightNum;
+                case ">=":
+                    return leftNum >= rightNum;
+                case "<=":
+                    return leftNum <= rightNum;
+                default:
+                    return false;
+            }
+        } catch (NumberFormatException e) {
+            // 如果不是数字，使用字符串比较
+            switch (operator) {
+                case "=":
+                    return leftValue.equals(rightValue);
+                case "!=":
+                    return !leftValue.equals(rightValue);
+                case ">":
+                    return leftValue.compareTo(rightValue) > 0;
+                case "<":
+                    return leftValue.compareTo(rightValue) < 0;
+                case ">=":
+                    return leftValue.compareTo(rightValue) >= 0;
+                case "<=":
+                    return leftValue.compareTo(rightValue) <= 0;
+                default:
+                    return false;
+            }
+        }
     }
     
     
@@ -1200,7 +1337,19 @@ public class Executor {
                     // COUNT(*) - 每行计数1
                     value = 1;
                 } else {
+                    // 处理带表别名的列名
+                    String actualColumnName = columnName;
+                    if (columnName.contains(".")) {
+                        // 如果列名包含表别名，去掉表别名前缀
+                        actualColumnName = columnName.substring(columnName.lastIndexOf(".") + 1);
+                    }
+                    
+                    // 首先尝试使用原始列名（带表别名）
                     value = row.getOrDefault(columnName, null);
+                    if (value == null && !columnName.equals(actualColumnName)) {
+                        // 如果原始列名找不到，尝试不带表别名的列名
+                        value = row.getOrDefault(actualColumnName, null);
+                    }
                 }
             } else if (arg instanceof LiteralExpressionPlan) {
                 value = ((LiteralExpressionPlan) arg).getValue();

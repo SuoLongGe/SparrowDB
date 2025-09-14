@@ -432,6 +432,34 @@ public class DatabaseEngine {
      * 修改SQL语句以使用GUI选择的存储格式
      */
     private String modifySQLForStorageFormat(String sql) {
+        // 检查是否是批量SQL语句
+        if (sql.contains(";") && sql.split(";").length > 1) {
+            // 批量SQL语句，分别处理每个语句
+            String[] statements = sql.split(";");
+            StringBuilder modifiedSql = new StringBuilder();
+            
+            for (int i = 0; i < statements.length; i++) {
+                String statement = statements[i].trim();
+                if (!statement.isEmpty()) {
+                    String modifiedStatement = modifySingleSQLForStorageFormat(statement);
+                    modifiedSql.append(modifiedStatement);
+                    if (i < statements.length - 1) {
+                        modifiedSql.append("; ");
+                    }
+                }
+            }
+            
+            return modifiedSql.toString();
+        } else {
+            // 单个SQL语句
+            return modifySingleSQLForStorageFormat(sql);
+        }
+    }
+    
+    /**
+     * 修改单个SQL语句以使用GUI选择的存储格式
+     */
+    private String modifySingleSQLForStorageFormat(String sql) {
         // 只处理CREATE TABLE语句
         if (!sql.trim().toUpperCase().startsWith("CREATE TABLE")) {
             return sql;

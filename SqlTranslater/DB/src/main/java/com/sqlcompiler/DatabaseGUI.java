@@ -552,8 +552,13 @@ public class DatabaseGUI extends JFrame {
                     boolean isQuery = isQueryStatement(sql);
                     
                     if (execResult.isSuccess()) {
-                        if (isQuery && execResult.getData() != null && !execResult.getData().isEmpty()) {
-                            // 查询类指令且有数据，显示查询消息和结果
+                        // 检查是否是批量执行结果
+                        if (execResult.getBatchResults() != null && !execResult.getBatchResults().isEmpty()) {
+                            // 批量执行结果
+                            resultTabbedPane.showQueryMessage(sql, true, true, executionTimeMs, selectedIndexType);
+                            resultTabbedPane.showQueryResult(execResult); // 这会调用showBatchResults
+                        } else if (isQuery && execResult.getData() != null && !execResult.getData().isEmpty()) {
+                            // 单个查询类指令且有数据，显示查询消息和结果
                             resultTabbedPane.showQueryMessage(sql, true, true, executionTimeMs, selectedIndexType);
                             resultTabbedPane.showQueryResult(execResult);
                         } else {
