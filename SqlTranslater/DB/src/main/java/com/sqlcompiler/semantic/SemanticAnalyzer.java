@@ -621,4 +621,65 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
             }
         }
     }
+    
+    @Override
+    public Void visit(CreateShardStatement node) throws CompilationException {
+        // 检查表是否存在
+        String tableName = node.getTableName();
+        if (!catalog.tableExists(tableName)) {
+            throw new CompilationException("表 '" + tableName + "' 不存在", node.getPosition(), "语义错误");
+        }
+        
+        // 检查分片键列是否存在
+        String shardKeyColumn = node.getShardKeyColumn();
+        TableInfo tableInfo = catalog.getTable(tableName);
+        if (tableInfo != null) {
+            boolean columnExists = tableInfo.getColumns().stream()
+                .anyMatch(col -> col.getName().equalsIgnoreCase(shardKeyColumn));
+            if (!columnExists) {
+                throw new CompilationException("表 '" + tableName + "' 中不存在列 '" + shardKeyColumn + "'", node.getPosition(), "语义错误");
+            }
+        }
+        
+        // 检查分片数量是否有效
+        int shardCount = node.getShardCount();
+        if (shardCount <= 0) {
+            throw new CompilationException("分片数量必须大于0", node.getPosition(), "语义错误");
+        }
+        
+        return null;
+    }
+    
+    @Override
+    public Void visit(DropShardStatement node) throws CompilationException {
+        // 检查表是否存在
+        String tableName = node.getTableName();
+        if (!catalog.tableExists(tableName)) {
+            throw new CompilationException("表 '" + tableName + "' 不存在", node.getPosition(), "语义错误");
+        }
+        
+        return null;
+    }
+    
+    @Override
+    public Void visit(ShowShardsStatement node) throws CompilationException {
+        // 检查表是否存在
+        String tableName = node.getTableName();
+        if (!catalog.tableExists(tableName)) {
+            throw new CompilationException("表 '" + tableName + "' 不存在", node.getPosition(), "语义错误");
+        }
+        
+        return null;
+    }
+    
+    @Override
+    public Void visit(ShardStatsStatement node) throws CompilationException {
+        // 检查表是否存在
+        String tableName = node.getTableName();
+        if (!catalog.tableExists(tableName)) {
+            throw new CompilationException("表 '" + tableName + "' 不存在", node.getPosition(), "语义错误");
+        }
+        
+        return null;
+    }
 }

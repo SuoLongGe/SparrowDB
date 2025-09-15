@@ -50,6 +50,15 @@ public enum TokenType {
     TRUE("TRUE"),
     PERMANENT("PERMANENT"),
     FALSE("FALSE"),
+    
+    // 分片相关关键字
+    SHOW("SHOW"),
+    SHARD("SHARD"),
+    SHARDS("SHARDS"),
+    STATS("STATS"),
+    USING("USING"),
+    HASH("HASH"),
+    RANGE("RANGE"),
     IF("IF"),
     ELSE("ELSE"),
     ELSEIF("ELSEIF"),
@@ -220,7 +229,8 @@ public enum TokenType {
                this == ASC || this == DESC ||
                this == STORAGE || this == ROW || this == COLUMN || this == ROW_STORAGE || this == COLUMN_STORAGE ||
                this == COUNT || this == SUM || this == AVG || this == MAX || this == MIN ||
-               this == LIKE || this == IN || this == BETWEEN;
+               this == LIKE || this == IN || this == BETWEEN ||
+               this == SHOW || this == SHARD || this == SHARDS || this == STATS || this == USING || this == HASH || this == RANGE;
     }
     
     /**

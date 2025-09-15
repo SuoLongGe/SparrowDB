@@ -532,4 +532,51 @@ public class ASTPrinter implements ASTVisitor<String> {
         sb.append(getIndent()).append("}");
         return sb.toString();
     }
+    
+    @Override
+    public String visit(CreateShardStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("CreateShardStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("tableName: \"").append(node.getTableName()).append("\"\n");
+        sb.append(getIndent()).append("shardKeyColumn: \"").append(node.getShardKeyColumn()).append("\"\n");
+        sb.append(getIndent()).append("strategy: \"").append(node.getStrategy()).append("\"\n");
+        sb.append(getIndent()).append("shardCount: ").append(node.getShardCount()).append("\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(DropShardStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("DropShardStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("tableName: \"").append(node.getTableName()).append("\"\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(ShowShardsStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ShowShardsStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("tableName: \"").append(node.getTableName()).append("\"\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(ShardStatsStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ShardStatsStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("tableName: \"").append(node.getTableName()).append("\"\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
 }

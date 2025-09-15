@@ -79,6 +79,15 @@ public class LexicalAnalyzer {
         keywordMap.put("PERMANENT", TokenType.PERMANENT);
         keywordMap.put("IF", TokenType.IF);
         keywordMap.put("EXISTS", TokenType.EXISTS);
+        
+        // 分片相关关键字
+        keywordMap.put("SHOW", TokenType.SHOW);
+        keywordMap.put("SHARD", TokenType.SHARD);
+        keywordMap.put("SHARDS", TokenType.SHARDS);
+        keywordMap.put("STATS", TokenType.STATS);
+        keywordMap.put("USING", TokenType.USING);
+        keywordMap.put("HASH", TokenType.HASH);
+        keywordMap.put("RANGE", TokenType.RANGE);
 
         // 数据类型
         keywordMap.put("INT", TokenType.INT);
