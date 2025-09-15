@@ -1,3 +1,5 @@
+package com.database.engine;
+
 /**
  * 索引类型枚举
  */

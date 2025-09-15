@@ -141,23 +141,124 @@ public class Executor {
     }
     
     /**
-     * 智能选择索引类型
+     * 智能选择索引类型 - 使用真正的智能索引选择器
      */
     private List<Map<String, Object>> queryWithIntelligentSelection(String tableName, TablePlan tablePlan) {
-        // 智能选择：根据查询条件选择最优索引
-        // 这里简化为根据表大小选择
-        List<Map<String, Object>> allData = storageAdapter.scanTable(tableName);
-        
-        if (allData.size() > 10000) {
-            // 大数据集，使用B+树索引
-            return queryWithBPlusTreeIndex(tableName, tablePlan);
-        } else if (allData.size() > 1000) {
-            // 中等数据集，使用哈希索引
-            return queryWithHashIndex(tableName, tablePlan);
-        } else {
-            // 小数据集，使用线性查找
+        try {
+            System.out.println("=== 智能索引选择器开始工作 ===");
+            
+            // 获取表数据作为样本
+            List<Map<String, Object>> allData = storageAdapter.scanTable(tableName);
+            
+            if (allData.isEmpty()) {
+                System.out.println("表 " + tableName + " 为空，使用线性查找");
+                return queryWithLinearSearch(tableName, tablePlan);
+            }
+            
+            System.out.println("表 " + tableName + " 数据量: " + allData.size());
+            
+            // 创建智能索引选择器
+            IndexSelector indexSelector = new IndexSelector();
+            
+            // 分析查询上下文
+            IndexSelector.QueryPattern pattern = analyzeQueryPattern(tableName, tablePlan);
+            IndexSelector.DataCharacteristics characteristics = analyzeDataCharacteristics(allData);
+            
+            // 准备样本数据（取第一列作为索引列）
+            List<Object> sampleData = extractSampleData(allData, getFirstColumnName(tableName));
+            
+            // 使用智能选择器选择最优索引
+            IndexType selectedType = indexSelector.selectOptimalIndex(
+                tableName + "_index", sampleData, pattern, characteristics);
+            
+            // 根据选择结果执行相应的查询
+            if (selectedType == null) {
+                System.out.println("智能选择器推荐: 线性查找");
+                return queryWithLinearSearch(tableName, tablePlan);
+            } else {
+                System.out.println("智能选择器推荐: " + selectedType.getDescription());
+                
+                switch (selectedType) {
+                    case HASH_TABLE:
+                        return queryWithHashIndex(tableName, tablePlan);
+                    case BPLUS_TREE:
+                        return queryWithBPlusTreeIndex(tableName, tablePlan);
+                    default:
+                        return queryWithLinearSearch(tableName, tablePlan);
+                }
+            }
+            
+        } catch (Exception e) {
+            System.err.println("智能索引选择失败，回退到线性查找: " + e.getMessage());
+            e.printStackTrace();
             return queryWithLinearSearch(tableName, tablePlan);
         }
+    }
+    
+    /**
+     * 分析查询模式
+     */
+    private IndexSelector.QueryPattern analyzeQueryPattern(String tableName, TablePlan tablePlan) {
+        IndexSelector.QueryPattern pattern = new IndexSelector.QueryPattern();
+        
+        // 简化实现：假设主要是等值查询
+        pattern.equalityQueries = 1;
+        pattern.rangeQueries = 0;
+        pattern.sortQueries = 0;
+        pattern.totalQueries = 1;
+        pattern.timeWindowHours = 1;
+        pattern.maxConcurrentQueries = 1;
+        
+        return pattern;
+    }
+    
+    /**
+     * 分析数据特征
+     */
+    private IndexSelector.DataCharacteristics analyzeDataCharacteristics(List<Map<String, Object>> allData) {
+        IndexSelector.DataCharacteristics characteristics = new IndexSelector.DataCharacteristics();
+        
+        characteristics.isNumeric = true; // 简化假设
+        characteristics.growthPattern = IndexSelector.GrowthPattern.STABLE;
+        characteristics.memoryLimit = 100 * 1024 * 1024; // 100MB
+        
+        return characteristics;
+    }
+    
+    /**
+     * 获取表的第一列名
+     */
+    private String getFirstColumnName(String tableName) {
+        try {
+            TableInfo tableInfo = catalogManager.getTable(tableName);
+            if (tableInfo != null && !tableInfo.getColumns().isEmpty()) {
+                return tableInfo.getColumns().iterator().next().getName();
+            }
+        } catch (Exception e) {
+            System.out.println("无法获取表列信息，使用默认列名: id");
+        }
+        return "id"; // 默认列名
+    }
+    
+    /**
+     * 从表数据中提取样本数据
+     */
+    private List<Object> extractSampleData(List<Map<String, Object>> allData, String columnName) {
+        List<Object> sampleData = new ArrayList<>();
+        
+        for (Map<String, Object> row : allData) {
+            Object value = row.get(columnName);
+            if (value != null) {
+                sampleData.add(value);
+            }
+        }
+        
+        // 限制样本大小以提高性能
+        if (sampleData.size() > 1000) {
+            sampleData = sampleData.subList(0, 1000);
+        }
+        
+        return sampleData;
     }
     
     /**
