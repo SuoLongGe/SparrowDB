@@ -43,6 +43,7 @@ public class DatabaseGUI extends JFrame {
     private JLabel statusLabel;
     
 
+
     // 菜单栏组件
     private JMenuBar menuBar;
     private JMenu fileMenu;
@@ -207,6 +208,7 @@ public class DatabaseGUI extends JFrame {
         
         // 添加菜单到菜单栏
         menuBar.add(fileMenu);
+
         // 数据库对象管理组件
         databaseTree = new JTree();
         databaseTree.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
@@ -230,11 +232,13 @@ public class DatabaseGUI extends JFrame {
         setLayout(new BorderLayout());
         
 
+
         // 设置菜单栏
         setJMenuBar(menuBar);
         // 确保菜单栏可见
         menuBar.setVisible(true);
         System.out.println("菜单栏已设置，包含 " + menuBar.getMenuCount() + " 个菜单");
+
         // 左侧：数据库对象树
         JPanel leftPanel = new JPanel(new BorderLayout());
         leftPanel.setPreferredSize(new Dimension(280, 0));
@@ -1241,6 +1245,180 @@ public class DatabaseGUI extends JFrame {
         public boolean isIncludeData() { return includeData; }
         public String getSelectedTables() { return selectedTables; }
     }
+    
+    /**
+     * 刷新数据库树
+     */
+    private void refreshDatabaseTree() {
+        try {
+            // 获取数据库中的所有表
+            java.util.Set<String> tableNames = databaseEngine.getCatalogManager().getAllTableNames();
+            
+            // 创建树模型
+            javax.swing.tree.DefaultMutableTreeNode root = new javax.swing.tree.DefaultMutableTreeNode("数据库");
+            
+            // 添加表节点
+            javax.swing.tree.DefaultMutableTreeNode tablesNode = new javax.swing.tree.DefaultMutableTreeNode("表");
+            for (String tableName : tableNames) {
+                if (!tableName.startsWith("__system_")) { // 过滤系统表
+                    javax.swing.tree.DefaultMutableTreeNode tableNode = new javax.swing.tree.DefaultMutableTreeNode(tableName);
+                    tablesNode.add(tableNode);
+                }
+            }
+            root.add(tablesNode);
+            
+            // 添加函数节点
+            javax.swing.tree.DefaultMutableTreeNode functionsNode = new javax.swing.tree.DefaultMutableTreeNode("函数");
+            java.util.Set<String> functionNames = databaseEngine.getFunctionManager().getAllFunctionNames();
+            for (String functionName : functionNames) {
+                javax.swing.tree.DefaultMutableTreeNode functionNode = new javax.swing.tree.DefaultMutableTreeNode(functionName);
+                functionsNode.add(functionNode);
+            }
+            root.add(functionsNode);
+            
+            // 添加视图节点
+            javax.swing.tree.DefaultMutableTreeNode viewsNode = new javax.swing.tree.DefaultMutableTreeNode("视图");
+            java.util.Set<String> viewNames = databaseEngine.getViewManager().getAllViewNames();
+            for (String viewName : viewNames) {
+                javax.swing.tree.DefaultMutableTreeNode viewNode = new javax.swing.tree.DefaultMutableTreeNode(viewName);
+                viewsNode.add(viewNode);
+            }
+            root.add(viewsNode);
+            
+            // 设置树模型
+            javax.swing.tree.DefaultTreeModel treeModel = new javax.swing.tree.DefaultTreeModel(root);
+            databaseTree.setModel(treeModel);
+            
+            // 展开根节点
+            for (int i = 0; i < databaseTree.getRowCount(); i++) {
+                databaseTree.expandRow(i);
+            }
+            
+            statusLabel.setText("数据库树已刷新");
+            statusLabel.setForeground(Color.GREEN);
+        } catch (Exception e) {
+            statusLabel.setText("刷新数据库树失败: " + e.getMessage());
+            statusLabel.setForeground(Color.RED);
+        }
+    }
+    
+    /**
+     * 处理树选择事件
+     */
+    private void handleTreeSelection(javax.swing.event.TreeSelectionEvent e) {
+        javax.swing.tree.DefaultMutableTreeNode selectedNode = 
+            (javax.swing.tree.DefaultMutableTreeNode) databaseTree.getLastSelectedPathComponent();
+        
+        if (selectedNode == null) return;
+        
+        String nodeName = selectedNode.toString();
+        javax.swing.tree.DefaultMutableTreeNode parentNode = 
+            (javax.swing.tree.DefaultMutableTreeNode) selectedNode.getParent();
+        
+        if (parentNode == null) return;
+        
+        String parentName = parentNode.toString();
+        
+        // 如果选择的是表节点，显示表数据
+        if (parentName.equals("表")) {
+            showTableData(nodeName);
+        }
+        // 如果选择的是函数节点，显示函数信息
+        else if (parentName.equals("函数")) {
+            showFunctionInfo(nodeName);
+        }
+        // 如果选择的是视图节点，显示视图数据
+        else if (parentName.equals("视图")) {
+            showViewData(nodeName);
+        }
+    }
+    
+    /**
+     * 显示表数据
+     */
+    private void showTableData(String tableName) {
+        try {
+            // 执行SELECT * FROM tableName查询
+            String sql = "SELECT * FROM " + tableName;
+            sqlInputArea.setText(sql);
+            
+            // 自动执行查询
+            executeSQL();
+            
+            statusLabel.setText("正在显示表 " + tableName + " 的数据");
+            statusLabel.setForeground(Color.BLUE);
+        } catch (Exception e) {
+            statusLabel.setText("显示表数据失败: " + e.getMessage());
+            statusLabel.setForeground(Color.RED);
+        }
+    }
+    
+    
+    /**
+     * 显示函数信息
+     */
+    private void showFunctionInfo(String functionName) {
+        try {
+            // 获取函数定义
+            com.database.engine.FunctionManager.UserDefinedFunction function = 
+                databaseEngine.getFunctionManager().getFunction(functionName);
+            
+            if (function == null) {
+                statusLabel.setText("函数 " + functionName + " 不存在");
+                statusLabel.setForeground(Color.RED);
+                return;
+            }
+            
+            // 构建函数信息
+            StringBuilder functionInfo = new StringBuilder();
+            functionInfo.append("函数名: ").append(functionName).append("\n");
+            functionInfo.append("返回类型: ").append(function.getReturnType()).append("\n");
+            functionInfo.append("参数: ");
+            
+            java.util.List<com.sqlcompiler.ast.CreateFunctionStatement.FunctionParameter> params = function.getParameters();
+            if (params.isEmpty()) {
+                functionInfo.append("无参数\n");
+            } else {
+                for (int i = 0; i < params.size(); i++) {
+                    if (i > 0) functionInfo.append(", ");
+                    functionInfo.append(params.get(i).getName()).append(" ").append(params.get(i).getType());
+                }
+                functionInfo.append("\n");
+            }
+            
+            functionInfo.append("函数体:\n").append(function.getBody());
+            
+            // 在结果区域显示函数信息
+            resultTabbedPane.showMessage("函数信息:\n" + functionInfo.toString());
+            
+            statusLabel.setText("显示函数 " + functionName + " 的定义");
+            statusLabel.setForeground(Color.BLUE);
+        } catch (Exception e) {
+            statusLabel.setText("显示函数信息失败: " + e.getMessage());
+            statusLabel.setForeground(Color.RED);
+        }
+    }
+    
+    /**
+     * 显示视图数据
+     */
+    private void showViewData(String viewName) {
+        try {
+            // 执行SELECT * FROM viewName查询
+            String sql = "SELECT * FROM " + viewName;
+            sqlInputArea.setText(sql);
+            
+            // 自动执行查询
+            executeSQL();
+            
+            statusLabel.setText("正在显示视图 " + viewName + " 的数据");
+            statusLabel.setForeground(Color.BLUE);
+        } catch (Exception e) {
+            statusLabel.setText("显示视图数据失败: " + e.getMessage());
+            statusLabel.setForeground(Color.RED);
+        }
+    }
+    
     
     /**
      * 刷新数据库树
