@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.Cursor;
 import java.awt.geom.RoundRectangle2D;
 import java.util.*;
 import java.util.List;
@@ -66,12 +67,13 @@ public class BeautifulASTVisualizer extends JPanel {
         setPreferredSize(new Dimension(1000, 800));
         
         // 添加鼠标事件监听器
-        addMouseListener(new MouseAdapter() {
+        MouseAdapter mouseHandler = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     lastMousePos = e.getPoint();
                     isDragging = true;
+                    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
                     
                     // 检查是否点击了节点
                     ASTNode clickedNode = getNodeAt(e.getPoint());
@@ -86,6 +88,7 @@ public class BeautifulASTVisualizer extends JPanel {
             public void mouseReleased(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     isDragging = false;
+                    setCursor(Cursor.getDefaultCursor());
                 }
                 
                 if (SwingUtilities.isRightMouseButton(e)) {
@@ -110,7 +113,10 @@ public class BeautifulASTVisualizer extends JPanel {
                     repaint();
                 }
             }
-        });
+        };
+        
+        addMouseListener(mouseHandler);
+        addMouseMotionListener(mouseHandler);
         
         addMouseWheelListener(new java.awt.event.MouseWheelListener() {
             @Override

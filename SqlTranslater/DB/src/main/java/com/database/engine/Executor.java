@@ -1734,16 +1734,216 @@ public class Executor {
      * 评估表达式
      */
     private Object evaluateExpression(ExpressionPlan expr, Map<String, Object> row, TableInfo tableInfo) {
-        // TODO: 实现表达式评估功能
-        return null;
+        if (expr == null) {
+            return null;
+        }
+        
+        if (expr instanceof LiteralExpressionPlan) {
+            LiteralExpressionPlan literal = (LiteralExpressionPlan) expr;
+            return literal.getValue();
+        } else if (expr instanceof IdentifierExpressionPlan) {
+            IdentifierExpressionPlan identifier = (IdentifierExpressionPlan) expr;
+            String columnName = identifier.getName();
+            return row.get(columnName);
+        } else if (expr instanceof BinaryExpressionPlan) {
+            BinaryExpressionPlan binary = (BinaryExpressionPlan) expr;
+            Object left = evaluateExpression(binary.getLeft(), row, tableInfo);
+            Object right = evaluateExpression(binary.getRight(), row, tableInfo);
+            
+            String operator = binary.getOperator();
+            switch (operator) {
+                case "+":
+                    return performArithmetic(left, right, "+");
+                case "-":
+                    return performArithmetic(left, right, "-");
+                case "*":
+                    return performArithmetic(left, right, "*");
+                case "/":
+                    return performArithmetic(left, right, "/");
+                case "=":
+                    return performComparison(left, right, "=");
+                case "!=":
+                case "<>":
+                    return performComparison(left, right, "!=");
+                case ">":
+                    return performComparison(left, right, ">");
+                case "<":
+                    return performComparison(left, right, "<");
+                case ">=":
+                    return performComparison(left, right, ">=");
+                case "<=":
+                    return performComparison(left, right, "<=");
+                case "AND":
+                    return (Boolean) left && (Boolean) right;
+                case "OR":
+                    return (Boolean) left || (Boolean) right;
+                default:
+                    throw new RuntimeException("不支持的二元操作符: " + operator);
+            }
+        } else if (expr instanceof FunctionCallExpressionPlan) {
+            FunctionCallExpressionPlan function = (FunctionCallExpressionPlan) expr;
+            String functionName = function.getFunctionName();
+            List<ExpressionPlan> arguments = function.getArguments();
+            
+            // 评估参数
+            List<Object> evaluatedArgs = new ArrayList<>();
+            for (ExpressionPlan arg : arguments) {
+                evaluatedArgs.add(evaluateExpression(arg, row, tableInfo));
+            }
+            
+            // 调用函数 - 暂时返回null，函数调用功能需要进一步实现
+            throw new RuntimeException("函数调用功能暂未实现: " + functionName);
+        }
+        
+        throw new RuntimeException("不支持的表达式类型: " + expr.getClass().getSimpleName());
     }
 
+    /**
+     * 执行算术运算
+     */
+    private Object performArithmetic(Object left, Object right, String operator) {
+        if (left == null || right == null) {
+            return null;
+        }
+        
+        // 尝试转换为数字
+        Double leftNum = convertToNumber(left);
+        Double rightNum = convertToNumber(right);
+        
+        if (leftNum == null || rightNum == null) {
+            throw new RuntimeException("算术运算只能用于数字类型");
+        }
+        
+        switch (operator) {
+            case "+":
+                return leftNum + rightNum;
+            case "-":
+                return leftNum - rightNum;
+            case "*":
+                return leftNum * rightNum;
+            case "/":
+                if (rightNum == 0) {
+                    throw new RuntimeException("除零错误");
+                }
+                return leftNum / rightNum;
+            default:
+                throw new RuntimeException("不支持的算术操作符: " + operator);
+        }
+    }
+    
+    /**
+     * 执行比较运算
+     */
+    private Object performComparison(Object left, Object right, String operator) {
+        if (left == null || right == null) {
+            return false;
+        }
+        
+        // 尝试转换为数字进行比较
+        Double leftNum = convertToNumber(left);
+        Double rightNum = convertToNumber(right);
+        
+        if (leftNum != null && rightNum != null) {
+            // 数字比较
+            switch (operator) {
+                case "=":
+                    return Math.abs(leftNum - rightNum) < 1e-9;
+                case "!=":
+                    return Math.abs(leftNum - rightNum) >= 1e-9;
+                case ">":
+                    return leftNum > rightNum;
+                case "<":
+                    return leftNum < rightNum;
+                case ">=":
+                    return leftNum >= rightNum;
+                case "<=":
+                    return leftNum <= rightNum;
+                default:
+                    throw new RuntimeException("不支持的比较操作符: " + operator);
+            }
+        } else {
+            // 字符串比较
+            String leftStr = left.toString();
+            String rightStr = right.toString();
+            
+            switch (operator) {
+                case "=":
+                    return leftStr.equals(rightStr);
+                case "!=":
+                    return !leftStr.equals(rightStr);
+                case ">":
+                    return leftStr.compareTo(rightStr) > 0;
+                case "<":
+                    return leftStr.compareTo(rightStr) < 0;
+                case ">=":
+                    return leftStr.compareTo(rightStr) >= 0;
+                case "<=":
+                    return leftStr.compareTo(rightStr) <= 0;
+                default:
+                    throw new RuntimeException("不支持的比较操作符: " + operator);
+            }
+        }
+    }
+    
+    /**
+     * 将值转换为数字
+     */
+    private Double convertToNumber(Object value) {
+        if (value instanceof Number) {
+            return ((Number) value).doubleValue();
+        }
+        
+        try {
+            return Double.parseDouble(value.toString());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+    
     /**
      * 将值转换为指定类型
      */
     private Object convertValueToType(Object value, String dataType) {
-        // TODO: 实现类型转换功能
-        return value;
+        if (value == null) {
+            return null;
+        }
+        
+        try {
+            switch (dataType.toUpperCase()) {
+                case "INT":
+                case "INTEGER":
+                    if (value instanceof Number) {
+                        return ((Number) value).intValue();
+                    }
+                    return Integer.parseInt(value.toString());
+                    
+                case "DECIMAL":
+                case "FLOAT":
+                case "DOUBLE":
+                    if (value instanceof Number) {
+                        return ((Number) value).doubleValue();
+                    }
+                    return Double.parseDouble(value.toString());
+                    
+                case "VARCHAR":
+                case "TEXT":
+                case "STRING":
+                    return value.toString();
+                    
+                case "BOOLEAN":
+                case "BOOL":
+                    if (value instanceof Boolean) {
+                        return value;
+                    }
+                    String str = value.toString().toLowerCase();
+                    return "true".equals(str) || "1".equals(str);
+                    
+                default:
+                    return value;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("类型转换错误: " + value + " -> " + dataType + ": " + e.getMessage());
+        }
     }
     
 }
