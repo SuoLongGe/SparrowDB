@@ -211,6 +211,27 @@ public class SparrowDBApplication {
                 testViews();
             } else if (command.equals("test all") || command.equals("test-all")) {
                 testAllFeatures();
+            } else if (command.startsWith("import ")) {
+                String filePath = input.substring(7).trim();
+                importSQLFile(filePath);
+            } else if (command.startsWith("export ")) {
+                String outputPath = input.substring(7).trim();
+                exportDatabase(outputPath);
+            } else if (command.startsWith("export table ")) {
+                String[] parts = input.substring(13).trim().split("\\s+", 2);
+                if (parts.length >= 2) {
+                    exportTable(parts[0], parts[1]);
+                } else {
+                    System.out.println("用法: export table <table_name> <output_path>");
+                }
+            } else if (command.startsWith("import dir ")) {
+                String[] parts = input.substring(11).trim().split("\\s+", 2);
+                if (parts.length >= 1) {
+                    String pattern = parts.length > 1 ? parts[1] : "*.sql";
+                    importSQLDirectory(parts[0], pattern);
+                } else {
+                    System.out.println("用法: import dir <directory_path> [file_pattern]");
+                }
             } else {
                 // 执行SQL语句
                 executeSQLCommand(input);
@@ -237,6 +258,14 @@ public class SparrowDBApplication {
         System.out.println("  test functions, test-functions    - 测试函数功能");
         System.out.println("  test views, test-views           - 测试视图功能");
         System.out.println("  test all, test-all               - 测试所有功能");
+        System.out.println("");
+        System.out.println("SQL文件管理:");
+        System.out.println("  import <file_path>                - 导入并执行SQL文件");
+        System.out.println("  export <output_path>              - 导出数据库为SQL文件");
+        System.out.println("  export table <table> <path>      - 导出单个表为SQL文件");
+        System.out.println("  import dir <dir> [pattern]        - 批量导入目录中的SQL文件");
+        System.out.println("");
+        System.out.println("其他命令:");
         System.out.println("  help, h                          - 显示此帮助");
         System.out.println("  quit, exit, q                    - 退出程序");
         System.out.println("");
@@ -575,6 +604,127 @@ public class SparrowDBApplication {
         
         if (scanner != null) {
             scanner.close();
+        }
+    }
+    
+    // ========== SQL文件管理功能 ==========
+    
+    /**
+     * 导入SQL文件
+     */
+    private void importSQLFile(String filePath) {
+        System.out.println("\n=== 导入SQL文件 ===");
+        System.out.println("文件路径: " + filePath);
+        
+        // 询问是否在出错时继续执行
+        System.out.print("是否在遇到错误时继续执行? (y/n, 默认: n): ");
+        String input = scanner.nextLine().trim().toLowerCase();
+        boolean continueOnError = "y".equals(input) || "yes".equals(input);
+        
+        long startTime = System.currentTimeMillis();
+        ExecutionResult result = engine.importSQLFile(filePath, continueOnError);
+        long endTime = System.currentTimeMillis();
+        
+        System.out.println("\n执行结果: " + (result.isSuccess() ? "成功" : "失败"));
+        System.out.println("消息: " + result.getMessage());
+        System.out.println("执行时间: " + (endTime - startTime) + "ms");
+        
+        if (result.getBatchResults() != null) {
+            List<ExecutionResult> subResults = result.getBatchResults();
+            System.out.println("详细结果: " + subResults.size() + " 条SQL语句");
+            
+            int successCount = 0;
+            for (ExecutionResult subResult : subResults) {
+                if (subResult.isSuccess()) {
+                    successCount++;
+                }
+            }
+            System.out.println("成功: " + successCount + "/" + subResults.size());
+        }
+    }
+    
+    /**
+     * 导出数据库
+     */
+    private void exportDatabase(String outputPath) {
+        System.out.println("\n=== 导出数据库 ===");
+        System.out.println("输出路径: " + outputPath);
+        
+        // 询问导出选项
+        System.out.print("是否包含表结构? (y/n, 默认: y): ");
+        String structureInput = scanner.nextLine().trim().toLowerCase();
+        boolean includeStructure = !"n".equals(structureInput) && !"no".equals(structureInput);
+        
+        System.out.print("是否包含数据? (y/n, 默认: y): ");
+        String dataInput = scanner.nextLine().trim().toLowerCase();
+        boolean includeData = !"n".equals(dataInput) && !"no".equals(dataInput);
+        
+        // 询问是否指定表
+        System.out.print("指定要导出的表 (逗号分隔，留空导出所有表): ");
+        String tablesInput = scanner.nextLine().trim();
+        List<String> tableNames = null;
+        if (!tablesInput.isEmpty()) {
+            tableNames = Arrays.asList(tablesInput.split("\\s*,\\s*"));
+        }
+        
+        long startTime = System.currentTimeMillis();
+        ExecutionResult result = engine.exportDatabaseToSQL(outputPath, tableNames, includeStructure, includeData);
+        long endTime = System.currentTimeMillis();
+        
+        System.out.println("\n导出结果: " + (result.isSuccess() ? "成功" : "失败"));
+        System.out.println("消息: " + result.getMessage());
+        System.out.println("执行时间: " + (endTime - startTime) + "ms");
+    }
+    
+    /**
+     * 导出单个表
+     */
+    private void exportTable(String tableName, String outputPath) {
+        System.out.println("\n=== 导出表 ===");
+        System.out.println("表名: " + tableName);
+        System.out.println("输出路径: " + outputPath);
+        
+        long startTime = System.currentTimeMillis();
+        ExecutionResult result = engine.exportTableToSQL(tableName, outputPath);
+        long endTime = System.currentTimeMillis();
+        
+        System.out.println("\n导出结果: " + (result.isSuccess() ? "成功" : "失败"));
+        System.out.println("消息: " + result.getMessage());
+        System.out.println("执行时间: " + (endTime - startTime) + "ms");
+    }
+    
+    /**
+     * 批量导入SQL目录
+     */
+    private void importSQLDirectory(String directoryPath, String filePattern) {
+        System.out.println("\n=== 批量导入SQL目录 ===");
+        System.out.println("目录路径: " + directoryPath);
+        System.out.println("文件模式: " + filePattern);
+        
+        // 询问是否在出错时继续执行
+        System.out.print("是否在遇到错误时继续执行? (y/n, 默认: n): ");
+        String input = scanner.nextLine().trim().toLowerCase();
+        boolean continueOnError = "y".equals(input) || "yes".equals(input);
+        
+        long startTime = System.currentTimeMillis();
+        ExecutionResult result = engine.importSQLDirectory(directoryPath, filePattern, continueOnError);
+        long endTime = System.currentTimeMillis();
+        
+        System.out.println("\n执行结果: " + (result.isSuccess() ? "成功" : "失败"));
+        System.out.println("消息: " + result.getMessage());
+        System.out.println("执行时间: " + (endTime - startTime) + "ms");
+        
+        if (result.getBatchResults() != null) {
+            List<ExecutionResult> fileResults = result.getBatchResults();
+            System.out.println("文件导入结果: " + fileResults.size() + " 个文件");
+            
+            int successCount = 0;
+            for (ExecutionResult fileResult : fileResults) {
+                if (fileResult.isSuccess()) {
+                    successCount++;
+                }
+            }
+            System.out.println("成功: " + successCount + "/" + fileResults.size());
         }
     }
 }

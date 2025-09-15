@@ -1,10 +1,15 @@
 # Table Metadata
 TABLE_NAME=courses
-COLUMN_COUNT=3
-COLUMN=course_id:INT:4
-COLUMN=course_name:VARCHAR:50
-COLUMN=credits:INT:4
+COLUMN_COUNT=4
+COLUMN=course_id:INT:0
+COLUMN=course_name:VARCHAR:100
+COLUMN=credits:INT:0
+COLUMN=instructor:VARCHAR:50
 # End Metadata
 
-RECORD:course_id=101|course_name=数据库原理|credits=3
-RECORD:course_id=102|course_name=数据结构|credits=4
+RECORD:course_id=101|instructor=闄堟暀鎺坾course_name=鏁版嵁搴撶郴缁熷師鐞唡credits=3
+RECORD:course_id=102|instructor=鏉庢暀鎺坾course_name=绠楁硶涓庢暟鎹粨鏋剕credits=4
+RECORD:course_id=104|instructor=鍒樻暀鎺坾course_name=鎿嶄綔绯荤粺|credits=3
+RECORD:course_id=105|instructor=璧垫暀鎺坾course_name=杞欢宸ョ▼|credits=2
+RECORD:course_id=103|instructor=鐜嬫暀鎺坾course_name=璁＄畻鏈虹綉缁渱credits=null
+RECORD:course_id=106|instructor=鏂版暀鎺坾course_name=Web寮�鍙戞妧鏈瘄credits=3

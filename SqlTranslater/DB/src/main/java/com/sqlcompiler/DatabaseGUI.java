@@ -15,9 +15,13 @@ import com.database.config.DatabaseConfig;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 数据库GUI界面
@@ -35,7 +39,16 @@ public class DatabaseGUI extends JFrame {
     private JButton executeButton;
     private JButton clearButton;
     private JButton catalogButton;
+    private JButton importButton;
     private JLabel statusLabel;
+    
+    // 菜单栏组件
+    private JMenuBar menuBar;
+    private JMenu fileMenu;
+    private JMenuItem importSQLItem;
+    private JMenuItem exportDBItem;
+    private JMenuItem exportTableItem;
+    private JMenuItem importDirItem;
     
     // 索引选择组件
     private JComboBox<String> indexTypeComboBox;
@@ -116,6 +129,12 @@ public class DatabaseGUI extends JFrame {
         
         catalogButton = new JButton("查看目录");
         catalogButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        
+        // 导入SQL文件按钮
+        importButton = new JButton("导入SQL文件");
+        importButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        importButton.setPreferredSize(new Dimension(120, 30));
+        importButton.setToolTipText("从文件导入并执行SQL语句");
 
         // 索引选择组件
         String[] indexTypes = {"智能选择", "B+树索引", "哈希索引", "线性查找"};
@@ -138,6 +157,55 @@ public class DatabaseGUI extends JFrame {
         statusLabel = new JLabel("就绪");
         statusLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
         statusLabel.setForeground(Color.BLUE);
+        
+        // 初始化菜单栏
+        initializeMenuBar();
+    }
+    
+    /**
+     * 初始化菜单栏
+     */
+    private void initializeMenuBar() {
+        menuBar = new JMenuBar();
+        // 设置菜单栏的背景色，确保可见
+        menuBar.setBackground(Color.LIGHT_GRAY);
+        menuBar.setBorder(BorderFactory.createRaisedBevelBorder());
+        
+        // 文件菜单
+        fileMenu = new JMenu("文件");
+        fileMenu.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        fileMenu.setForeground(Color.BLACK);
+        
+        // 导入SQL文件
+        importSQLItem = new JMenuItem("导入SQL文件...");
+        importSQLItem.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        importSQLItem.setToolTipText("从文件导入并执行SQL语句");
+        
+        // 导出数据库
+        exportDBItem = new JMenuItem("导出数据库...");
+        exportDBItem.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        exportDBItem.setToolTipText("将整个数据库导出为SQL文件");
+        
+        // 导出单个表
+        exportTableItem = new JMenuItem("导出单个表...");
+        exportTableItem.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        exportTableItem.setToolTipText("将指定表导出为SQL文件");
+        
+        // 批量导入目录
+        importDirItem = new JMenuItem("批量导入目录...");
+        importDirItem.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        importDirItem.setToolTipText("从目录批量导入SQL文件");
+        
+        // 添加菜单项到文件菜单
+        fileMenu.add(importSQLItem);
+        fileMenu.addSeparator();
+        fileMenu.add(exportDBItem);
+        fileMenu.add(exportTableItem);
+        fileMenu.addSeparator();
+        fileMenu.add(importDirItem);
+        
+        // 添加菜单到菜单栏
+        menuBar.add(fileMenu);
     }
     
     /**
@@ -147,6 +215,12 @@ public class DatabaseGUI extends JFrame {
         setTitle("SparrowDB");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
+        
+        // 设置菜单栏
+        setJMenuBar(menuBar);
+        // 确保菜单栏可见
+        menuBar.setVisible(true);
+        System.out.println("菜单栏已设置，包含 " + menuBar.getMenuCount() + " 个菜单");
         
         // 顶部：SQL输入区域、自动补全建议和按钮
         JPanel topPanel = new JPanel(new BorderLayout());
@@ -168,6 +242,7 @@ public class DatabaseGUI extends JFrame {
         buttonPanel.add(executeButton);
         buttonPanel.add(clearButton);
         buttonPanel.add(catalogButton);
+        buttonPanel.add(importButton);
         
         // 添加索引选择组件
         JLabel indexLabel = new JLabel("索引方式:");
@@ -350,6 +425,14 @@ public class DatabaseGUI extends JFrame {
             }
         });
         
+        // 导入SQL文件按钮事件
+        importButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                importSQLFile();
+            }
+        });
+        
         // AST可视化按钮事件处理器
         zoomInButton.addActionListener(new ActionListener() {
             @Override
@@ -391,6 +474,26 @@ public class DatabaseGUI extends JFrame {
                 }
             }
         });
+        
+        // 菜单事件处理器
+        setupMenuEventHandlers();
+    }
+    
+    /**
+     * 设置菜单事件处理器
+     */
+    private void setupMenuEventHandlers() {
+        // 导入SQL文件
+        importSQLItem.addActionListener(e -> importSQLFile());
+        
+        // 导出数据库
+        exportDBItem.addActionListener(e -> exportDatabase());
+        
+        // 导出单个表
+        exportTableItem.addActionListener(e -> exportTable());
+        
+        // 批量导入目录
+        importDirItem.addActionListener(e -> importDirectory());
     }
     
     /**
@@ -767,6 +870,346 @@ public class DatabaseGUI extends JFrame {
         statusLabel.setForeground(Color.BLUE);
     }
     
+    /**
+     * 导入SQL文件
+     */
+    private void importSQLFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("选择SQL文件");
+        fileChooser.setFileFilter(new FileNameExtensionFilter("SQL文件 (*.sql)", "sql"));
+        
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            
+            // 询问是否容错模式
+            int option = JOptionPane.showConfirmDialog(this,
+                "是否在遇到错误时继续执行后续语句？\n" +
+                "是：容错模式（跳过错误语句继续执行）\n" +
+                "否：快速失败模式（遇到错误时停止）",
+                "执行模式选择",
+                JOptionPane.YES_NO_OPTION);
+            
+            boolean continueOnError = (option == JOptionPane.YES_OPTION);
+            
+            statusLabel.setText("正在导入SQL文件...");
+            statusLabel.setForeground(Color.BLUE);
+            
+            try {
+                ExecutionResult execResult = databaseEngine.importSQLFile(selectedFile.getAbsolutePath(), continueOnError);
+                
+                if (execResult.isSuccess()) {
+                    statusLabel.setText("导入成功");
+                    statusLabel.setForeground(Color.GREEN);
+                    resultTabbedPane.showMessage("SQL文件导入成功!\n" + execResult.getMessage());
+                } else {
+                    statusLabel.setText("导入失败");
+                    statusLabel.setForeground(Color.RED);
+                    resultTabbedPane.showError("SQL文件导入失败:\n" + execResult.getMessage());
+                }
+            } catch (Exception e) {
+                statusLabel.setText("导入错误");
+                statusLabel.setForeground(Color.RED);
+                resultTabbedPane.showError("导入错误: " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * 导出数据库
+     */
+    private void exportDatabase() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("保存数据库导出文件");
+        fileChooser.setFileFilter(new FileNameExtensionFilter("SQL文件 (*.sql)", "sql"));
+        fileChooser.setSelectedFile(new File("database_backup.sql"));
+        
+        int result = fileChooser.showSaveDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            
+            // 确保文件扩展名为.sql
+            String filePath = selectedFile.getAbsolutePath();
+            if (!filePath.toLowerCase().endsWith(".sql")) {
+                filePath += ".sql";
+                selectedFile = new File(filePath);
+            }
+            
+            // 如果文件已存在，询问是否覆盖
+            if (selectedFile.exists()) {
+                int option = JOptionPane.showConfirmDialog(this,
+                    "文件已存在，是否覆盖？",
+                    "确认覆盖",
+                    JOptionPane.YES_NO_OPTION);
+                if (option != JOptionPane.YES_OPTION) {
+                    return;
+                }
+            }
+            
+            // 导出选项对话框
+            ExportOptionsDialog optionsDialog = new ExportOptionsDialog(this);
+            optionsDialog.setVisible(true);
+            
+            if (optionsDialog.isConfirmed()) {
+                statusLabel.setText("正在导出数据库...");
+                statusLabel.setForeground(Color.BLUE);
+                
+                try {
+                    // 处理表名列表
+                    List<String> tableNames = null;
+                    String selectedTablesStr = optionsDialog.getSelectedTables();
+                    if (selectedTablesStr != null && !selectedTablesStr.trim().isEmpty()) {
+                        tableNames = Arrays.asList(selectedTablesStr.split(","));
+                        for (int i = 0; i < tableNames.size(); i++) {
+                            tableNames.set(i, tableNames.get(i).trim());
+                        }
+                    }
+                    
+                    ExecutionResult execResult = databaseEngine.exportDatabaseToSQL(
+                        selectedFile.getAbsolutePath(),
+                        tableNames,
+                        optionsDialog.isIncludeStructure(),
+                        optionsDialog.isIncludeData()
+                    );
+                    
+                    if (execResult.isSuccess()) {
+                        statusLabel.setText("导出成功");
+                        statusLabel.setForeground(Color.GREEN);
+                        resultTabbedPane.showMessage("数据库导出成功!\n文件: " + selectedFile.getAbsolutePath() + "\n" + execResult.getMessage());
+                    } else {
+                        statusLabel.setText("导出失败");
+                        statusLabel.setForeground(Color.RED);
+                        resultTabbedPane.showError("数据库导出失败:\n" + execResult.getMessage());
+                    }
+                } catch (Exception e) {
+                    statusLabel.setText("导出错误");
+                    statusLabel.setForeground(Color.RED);
+                    resultTabbedPane.showError("导出错误: " + e.getMessage());
+                }
+            }
+        }
+    }
+    
+    /**
+     * 导出单个表
+     */
+    private void exportTable() {
+        // 获取所有表名
+        try {
+            ExecutionResult tablesResult = databaseEngine.executeSQL("SHOW TABLES");
+            if (!tablesResult.isSuccess() || tablesResult.getData() == null || tablesResult.getData().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "数据库中没有表可以导出", "提示", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            
+            // 创建表选择对话框
+            String[] tableNames = tablesResult.getData().stream()
+                .map(row -> row.values().iterator().next().toString())
+                .toArray(String[]::new);
+            
+            String selectedTable = (String) JOptionPane.showInputDialog(this,
+                "选择要导出的表:",
+                "选择表",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                tableNames,
+                tableNames[0]);
+            
+            if (selectedTable != null) {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setDialogTitle("保存表导出文件");
+                fileChooser.setFileFilter(new FileNameExtensionFilter("SQL文件 (*.sql)", "sql"));
+                fileChooser.setSelectedFile(new File(selectedTable + "_backup.sql"));
+                
+                int result = fileChooser.showSaveDialog(this);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    
+                    // 确保文件扩展名为.sql
+                    String filePath = selectedFile.getAbsolutePath();
+                    if (!filePath.toLowerCase().endsWith(".sql")) {
+                        filePath += ".sql";
+                        selectedFile = new File(filePath);
+                    }
+                    
+                    statusLabel.setText("正在导出表 " + selectedTable + "...");
+                    statusLabel.setForeground(Color.BLUE);
+                    
+                    try {
+                        ExecutionResult execResult = databaseEngine.exportTableToSQL(selectedTable, selectedFile.getAbsolutePath());
+                        
+                        if (execResult.isSuccess()) {
+                            statusLabel.setText("导出成功");
+                            statusLabel.setForeground(Color.GREEN);
+                            resultTabbedPane.showMessage("表 " + selectedTable + " 导出成功!\n文件: " + selectedFile.getAbsolutePath() + "\n" + execResult.getMessage());
+                        } else {
+                            statusLabel.setText("导出失败");
+                            statusLabel.setForeground(Color.RED);
+                            resultTabbedPane.showError("表导出失败:\n" + execResult.getMessage());
+                        }
+                    } catch (Exception e) {
+                        statusLabel.setText("导出错误");
+                        statusLabel.setForeground(Color.RED);
+                        resultTabbedPane.showError("导出错误: " + e.getMessage());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            resultTabbedPane.showError("获取表列表失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 批量导入目录
+     */
+    private void importDirectory() {
+        JFileChooser dirChooser = new JFileChooser();
+        dirChooser.setDialogTitle("选择包含SQL文件的目录");
+        dirChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        
+        int result = dirChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedDir = dirChooser.getSelectedFile();
+            
+            // 询问文件模式和容错模式
+            String pattern = JOptionPane.showInputDialog(this,
+                "输入文件名模式（如 *.sql）：",
+                "文件模式",
+                JOptionPane.QUESTION_MESSAGE);
+            
+            if (pattern == null || pattern.trim().isEmpty()) {
+                pattern = "*.sql";
+            }
+            
+            int option = JOptionPane.showConfirmDialog(this,
+                "是否在遇到错误时继续执行？\n" +
+                "是：容错模式（跳过错误文件继续执行）\n" +
+                "否：快速失败模式（遇到错误时停止）",
+                "执行模式选择",
+                JOptionPane.YES_NO_OPTION);
+            
+            boolean continueOnError = (option == JOptionPane.YES_OPTION);
+            
+            statusLabel.setText("正在批量导入目录...");
+            statusLabel.setForeground(Color.BLUE);
+            
+            try {
+                ExecutionResult execResult = databaseEngine.importSQLDirectory(
+                    selectedDir.getAbsolutePath(), 
+                    pattern, 
+                    continueOnError
+                );
+                
+                if (execResult.isSuccess()) {
+                    statusLabel.setText("批量导入成功");
+                    statusLabel.setForeground(Color.GREEN);
+                    resultTabbedPane.showMessage("目录批量导入成功!\n" + execResult.getMessage());
+                } else {
+                    statusLabel.setText("批量导入失败");
+                    statusLabel.setForeground(Color.RED);
+                    resultTabbedPane.showError("目录批量导入失败:\n" + execResult.getMessage());
+                }
+            } catch (Exception e) {
+                statusLabel.setText("批量导入错误");
+                statusLabel.setForeground(Color.RED);
+                resultTabbedPane.showError("批量导入错误: " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * 导出选项对话框
+     */
+    private static class ExportOptionsDialog extends JDialog {
+        private boolean confirmed = false;
+        private boolean includeStructure = true;
+        private boolean includeData = true;
+        private String selectedTables = "";
+        
+        private JCheckBox structureCheckBox;
+        private JCheckBox dataCheckBox;
+        private JTextField tablesField;
+        
+        public ExportOptionsDialog(Frame parent) {
+            super(parent, "导出选项", true);
+            initComponents();
+            setupLayout();
+            setupEventHandlers();
+            setLocationRelativeTo(parent);
+        }
+        
+        private void initComponents() {
+            structureCheckBox = new JCheckBox("包含表结构", true);
+            dataCheckBox = new JCheckBox("包含数据", true);
+            tablesField = new JTextField(20);
+            tablesField.setToolTipText("留空导出所有表，或用逗号分隔指定表名");
+        }
+        
+        private void setupLayout() {
+            setLayout(new BorderLayout());
+            
+            JPanel mainPanel = new JPanel(new GridBagLayout());
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.insets = new Insets(5, 5, 5, 5);
+            gbc.anchor = GridBagConstraints.WEST;
+            
+            gbc.gridx = 0; gbc.gridy = 0;
+            mainPanel.add(structureCheckBox, gbc);
+            
+            gbc.gridy = 1;
+            mainPanel.add(dataCheckBox, gbc);
+            
+            gbc.gridy = 2;
+            mainPanel.add(new JLabel("指定表（可选）:"), gbc);
+            
+            gbc.gridy = 3;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            mainPanel.add(tablesField, gbc);
+            
+            add(mainPanel, BorderLayout.CENTER);
+            
+            JPanel buttonPanel = new JPanel(new FlowLayout());
+            JButton okButton = new JButton("确定");
+            JButton cancelButton = new JButton("取消");
+            
+            okButton.addActionListener(e -> {
+                confirmed = true;
+                includeStructure = structureCheckBox.isSelected();
+                includeData = dataCheckBox.isSelected();
+                selectedTables = tablesField.getText().trim();
+                dispose();
+            });
+            
+            cancelButton.addActionListener(e -> dispose());
+            
+            buttonPanel.add(okButton);
+            buttonPanel.add(cancelButton);
+            add(buttonPanel, BorderLayout.SOUTH);
+            
+            pack();
+        }
+        
+        private void setupEventHandlers() {
+            // 确保至少选择一个选项
+            ActionListener checkboxListener = e -> {
+                if (!structureCheckBox.isSelected() && !dataCheckBox.isSelected()) {
+                    if (e.getSource() == structureCheckBox) {
+                        dataCheckBox.setSelected(true);
+                    } else {
+                        structureCheckBox.setSelected(true);
+                    }
+                }
+            };
+            
+            structureCheckBox.addActionListener(checkboxListener);
+            dataCheckBox.addActionListener(checkboxListener);
+        }
+        
+        public boolean isConfirmed() { return confirmed; }
+        public boolean isIncludeStructure() { return includeStructure; }
+        public boolean isIncludeData() { return includeData; }
+        public String getSelectedTables() { return selectedTables; }
+    }
     
     /**
      * 主方法
