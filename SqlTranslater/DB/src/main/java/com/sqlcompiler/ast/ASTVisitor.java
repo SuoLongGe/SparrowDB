@@ -38,4 +38,6 @@ public interface ASTVisitor<T> {
     T visit(GroupByClause node) throws CompilationException;
     T visit(HavingClause node) throws CompilationException;
     T visit(LimitClause node) throws CompilationException;
+    T visit(SelectListClause node) throws CompilationException;
+    T visit(FromClause node) throws CompilationException;
 }

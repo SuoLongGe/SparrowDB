@@ -436,6 +436,22 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
     }
     
     @Override
+    public Void visit(SelectListClause node) throws CompilationException {
+        for (Expression expr : node.getExpressions()) {
+            expr.accept(this);
+        }
+        return null;
+    }
+    
+    @Override
+    public Void visit(FromClause node) throws CompilationException {
+        for (TableReference tableRef : node.getTableReferences()) {
+            tableRef.accept(this);
+        }
+        return null;
+    }
+    
+    @Override
     public Void visit(CreateFunctionStatement node) throws CompilationException {
         // Function semantic validation could be added here
         return null;

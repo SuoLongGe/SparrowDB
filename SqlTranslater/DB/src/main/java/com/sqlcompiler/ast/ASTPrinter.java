@@ -448,6 +448,40 @@ public class ASTPrinter implements ASTVisitor<String> {
     }
     
     @Override
+    public String visit(SelectListClause node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SelectListClause {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("expressions: [\n");
+        increaseIndent();
+        for (Expression expr : node.getExpressions()) {
+            sb.append(getIndent()).append(expr.accept(this)).append(",\n");
+        }
+        decreaseIndent();
+        sb.append(getIndent()).append("]\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(FromClause node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("FromClause {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("tableReferences: [\n");
+        increaseIndent();
+        for (TableReference tableRef : node.getTableReferences()) {
+            sb.append(getIndent()).append(tableRef.accept(this)).append(",\n");
+        }
+        decreaseIndent();
+        sb.append(getIndent()).append("]\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
     public String visit(CreateFunctionStatement node) throws CompilationException {
         StringBuilder sb = new StringBuilder();
         sb.append("CreateFunctionStatement {\n");
