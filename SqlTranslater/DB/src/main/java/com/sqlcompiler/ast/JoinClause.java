@@ -15,6 +15,7 @@ public class JoinClause extends ASTNode {
     
     private final JoinType joinType;
     private final String tableName;
+    private final SelectStatement subquery;
     private final String alias;
     private final Expression condition;
     
@@ -23,6 +24,17 @@ public class JoinClause extends ASTNode {
         super(position);
         this.joinType = joinType;
         this.tableName = tableName;
+        this.subquery = null;
+        this.alias = alias;
+        this.condition = condition;
+    }
+    
+    public JoinClause(JoinType joinType, SelectStatement subquery, String alias, 
+                     Expression condition, Position position) {
+        super(position);
+        this.joinType = joinType;
+        this.tableName = null;
+        this.subquery = subquery;
         this.alias = alias;
         this.condition = condition;
     }
@@ -33,6 +45,14 @@ public class JoinClause extends ASTNode {
     
     public String getTableName() {
         return tableName;
+    }
+    
+    public SelectStatement getSubquery() {
+        return subquery;
+    }
+    
+    public boolean isSubquery() {
+        return subquery != null;
     }
     
     public String getAlias() {

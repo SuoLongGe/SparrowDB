@@ -494,7 +494,13 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
         JoinPlan.JoinType joinType = convertJoinType(joinClause.getJoinType());
         ExpressionPlan condition = convertExpression(joinClause.getCondition());
         
-        return new JoinPlan(joinType, joinClause.getTableName(), joinClause.getAlias(), condition);
+        if (joinClause.isSubquery()) {
+            // 对于子查询JOIN，我们需要先转换子查询为SelectPlan
+            SelectPlan subqueryPlan = (SelectPlan) joinClause.getSubquery().accept(this);
+            return new JoinPlan(joinType, subqueryPlan, joinClause.getAlias(), condition);
+        } else {
+            return new JoinPlan(joinType, joinClause.getTableName(), joinClause.getAlias(), condition);
+        }
     }
     
     /**

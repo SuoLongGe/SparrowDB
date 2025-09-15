@@ -78,6 +78,14 @@ public class ResultTabbedPane extends JPanel {
      */
     public void showQueryMessage(String sql, boolean compileSuccess, boolean executeSuccess, 
                                 double executionTime, String indexType) {
+        showQueryMessage(sql, compileSuccess, executeSuccess, executionTime, indexType, null);
+    }
+    
+    /**
+     * 显示查询类指令的消息信息（包含执行结果）
+     */
+    public void showQueryMessage(String sql, boolean compileSuccess, boolean executeSuccess, 
+                                double executionTime, String indexType, ExecutionResult result) {
         StringBuilder message = new StringBuilder();
         message.append("=== 执行信息 ===\n");
         message.append("SQL: ").append(sql).append("\n");
@@ -88,6 +96,21 @@ public class ResultTabbedPane extends JPanel {
             message.append("执行状态: ").append(executeSuccess ? "成功" : "失败").append("\n");
             if (executeSuccess) {
                 message.append(String.format("执行时间: %.2f ms\n", executionTime));
+                
+                // 显示子查询优化信息
+                if (result != null && result.getSubqueryRewriteInfo() != null && 
+                    !result.getSubqueryRewriteInfo().isEmpty()) {
+                    message.append("子查询优化: ").append(result.getSubqueryRewriteInfo()).append("\n");
+                    // 如果DatabaseEngine打印了改写后的SQL到ExecutionResult.message中，尝试解析并展示
+                    String originalMsg = result.getMessage();
+                    if (originalMsg != null && originalMsg.contains("改写后SQL:")) {
+                        String[] parts = originalMsg.split("改写后SQL:");
+                        String rewritten = parts[parts.length - 1].trim();
+                        if (!rewritten.isEmpty()) {
+                            message.append("改写后SQL: ").append(rewritten).append("\n");
+                        }
+                    }
+                }
             }
         }
         
