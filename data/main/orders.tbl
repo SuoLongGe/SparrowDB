@@ -1,0 +1,20 @@
+# Table Metadata
+TABLE_NAME=orders
+COLUMN_COUNT=8
+COLUMN=order_id:INT:0
+COLUMN=customer_id:INT:0
+COLUMN=product_id:INT:0
+COLUMN=quantity:INT:0
+COLUMN=order_date:DATE:0
+COLUMN=status:VARCHAR:20
+COLUMN=discount_rate:DECIMAL:3
+COLUMN=notes:TEXT:0
+# End Metadata
+
+RECORD:order_date=2025-03-01|quantity=1|notes=首次购买优惠|product_id=101|customer_id=1|order_id=1001|discount_rate=0.05|status=completed
+RECORD:order_date=2025-03-02|quantity=2|notes=|product_id=102|customer_id=2|order_id=1002|discount_rate=0.00|status=completed
+RECORD:order_date=2025-03-05|quantity=1|notes=VIP客户折扣|product_id=103|customer_id=1|order_id=1003|discount_rate=0.10|status=shipped
+RECORD:order_date=2025-03-08|quantity=1|notes=|product_id=104|customer_id=3|order_id=1004|discount_rate=0.00|status=completed
+RECORD:order_date=2025-03-10|quantity=1|notes=批量购买折扣|product_id=105|customer_id=3|order_id=1005|discount_rate=0.15|status=processing
+RECORD:order_date=2025-03-12|quantity=3|notes=团购订单|product_id=106|customer_id=5|order_id=1006|discount_rate=0.00|status=pending
+RECORD:order_date=2025-03-18|quantity=1|notes=清仓促销|product_id=102|customer_id=4|order_id=1008|discount_rate=0.20|status=completed

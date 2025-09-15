@@ -1,0 +1,12 @@
+# Table Metadata
+TABLE_NAME=newtable
+COLUMN_COUNT=5
+COLUMN=id:INT:0
+COLUMN=name:VARCHAR:50
+COLUMN=age:INT:0
+COLUMN=gender:CHAR:1
+COLUMN=class_id:INT:0
+# End Metadata
+
+RECORD:gender=F|class_id=2|name=李四|age=19
+RECORD:gender=M|class_id=1|name=王五|age=20

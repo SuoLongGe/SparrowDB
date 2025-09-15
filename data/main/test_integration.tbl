@@ -1,0 +1,7 @@
+# Table Metadata
+TABLE_NAME=test_integration
+COLUMN_COUNT=2
+COLUMN=id:INT:0
+COLUMN=name:VARCHAR:0
+# End Metadata
+

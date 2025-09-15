@@ -1,0 +1,15 @@
+# Table Metadata
+TABLE_NAME=customers
+COLUMN_COUNT=10
+COLUMN=customer_id:INT:100
+COLUMN=first_name:VARCHAR(50):100
+COLUMN=last_name:VARCHAR(50):100
+COLUMN=email:VARCHAR(100):100
+COLUMN=phone:VARCHAR(20):100
+COLUMN=city:VARCHAR(50):100
+COLUMN=registration_date:DATE:100
+COLUMN=total_spent:DECIMAL(10:100
+COLUMN=2):DEFAULT:100
+COLUMN=is_active:BOOLEAN:100
+# End Metadata
+

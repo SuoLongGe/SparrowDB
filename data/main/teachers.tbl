@@ -1,0 +1,15 @@
+# Table Metadata
+TABLE_NAME=teachers
+COLUMN_COUNT=5
+COLUMN=teacher_id:INT:0
+COLUMN=teacher_name:VARCHAR:50
+COLUMN=dept_id:INT:0
+COLUMN=title:VARCHAR:20
+COLUMN=salary:DECIMAL:10
+# End Metadata
+
+RECORD:teacher_name=陈教授|teacher_id=1001|dept_id=1|title=教授|salary=15000.00
+RECORD:teacher_name=李教授|teacher_id=1002|dept_id=1|title=副教授|salary=12000.00
+RECORD:teacher_name=王教授|teacher_id=1003|dept_id=2|title=讲师|salary=8000.00
+RECORD:teacher_name=刘教授|teacher_id=1004|dept_id=1|title=教授|salary=16000.00
+RECORD:teacher_name=赵教授|teacher_id=1005|dept_id=3|title=副教授|salary=11000.00

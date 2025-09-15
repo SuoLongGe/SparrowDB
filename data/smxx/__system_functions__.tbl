@@ -1,0 +1,1 @@
+RECORD:return_type=INT|create_time=1757940791439|signature=a:INT,b:INT|function_name=multiply1|is_permanent=true|body=RETURN a + b ;

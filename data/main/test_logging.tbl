@@ -1,0 +1,8 @@
+# Table Metadata
+TABLE_NAME=test_logging
+COLUMN_COUNT=3
+COLUMN=id:INT:0
+COLUMN=name:VARCHAR:50
+COLUMN=created_at:TIMESTAMP:0
+# End Metadata
+
