@@ -1828,6 +1828,15 @@ public class DatabaseGUI extends JFrame {
             statusLabel.setForeground(Color.RED);
         }
     }
+    
+    /**
+     * 显示分片管理器
+     */
+    private void showShardManager() {
+        ShardManagerDialog dialog = new ShardManagerDialog(this, databaseEngine);
+        dialog.setVisible(true);
+    }
+    
     /**
      * 主方法
      */
