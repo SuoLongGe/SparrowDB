@@ -68,4 +68,69 @@ public class SelectStatement extends Statement {
     public <T> T accept(ASTVisitor<T> visitor) throws com.sqlcompiler.exception.CompilationException {
         return visitor.visit(this);
     }
+    
+    /**
+     * 生成SQL字符串
+     */
+    @Override
+    public String toString() {
+        StringBuilder sql = new StringBuilder();
+        
+        sql.append("SELECT ");
+        
+        if (distinct) {
+            sql.append("DISTINCT ");
+        }
+        
+        // SELECT列表
+        if (selectList != null && !selectList.isEmpty()) {
+            for (int i = 0; i < selectList.size(); i++) {
+                if (i > 0) sql.append(", ");
+                Expression expr = selectList.get(i);
+                if (expr instanceof IdentifierExpression) {
+                    sql.append(((IdentifierExpression) expr).getName());
+                } else {
+                    sql.append(expr.toString());
+                }
+            }
+        } else {
+            sql.append("*");
+        }
+        
+        // FROM子句
+        if (fromClause != null && !fromClause.isEmpty()) {
+            sql.append(" FROM ");
+            for (int i = 0; i < fromClause.size(); i++) {
+                if (i > 0) sql.append(", ");
+                sql.append(fromClause.get(i).getTableName());
+            }
+        }
+        
+        // WHERE子句
+        if (whereClause != null) {
+            sql.append(" WHERE ").append(whereClause.toString());
+        }
+        
+        // GROUP BY子句
+        if (groupByClause != null) {
+            sql.append(" ").append(groupByClause.toString());
+        }
+        
+        // HAVING子句
+        if (havingClause != null) {
+            sql.append(" ").append(havingClause.toString());
+        }
+        
+        // ORDER BY子句
+        if (orderByClause != null) {
+            sql.append(" ").append(orderByClause.toString());
+        }
+        
+        // LIMIT子句
+        if (limitClause != null) {
+            sql.append(" ").append(limitClause.toString());
+        }
+        
+        return sql.toString();
+    }
 }
