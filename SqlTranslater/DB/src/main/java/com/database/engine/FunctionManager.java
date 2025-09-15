@@ -222,15 +222,17 @@ public class FunctionManager {
             List<Map<String, Object>> rows = storageAdapter.selectAll("__system_functions__");
             for (Map<String, Object> row : rows) {
                 String functionName = (String) row.get("function_name");
-                String parametersJson = (String) row.get("parameters");
+                String signature = (String) row.get("signature");
                 String returnType = (String) row.get("return_type");
-                String functionBody = (String) row.get("function_body");
+                String functionBody = (String) row.get("body");
                 
-                // 解析参数（简单的格式）
-                List<CreateFunctionStatement.FunctionParameter> parameters = parseParametersFromJson(parametersJson);
+                // 解析参数（从signature字段解析）
+                List<CreateFunctionStatement.FunctionParameter> parameters = parseParametersFromSignature(signature);
                 
                 UserDefinedFunction function = new UserDefinedFunction(functionName, parameters, returnType, functionBody);
                 functions.put(functionName.toLowerCase(), function);
+                
+                System.out.println("✅ 加载函数: " + functionName + " (参数: " + signature + ", 返回类型: " + returnType + ")");
             }
             
         } catch (Exception e) {
@@ -277,6 +279,33 @@ public class FunctionManager {
         } catch (Exception e) {
             throw new DatabaseException("删除函数失败: " + e.getMessage());
         }
+    }
+    
+    /**
+     * 从signature字符串解析参数
+     */
+    private List<CreateFunctionStatement.FunctionParameter> parseParametersFromSignature(String signature) {
+        List<CreateFunctionStatement.FunctionParameter> params = new ArrayList<>();
+        
+        if (signature == null || signature.trim().isEmpty()) {
+            return params;
+        }
+        
+        try {
+            // 解析signature格式，如 "INT,INT" 或 "VARCHAR(255),INT"
+            String[] paramTypes = signature.split(",");
+            for (int i = 0; i < paramTypes.length; i++) {
+                String paramType = paramTypes[i].trim();
+                String paramName = "param" + (i + 1); // 生成参数名
+                CreateFunctionStatement.FunctionParameter param = 
+                    new CreateFunctionStatement.FunctionParameter(paramName, paramType);
+                params.add(param);
+            }
+        } catch (Exception e) {
+            System.err.println("解析参数签名失败: " + signature + ", 错误: " + e.getMessage());
+        }
+        
+        return params;
     }
     
     /**
