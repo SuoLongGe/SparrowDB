@@ -40,6 +40,7 @@ public class DatabaseGUI extends JFrame {
     private JButton clearButton;
     private JButton catalogButton;
     private JButton importButton;
+    private JButton shardManagerButton;
     private JLabel statusLabel;
     
 
@@ -141,6 +142,12 @@ public class DatabaseGUI extends JFrame {
         importButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
         importButton.setPreferredSize(new Dimension(120, 30));
         importButton.setToolTipText("从文件导入并执行SQL语句");
+        
+        // 分片管理按钮
+        shardManagerButton = new JButton("分片管理");
+        shardManagerButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        shardManagerButton.setPreferredSize(new Dimension(100, 30));
+        shardManagerButton.setToolTipText("管理数据库分片");
 
         // 索引选择组件
         String[] indexTypes = {"智能选择", "B+树索引", "哈希索引", "线性查找"};
@@ -278,6 +285,7 @@ public class DatabaseGUI extends JFrame {
         buttonPanel.add(clearButton);
         buttonPanel.add(catalogButton);
         buttonPanel.add(importButton);
+        buttonPanel.add(shardManagerButton);
         
         // 添加索引选择组件
         JLabel indexLabel = new JLabel("索引方式:");
@@ -450,6 +458,14 @@ public class DatabaseGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 importSQLFile();
+            }
+        });
+        
+        // 分片管理按钮事件
+        shardManagerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showShardManager();
             }
         });
         
@@ -1418,6 +1434,15 @@ public class DatabaseGUI extends JFrame {
             statusLabel.setForeground(Color.RED);
         }
     }
+    
+    /**
+     * 显示分片管理器
+     */
+    private void showShardManager() {
+        ShardManagerDialog dialog = new ShardManagerDialog(this, databaseEngine);
+        dialog.setVisible(true);
+    }
+    
     /**
      * 主方法
      */

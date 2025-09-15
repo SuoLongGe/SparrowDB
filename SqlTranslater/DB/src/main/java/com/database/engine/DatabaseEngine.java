@@ -5,6 +5,7 @@ import com.sqlcompiler.catalog.*;
 import com.sqlcompiler.*;
 import com.database.logging.*;
 import com.database.io.SQLFileManager;
+import com.database.engine.sharding.*;
 import java.util.*;
 import java.util.Arrays;
 
@@ -21,8 +22,10 @@ public class DatabaseEngine {
     private final SQLCompiler sqlCompiler;
     private final LogManager logManager;
     private final SQLFileManager sqlFileManager;
+    private final ShardManager shardManager;
     private final String databaseName;
     private final String dataDirectory;
+    private final String currentNodeId;
     private boolean initialized = false;
     
     // 索引类型设置
@@ -34,6 +37,7 @@ public class DatabaseEngine {
     public DatabaseEngine(String databaseName, String dataDirectory) {
         this.databaseName = databaseName;
         this.dataDirectory = dataDirectory;
+        this.currentNodeId = "node_" + System.currentTimeMillis();
         
         // 初始化存储引擎（整合Java存储系统）
         this.storageEngine = new StorageEngine(dataDirectory);
@@ -69,7 +73,10 @@ public class DatabaseEngine {
         // 初始化SQL文件管理器
         this.sqlFileManager = new SQLFileManager(this, catalogManager);
         
-        System.out.println("数据库引擎 '" + databaseName + "' 已创建，数据目录: " + dataDirectory);
+        // 初始化分片管理器
+        this.shardManager = new ShardManager(dataDirectory, currentNodeId, storageAdapter, catalogManager);
+        
+        System.out.println("数据库引擎 '" + databaseName + "' 已创建，数据目录: " + dataDirectory + "，节点ID: " + currentNodeId);
     }
     
     /**
@@ -191,8 +198,12 @@ public class DatabaseEngine {
             // 执行计划
             ExecutionResult result;
 
+            // 特殊处理分片相关的SQL命令
+            if (isShardingCommand(sql)) {
+                result = executeShardingCommand(sql);
+            }
             // 特殊处理函数相关的执行计划
-            if (plan instanceof CreateFunctionPlan) {
+            else if (plan instanceof CreateFunctionPlan) {
                 try {
                     result = ((CreateFunctionPlan) plan).execute(this);
                 } catch (Exception e) {
@@ -980,5 +991,241 @@ public class DatabaseEngine {
      */
     public StorageAdapter getStorageAdapter() {
         return executor.getStorageAdapter();
+    }
+    
+    /**
+     * 获取分片管理器
+     * @return 分片管理器实例
+     */
+    public ShardManager getShardManager() {
+        return shardManager;
+    }
+    
+    /**
+     * 获取当前节点ID
+     * @return 当前节点ID
+     */
+    public String getCurrentNodeId() {
+        return currentNodeId;
+    }
+    
+    /**
+     * 检查是否是分片相关的SQL命令
+     */
+    private boolean isShardingCommand(String sql) {
+        String upperSql = sql.trim().toUpperCase();
+        return upperSql.startsWith("CREATE SHARD") ||
+               upperSql.startsWith("DROP SHARD") ||
+               upperSql.startsWith("SHOW SHARDS") ||
+               upperSql.startsWith("SHARD STATS");
+    }
+    
+    /**
+     * 执行分片相关的SQL命令
+     */
+    private ExecutionResult executeShardingCommand(String sql) {
+        String upperSql = sql.trim().toUpperCase();
+        
+        try {
+            if (upperSql.startsWith("CREATE SHARD")) {
+                return executeCreateShard(sql);
+            } else if (upperSql.startsWith("DROP SHARD")) {
+                return executeDropShard(sql);
+            } else if (upperSql.startsWith("SHOW SHARDS")) {
+                return executeShowShards(sql);
+            } else if (upperSql.startsWith("SHARD STATS")) {
+                return executeShardStats(sql);
+            } else {
+                return new ExecutionResult(false, "不支持的分片命令: " + sql, null);
+            }
+        } catch (Exception e) {
+            return new ExecutionResult(false, "执行分片命令失败: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
+     * 执行CREATE SHARD命令
+     * 格式: CREATE SHARD table_name BY shard_key_column USING strategy (shard_count)
+     * 示例: CREATE SHARD users BY id USING HASH (4)
+     * 示例: CREATE SHARD orders BY order_date USING RANGE (3)
+     */
+    private ExecutionResult executeCreateShard(String sql) {
+        try {
+            // 简单的SQL解析
+            String[] parts = sql.trim().split("\\s+");
+            if (parts.length < 8) {
+                return new ExecutionResult(false, "CREATE SHARD语法错误，格式: CREATE SHARD table_name BY shard_key_column USING strategy (shard_count)", null);
+            }
+            
+            String tableName = parts[2].toLowerCase();
+            String shardKeyColumn = parts[4].toLowerCase();
+            String strategyName = parts[6].toUpperCase();
+            
+            // 解析分片数量
+            String shardCountStr = parts[7].replace("(", "").replace(")", "");
+            int shardCount = Integer.parseInt(shardCountStr);
+            
+            // 创建分片策略
+            ShardStrategy strategy;
+            if ("HASH".equals(strategyName)) {
+                strategy = new HashShardStrategy();
+            } else if ("RANGE".equals(strategyName)) {
+                strategy = new RangeShardStrategy();
+            } else {
+                return new ExecutionResult(false, "不支持的分片策略: " + strategyName + "，支持: HASH, RANGE", null);
+            }
+            
+            // 创建分片
+            boolean success = shardManager.createTableShards(tableName, shardKeyColumn, strategy, shardCount);
+            
+            if (success) {
+                String message = String.format("成功为表 %s 创建了 %d 个 %s 分片，分片键: %s", 
+                                             tableName, shardCount, strategyName, shardKeyColumn);
+                return new ExecutionResult(true, message, null);
+            } else {
+                return new ExecutionResult(false, "创建分片失败", null);
+            }
+            
+        } catch (Exception e) {
+            return new ExecutionResult(false, "解析CREATE SHARD命令失败: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
+     * 执行DROP SHARD命令
+     * 格式: DROP SHARD table_name
+     */
+    private ExecutionResult executeDropShard(String sql) {
+        try {
+            String[] parts = sql.trim().split("\\s+");
+            if (parts.length < 3) {
+                return new ExecutionResult(false, "DROP SHARD语法错误，格式: DROP SHARD table_name", null);
+            }
+            
+            String tableName = parts[2].toLowerCase();
+            boolean success = shardManager.dropTableShards(tableName);
+            
+            if (success) {
+                return new ExecutionResult(true, "成功删除表 " + tableName + " 的分片", null);
+            } else {
+                return new ExecutionResult(false, "删除分片失败，表 " + tableName + " 可能没有分片", null);
+            }
+            
+        } catch (Exception e) {
+            return new ExecutionResult(false, "解析DROP SHARD命令失败: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
+     * 执行SHOW SHARDS命令
+     * 格式: SHOW SHARDS [table_name]
+     */
+    private ExecutionResult executeShowShards(String sql) {
+        try {
+            String[] parts = sql.trim().split("\\s+");
+            String tableName = null;
+            
+            if (parts.length > 2) {
+                tableName = parts[2].toLowerCase();
+            }
+            
+            List<Map<String, Object>> resultData = new ArrayList<>();
+            
+            if (tableName != null) {
+                // 显示指定表的分片信息
+                if (shardManager.isTableSharded(tableName)) {
+                    List<ShardInfo> shards = shardManager.getTableShards(tableName);
+                    ShardMetadata metadata = shardManager.getShardMetadata(tableName);
+                    
+                    for (ShardInfo shard : shards) {
+                        Map<String, Object> row = new HashMap<>();
+                        row.put("table_name", shard.getTableName());
+                        row.put("shard_id", shard.getShardId());
+                        row.put("node_id", shard.getNodeId());
+                        row.put("shard_type", shard.getShardType().toString());
+                        row.put("is_active", shard.isActive());
+                        row.put("record_count", shard.getRecordCount());
+                        row.put("data_directory", shard.getDataDirectory());
+                        row.put("shard_key_column", metadata.getShardKeyColumn());
+                        row.put("strategy", metadata.getStrategy().getStrategyName());
+                        resultData.add(row);
+                    }
+                } else {
+                    return new ExecutionResult(false, "表 " + tableName + " 没有分片", null);
+                }
+            } else {
+                // 显示所有分片信息
+                for (String tName : catalogManager.getAllTableNames()) {
+                    if (shardManager.isTableSharded(tName)) {
+                        List<ShardInfo> shards = shardManager.getTableShards(tName);
+                        ShardMetadata metadata = shardManager.getShardMetadata(tName);
+                        
+                        for (ShardInfo shard : shards) {
+                            Map<String, Object> row = new HashMap<>();
+                            row.put("table_name", shard.getTableName());
+                            row.put("shard_id", shard.getShardId());
+                            row.put("node_id", shard.getNodeId());
+                            row.put("shard_type", shard.getShardType().toString());
+                            row.put("is_active", shard.isActive());
+                            row.put("record_count", shard.getRecordCount());
+                            row.put("data_directory", shard.getDataDirectory());
+                            row.put("shard_key_column", metadata.getShardKeyColumn());
+                            row.put("strategy", metadata.getStrategy().getStrategyName());
+                            resultData.add(row);
+                        }
+                    }
+                }
+            }
+            
+            return new ExecutionResult(true, "查询分片信息成功", resultData);
+            
+        } catch (Exception e) {
+            return new ExecutionResult(false, "执行SHOW SHARDS命令失败: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
+     * 执行SHARD STATS命令
+     * 格式: SHARD STATS table_name
+     */
+    private ExecutionResult executeShardStats(String sql) {
+        try {
+            String[] parts = sql.trim().split("\\s+");
+            if (parts.length < 3) {
+                return new ExecutionResult(false, "SHARD STATS语法错误，格式: SHARD STATS table_name", null);
+            }
+            
+            String tableName = parts[2].toLowerCase();
+            
+            if (!shardManager.isTableSharded(tableName)) {
+                return new ExecutionResult(false, "表 " + tableName + " 没有分片", null);
+            }
+            
+            Map<String, Object> shardStats = shardManager.getShardStatistics(tableName);
+            Map<String, Object> loadBalanceInfo = shardManager.getLoadBalanceInfo(tableName);
+            ShardMetadata metadata = shardManager.getShardMetadata(tableName);
+            
+            List<Map<String, Object>> resultData = new ArrayList<>();
+            
+            // 基本统计信息
+            Map<String, Object> basicStats = new HashMap<>();
+            basicStats.put("table_name", tableName);
+            basicStats.put("shard_key_column", metadata.getShardKeyColumn());
+            basicStats.put("strategy", metadata.getStrategy().getStrategyName());
+            basicStats.put("total_shards", shardStats.get("totalShards"));
+            basicStats.put("active_shards", shardStats.get("activeShards"));
+            basicStats.put("total_records", shardStats.get("totalRecords"));
+            basicStats.put("average_records_per_shard", shardStats.get("averageRecordsPerShard"));
+            basicStats.put("is_balanced", loadBalanceInfo.get("balanced"));
+            basicStats.put("coefficient_of_variation", loadBalanceInfo.get("coefficientOfVariation"));
+            basicStats.put("max_records", loadBalanceInfo.get("maxRecords"));
+            basicStats.put("min_records", loadBalanceInfo.get("minRecords"));
+            resultData.add(basicStats);
+            
+            return new ExecutionResult(true, "查询分片统计信息成功", resultData);
+            
+        } catch (Exception e) {
+            return new ExecutionResult(false, "执行SHARD STATS命令失败: " + e.getMessage(), null);
+        }
     }
 }
