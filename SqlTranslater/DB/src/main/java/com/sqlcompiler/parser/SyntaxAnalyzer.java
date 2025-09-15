@@ -106,7 +106,7 @@ public class SyntaxAnalyzer {
                 throw new SyntaxException(
                     String.format("不支持的语句类型 '%s'", token.getValue()),
                     token.getPosition(),
-                    "CREATE TABLE/VIEW/FUNCTION, INSERT INTO, SELECT, UPDATE, DELETE FROM, DROP VIEW/FUNCTION, CALL"
+                    "CREATE TABLE/VIEW/FUNCTION, INSERT INTO, SELECT, UPDATE, DELETE FROM, DROP TABLE/VIEW/FUNCTION, CALL"
                 );
         }
     }
@@ -144,7 +144,7 @@ public class SyntaxAnalyzer {
     }
 
     /**
-     * 解析DROP语句 (VIEW)
+     * 解析DROP语句 (TABLE, VIEW, FUNCTION)
      */
     private Statement parseDropStatement() throws SyntaxException {
         Position startPos = currentToken().getPosition();
@@ -153,15 +153,17 @@ public class SyntaxAnalyzer {
         expect(TokenType.DROP);
 
         Token nextToken = currentToken();
-        if (nextToken.getType() == TokenType.VIEW) {
+        if (nextToken.getType() == TokenType.TABLE) {
+            return parseDropTableStatement();
+        } else if (nextToken.getType() == TokenType.VIEW) {
             return parseDropViewStatement();
         } else if (nextToken.getType() == TokenType.FUNCTION) {
             return parseDropFunctionStatement();
         } else {
             throw new SyntaxException(
-                String.format("DROP后面应该是VIEW或FUNCTION，而不是 '%s'", nextToken.getValue()),
+                String.format("DROP后面应该是TABLE、VIEW或FUNCTION，而不是 '%s'", nextToken.getValue()),
                 nextToken.getPosition(),
-                "VIEW 或 FUNCTION"
+                "TABLE、VIEW 或 FUNCTION"
             );
         }
     }
@@ -923,8 +925,7 @@ public class SyntaxAnalyzer {
     private DropTableStatement parseDropTableStatement() throws SyntaxException {
         Position startPos = currentToken().getPosition();
 
-        // DROP TABLE
-        expect(TokenType.DROP);
+        // TABLE (DROP已经在parseDropStatement中消费了)
         expect(TokenType.TABLE);
 
         // 可选的IF EXISTS

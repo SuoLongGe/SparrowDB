@@ -52,7 +52,6 @@ public class DatabaseGUI extends JFrame {
     
     // 索引选择组件
     private JComboBox<String> indexTypeComboBox;
-    private JLabel executionTimeLabel;
     
     // 存储格式选择组件
     private JComboBox<String> storageFormatComboBox;
@@ -141,11 +140,6 @@ public class DatabaseGUI extends JFrame {
         indexTypeComboBox = new JComboBox<>(indexTypes);
         indexTypeComboBox.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
         indexTypeComboBox.setSelectedIndex(0); // 默认选择智能选择
-        
-        // 执行时间标签
-        executionTimeLabel = new JLabel("执行时间: --");
-        executionTimeLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        executionTimeLabel.setForeground(new Color(100, 100, 100));
         
         // 存储格式选择组件
         String[] storageFormats = {"行式存储", "列式存储"};
@@ -256,23 +250,6 @@ public class DatabaseGUI extends JFrame {
         buttonPanel.add(storageLabel);
         buttonPanel.add(storageFormatComboBox);
         
-        // 添加执行时间标签
-        buttonPanel.add(executionTimeLabel);
-        
-        // 添加语法高亮开关按钮
-        JCheckBox highlightCheckBox = new JCheckBox("语法高亮", true);
-        highlightCheckBox.addActionListener(e -> {
-            if (syntaxHighlighter != null) {
-                syntaxHighlighter.setSyntaxHighlightingEnabled(highlightCheckBox.isSelected());
-            }
-        });
-        buttonPanel.add(highlightCheckBox);
-        
-        // 添加快捷键提示
-        JLabel shortcutLabel = new JLabel("F5:执行选中 | F9:执行全部 | Ctrl+Enter:执行全部");
-        shortcutLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
-        shortcutLabel.setForeground(new Color(100, 100, 100));
-        buttonPanel.add(shortcutLabel);
         
         buttonPanel.add(statusLabel);
         topPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -648,8 +625,6 @@ public class DatabaseGUI extends JFrame {
                     // 计算执行时间（毫秒）
                     double executionTimeMs = (endTime - startTime) / 1_000_000.0;
                     
-                    // 更新执行时间标签
-                    executionTimeLabel.setText(String.format("执行时间: %.2f ms", executionTimeMs));
                     
                     // 判断是否为查询类指令
                     boolean isQuery = isQueryStatement(sql);
@@ -677,7 +652,6 @@ public class DatabaseGUI extends JFrame {
                 } catch (Exception e) {
                     resultTabbedPane.showQueryMessage(sql, true, false, 0, "");
                     resultTabbedPane.showError("执行失败: " + e.getMessage() + "\n注意: 数据库引擎功能尚未完全实现");
-                    executionTimeLabel.setText("执行时间: 错误");
                 }
                 
                 statusLabel.setText("执行成功");
@@ -865,7 +839,6 @@ public class DatabaseGUI extends JFrame {
         astArea.setText("");
         astVisualizer.setAST(null);
 
-        executionTimeLabel.setText("执行时间: --");
         statusLabel.setText("已清空");
         statusLabel.setForeground(Color.BLUE);
     }
