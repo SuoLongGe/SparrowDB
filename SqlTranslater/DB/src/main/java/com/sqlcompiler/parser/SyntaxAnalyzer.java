@@ -102,11 +102,15 @@ public class SyntaxAnalyzer {
                 return parseDropStatement();
             case CALL:
                 return parseCallStatement();
+            case SHOW:
+                return parseShowStatement();
+            case SHARD:
+                return parseShardStatement();
             default:
                 throw new SyntaxException(
                     String.format("不支持的语句类型 '%s'", token.getValue()),
                     token.getPosition(),
-                    "CREATE TABLE/VIEW/FUNCTION, INSERT INTO, SELECT, UPDATE, DELETE FROM, DROP TABLE/VIEW/FUNCTION, CALL"
+                    "CREATE TABLE/VIEW/FUNCTION/SHARD, INSERT INTO, SELECT, UPDATE, DELETE FROM, DROP TABLE/VIEW/FUNCTION/SHARD, CALL, SHOW SHARDS, SHARD STATS"
                 );
         }
     }
@@ -134,11 +138,13 @@ public class SyntaxAnalyzer {
             nextToken(); // 消费 PERMANENT
             // 不需要 expect(TokenType.FUNCTION)，因为 parseCreateFunctionStatement 会处理
             return parseCreateFunctionStatement(true); // 持久化函数
+        } else if (nextToken.getType() == TokenType.SHARD) {
+            return parseCreateShardStatement();
         } else {
             throw new SyntaxException(
-                String.format("CREATE后面应该是TABLE、VIEW、FUNCTION或PERMANENT FUNCTION，而不是 '%s'", nextToken.getValue()),
+                String.format("CREATE后面应该是TABLE、VIEW、FUNCTION、PERMANENT FUNCTION或SHARD，而不是 '%s'", nextToken.getValue()),
                 nextToken.getPosition(),
-                "TABLE、VIEW、FUNCTION 或 PERMANENT FUNCTION"
+                "TABLE、VIEW、FUNCTION、PERMANENT FUNCTION 或 SHARD"
                 );
         }
     }
@@ -159,12 +165,14 @@ public class SyntaxAnalyzer {
             return parseDropViewStatement();
         } else if (nextToken.getType() == TokenType.FUNCTION) {
             return parseDropFunctionStatement();
+        } else if (nextToken.getType() == TokenType.SHARD) {
+            return parseDropShardStatement();
         } else {
             throw new SyntaxException(
-                String.format("DROP后面应该是TABLE、VIEW或FUNCTION，而不是 '%s'", nextToken.getValue()),
+                String.format("DROP后面应该是TABLE、VIEW、FUNCTION或SHARD，而不是 '%s'", nextToken.getValue()),
                 nextToken.getPosition(),
-                "TABLE、VIEW 或 FUNCTION"
-            );
+                "TABLE、VIEW、FUNCTION 或 SHARD"
+                );
         }
     }
 
@@ -1446,7 +1454,9 @@ public class SyntaxAnalyzer {
                type == TokenType.DAY || type == TokenType.HOUR ||
                type == TokenType.MINUTE || type == TokenType.SECOND ||
                type == TokenType.DATE_ADD || type == TokenType.DATE_SUB ||
-               type == TokenType.DATEDIFF;
+               type == TokenType.DATEDIFF ||
+               // 分片策略关键字
+               type == TokenType.HASH || type == TokenType.RANGE;
     }
     
     /**
@@ -1644,5 +1654,140 @@ public class SyntaxAnalyzer {
         }
 
         return bodyBuilder.toString().trim();
+    }
+    
+    /**
+     * 解析CREATE SHARD语句
+     * 格式: CREATE SHARD table_name BY shard_key_column USING strategy (shard_count)
+     */
+    private Statement parseCreateShardStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+        
+        // SHARD (CREATE已经在parseCreateStatement中消费了)
+        expect(TokenType.SHARD);
+        
+        // table_name
+        String tableName = expectIdentifier();
+        
+        // BY
+        expect(TokenType.BY);
+        
+        // shard_key_column
+        String shardKeyColumn = expectIdentifier();
+        
+        // USING
+        expect(TokenType.USING);
+        
+        // strategy (HASH 或 RANGE)
+        String strategy = expectIdentifier();
+        if (!"HASH".equalsIgnoreCase(strategy) && !"RANGE".equalsIgnoreCase(strategy)) {
+            throw new SyntaxException(
+                String.format("不支持的分片策略 '%s'，支持: HASH, RANGE", strategy),
+                currentToken().getPosition(),
+                "HASH 或 RANGE"
+            );
+        }
+        
+        // (shard_count)
+        expect(TokenType.LEFT_PAREN);
+        int shardCount = Integer.parseInt(expectNumber());
+        expect(TokenType.RIGHT_PAREN);
+        
+        return new CreateShardStatement(tableName, shardKeyColumn, strategy.toUpperCase(), shardCount, startPos);
+    }
+    
+    /**
+     * 解析DROP SHARD语句
+     * 格式: DROP SHARD table_name
+     */
+    private Statement parseDropShardStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+        
+        // SHARD (DROP已经在parseDropStatement中消费了)
+        expect(TokenType.SHARD);
+        
+        // table_name
+        String tableName = expectIdentifier();
+        
+        return new DropShardStatement(tableName, startPos);
+    }
+    
+    /**
+     * 解析SHOW语句
+     * 目前支持: SHOW SHARDS [table_name]
+     */
+    private Statement parseShowStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+        
+        // SHOW
+        expect(TokenType.SHOW);
+        
+        Token nextToken = currentToken();
+        if (nextToken.getType() == TokenType.SHARDS) {
+            return parseShowShardsStatement();
+        } else {
+            throw new SyntaxException(
+                String.format("SHOW后面应该是SHARDS，而不是 '%s'", nextToken.getValue()),
+                nextToken.getPosition(),
+                "SHARDS"
+            );
+        }
+    }
+    
+    /**
+     * 解析SHOW SHARDS语句
+     * 格式: SHOW SHARDS [table_name]
+     */
+    private Statement parseShowShardsStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+        
+        // SHARDS (SHOW已经在parseShowStatement中消费了)
+        expect(TokenType.SHARDS);
+        
+        // 可选的table_name
+        String tableName = null;
+        if (currentToken().getType() == TokenType.IDENTIFIER) {
+            tableName = expectIdentifier();
+        }
+        
+        return new ShowShardsStatement(tableName, startPos);
+    }
+    
+    /**
+     * 解析SHARD语句
+     * 目前支持: SHARD STATS table_name
+     */
+    private Statement parseShardStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+        
+        // SHARD
+        expect(TokenType.SHARD);
+        
+        Token nextToken = currentToken();
+        if (nextToken.getType() == TokenType.STATS) {
+            return parseShardStatsStatement();
+        } else {
+            throw new SyntaxException(
+                String.format("SHARD后面应该是STATS，而不是 '%s'", nextToken.getValue()),
+                nextToken.getPosition(),
+                "STATS"
+            );
+        }
+    }
+    
+    /**
+     * 解析SHARD STATS语句
+     * 格式: SHARD STATS table_name
+     */
+    private Statement parseShardStatsStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+        
+        // STATS (SHARD已经在parseShardStatement中消费了)
+        expect(TokenType.STATS);
+        
+        // table_name
+        String tableName = expectIdentifier();
+        
+        return new ShardStatsStatement(tableName, startPos);
     }
 }

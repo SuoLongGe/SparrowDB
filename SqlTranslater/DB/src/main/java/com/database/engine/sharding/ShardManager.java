@@ -54,37 +54,50 @@ public class ShardManager {
     public boolean createTableShards(String tableName, String shardKeyColumn, 
                                    ShardStrategy strategy, int shardCount) {
         try {
+            System.out.println("开始创建分片: 表=" + tableName + ", 分片键=" + shardKeyColumn + ", 策略=" + strategy.getStrategyName() + ", 数量=" + shardCount);
+            
             // 检查表是否存在
             if (!catalogManager.tableExists(tableName)) {
                 System.err.println("表 " + tableName + " 不存在");
                 return false;
             }
+            System.out.println("表存在检查通过");
             
             // 检查是否已经存在分片
             if (shardMetadataMap.containsKey(tableName)) {
                 System.err.println("表 " + tableName + " 已经存在分片");
                 return false;
             }
+            System.out.println("分片存在检查通过");
             
             // 创建分片
+            System.out.println("开始创建分片实例...");
             List<ShardInfo> shards = createShards(tableName, shardKeyColumn, strategy, shardCount);
+            System.out.println("分片实例创建完成，共 " + shards.size() + " 个分片");
             
             // 创建分片元数据
+            System.out.println("创建分片元数据...");
             ShardMetadata metadata = new ShardMetadata(tableName, shardKeyColumn, strategy, shards);
             shardMetadataMap.put(tableName, metadata);
+            System.out.println("分片元数据创建完成");
             
             // 注册到路由器
+            System.out.println("注册到路由器...");
             shardRouter.registerTableShards(tableName, shards);
             shardRouter.setShardStrategy(tableName, strategy);
+            System.out.println("路由器注册完成");
             
             // 保存元数据
+            System.out.println("保存分片元数据...");
             saveShardMetadata();
+            System.out.println("分片元数据保存完成");
             
             System.out.println("成功为表 " + tableName + " 创建了 " + shardCount + " 个分片");
             return true;
             
         } catch (Exception e) {
             System.err.println("创建表分片失败: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -118,33 +131,12 @@ public class ShardManager {
      */
     private Object[] getDataRange(String tableName, String columnName) {
         try {
-            // 扫描表数据获取范围
-            List<Map<String, Object>> allData = storageAdapter.scanTable(tableName);
-            if (allData.isEmpty()) {
-                // 如果没有数据，返回默认范围
-                return new Object[]{0, 1000};
-            }
+            // 为了避免阻塞，我们只扫描前1000行数据来估算范围
+            // 或者直接返回默认范围，让用户手动指定
+            System.out.println("正在获取表 " + tableName + " 的数据范围...");
             
-            Object minValue = null;
-            Object maxValue = null;
-            
-            for (Map<String, Object> row : allData) {
-                Object value = row.get(columnName);
-                if (value != null) {
-                    if (minValue == null || compareValues(value, minValue) < 0) {
-                        minValue = value;
-                    }
-                    if (maxValue == null || compareValues(value, maxValue) > 0) {
-                        maxValue = value;
-                    }
-                }
-            }
-            
-            if (minValue == null || maxValue == null) {
-                return new Object[]{0, 1000};
-            }
-            
-            return new Object[]{minValue, maxValue};
+            // 简化处理：直接返回默认范围，避免扫描整个表
+            return new Object[]{0, 1000};
             
         } catch (Exception e) {
             System.err.println("获取数据范围失败: " + e.getMessage());

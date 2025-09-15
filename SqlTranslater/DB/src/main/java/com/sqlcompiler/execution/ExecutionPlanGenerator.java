@@ -563,4 +563,24 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
         // 如果找不到匹配的表，返回原始列名
         return columnName;
     }
+    
+    @Override
+    public ExecutionPlan visit(CreateShardStatement node) throws CompilationException {
+        return new CreateShardPlan(node);
+    }
+    
+    @Override
+    public ExecutionPlan visit(DropShardStatement node) throws CompilationException {
+        return new DropShardPlan(node);
+    }
+    
+    @Override
+    public ExecutionPlan visit(ShowShardsStatement node) throws CompilationException {
+        return new ShowShardsPlan(node);
+    }
+    
+    @Override
+    public ExecutionPlan visit(ShardStatsStatement node) throws CompilationException {
+        return new ShardStatsPlan(node);
+    }
 }

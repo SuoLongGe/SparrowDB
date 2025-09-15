@@ -40,4 +40,8 @@ public interface ASTVisitor<T> {
     T visit(LimitClause node) throws CompilationException;
     T visit(SelectListClause node) throws CompilationException;
     T visit(FromClause node) throws CompilationException;
+    T visit(CreateShardStatement node) throws CompilationException;
+    T visit(DropShardStatement node) throws CompilationException;
+    T visit(ShowShardsStatement node) throws CompilationException;
+    T visit(ShardStatsStatement node) throws CompilationException;
 }
