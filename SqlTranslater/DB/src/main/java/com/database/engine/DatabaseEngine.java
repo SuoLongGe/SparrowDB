@@ -4,6 +4,7 @@ import com.sqlcompiler.execution.*;
 import com.sqlcompiler.catalog.*;
 import com.sqlcompiler.*;
 import com.database.logging.*;
+import com.database.io.SQLFileManager;
 import java.util.*;
 import java.util.Arrays;
 
@@ -19,6 +20,7 @@ public class DatabaseEngine {
     private final Executor executor;
     private final SQLCompiler sqlCompiler;
     private final LogManager logManager;
+    private final SQLFileManager sqlFileManager;
     private final String databaseName;
     private final String dataDirectory;
     private boolean initialized = false;
@@ -63,6 +65,9 @@ public class DatabaseEngine {
         } catch (Exception e) {
             throw new RuntimeException("初始化日志管理器失败: " + e.getMessage(), e);
         }
+        
+        // 初始化SQL文件管理器
+        this.sqlFileManager = new SQLFileManager(this, catalogManager);
         
         System.out.println("数据库引擎 '" + databaseName + "' 已创建，数据目录: " + dataDirectory);
     }
@@ -895,5 +900,85 @@ public class DatabaseEngine {
         } catch (Exception e) {
             return new ExecutionResult(false, "批量执行时发生错误: " + e.getMessage(), null);
         }
+    }
+    
+    // ========== SQL文件管理功能 ==========
+    
+    /**
+     * 导入并执行SQL文件
+     * @param filePath SQL文件路径
+     * @return 执行结果
+     */
+    public ExecutionResult importSQLFile(String filePath) {
+        return sqlFileManager.importAndExecuteSQLFile(filePath);
+    }
+    
+    /**
+     * 导入并执行SQL文件
+     * @param filePath SQL文件路径
+     * @param continueOnError 是否在遇到错误时继续执行
+     * @return 执行结果
+     */
+    public ExecutionResult importSQLFile(String filePath, boolean continueOnError) {
+        return sqlFileManager.importAndExecuteSQLFile(filePath, continueOnError);
+    }
+    
+    /**
+     * 导出数据库为SQL文件
+     * @param outputPath 输出文件路径
+     * @return 执行结果
+     */
+    public ExecutionResult exportDatabaseToSQL(String outputPath) {
+        return sqlFileManager.exportDatabaseToSQL(outputPath);
+    }
+    
+    /**
+     * 导出数据库为SQL文件
+     * @param outputPath 输出文件路径
+     * @param tableNames 要导出的表名列表，null表示导出所有表
+     * @param includeStructure 是否包含表结构
+     * @param includeData 是否包含数据
+     * @return 执行结果
+     */
+    public ExecutionResult exportDatabaseToSQL(String outputPath, List<String> tableNames, 
+                                              boolean includeStructure, boolean includeData) {
+        return sqlFileManager.exportDatabaseToSQL(outputPath, tableNames, includeStructure, includeData);
+    }
+    
+    /**
+     * 导出单个表为SQL文件
+     * @param tableName 表名
+     * @param outputPath 输出文件路径
+     * @return 执行结果
+     */
+    public ExecutionResult exportTableToSQL(String tableName, String outputPath) {
+        return sqlFileManager.exportTableToSQL(tableName, outputPath);
+    }
+    
+    /**
+     * 批量导入SQL文件目录
+     * @param directoryPath 目录路径
+     * @param filePattern 文件名模式（如 "*.sql"）
+     * @param continueOnError 是否在遇到错误时继续
+     * @return 执行结果
+     */
+    public ExecutionResult importSQLDirectory(String directoryPath, String filePattern, boolean continueOnError) {
+        return sqlFileManager.importSQLDirectory(directoryPath, filePattern, continueOnError);
+    }
+    
+    /**
+     * 获取SQL文件管理器
+     * @return SQL文件管理器实例
+     */
+    public SQLFileManager getSQLFileManager() {
+        return sqlFileManager;
+    }
+    
+    /**
+     * 获取存储适配器
+     * @return 存储适配器实例
+     */
+    public StorageAdapter getStorageAdapter() {
+        return executor.getStorageAdapter();
     }
 }
