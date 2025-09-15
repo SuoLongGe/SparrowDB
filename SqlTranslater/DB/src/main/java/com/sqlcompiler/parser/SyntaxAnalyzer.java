@@ -718,8 +718,18 @@ public class SyntaxAnalyzer {
         
         expect(TokenType.JOIN);
         
-        String tableName = expectIdentifier();
+        String tableName = null;
+        SelectStatement subquery = null;
         String alias = null;
+        
+        // 检查是否为子查询
+        if (currentToken().getType() == TokenType.LEFT_PAREN) {
+            nextToken(); // 消费 '('
+            subquery = parseSubquery();
+            expect(TokenType.RIGHT_PAREN); // 消费 ')'
+        } else {
+            tableName = expectIdentifier();
+        }
         
         // 别名（可选）
         if (currentToken().getType() == TokenType.AS) {
@@ -732,7 +742,11 @@ public class SyntaxAnalyzer {
         expect(TokenType.ON);
         Expression condition = parseExpression();
         
-        return new JoinClause(joinType, tableName, alias, condition, startPos);
+        if (subquery != null) {
+            return new JoinClause(joinType, subquery, alias, condition, startPos);
+        } else {
+            return new JoinClause(joinType, tableName, alias, condition, startPos);
+        }
     }
     
     /**

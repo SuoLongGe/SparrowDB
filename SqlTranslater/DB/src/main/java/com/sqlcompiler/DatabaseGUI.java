@@ -72,6 +72,17 @@ public class DatabaseGUI extends JFrame {
     // 存储格式选择组件
     private JComboBox<String> storageFormatComboBox;
     
+    // 谓词下推优化开关
+    private JCheckBox predicatePushdownCheckBox;
+    
+    // 子查询优化开关 - 已移除，现在自动启用
+    
+    // 性能指标显示
+    private JLabel performanceLabel;
+    
+    // 子查询改写信息显示
+    private JLabel subqueryRewriteLabel;
+    
     // 自动补全组件
     private SQLAutoComplete autoComplete;
     
@@ -169,10 +180,28 @@ public class DatabaseGUI extends JFrame {
         storageFormatComboBox.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
         storageFormatComboBox.setSelectedIndex(0); // 默认选择行式存储
         
+        // 谓词下推优化开关
+        predicatePushdownCheckBox = new JCheckBox("谓词下推优化");
+        predicatePushdownCheckBox.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        predicatePushdownCheckBox.setSelected(true); // 默认启用
+        predicatePushdownCheckBox.setToolTipText("启用谓词下推优化，将WHERE条件下推到数据源以减少数据传输");
+        
+        // 子查询优化开关 - 已移除，现在自动启用
+        
         // 状态标签
         statusLabel = new JLabel("就绪");
         statusLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
         statusLabel.setForeground(Color.BLUE);
+        
+        // 性能指标标签
+        performanceLabel = new JLabel("性能: 未测量");
+        performanceLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+        performanceLabel.setForeground(Color.GRAY);
+        
+        // 子查询改写信息标签
+        subqueryRewriteLabel = new JLabel("子查询优化: 无");
+        subqueryRewriteLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+        subqueryRewriteLabel.setForeground(Color.GRAY);
         
 
         // 初始化菜单栏
@@ -310,8 +339,14 @@ public class DatabaseGUI extends JFrame {
         buttonPanel.add(storageLabel);
         buttonPanel.add(storageFormatComboBox);
         
+        // 添加谓词下推优化开关
+        buttonPanel.add(predicatePushdownCheckBox);
+        
+        // 子查询优化开关 - 已移除，现在自动启用
         
         buttonPanel.add(statusLabel);
+        buttonPanel.add(performanceLabel);
+        buttonPanel.add(subqueryRewriteLabel);
         topPanel.add(buttonPanel, BorderLayout.SOUTH);
         
         rightPanel.add(topPanel, BorderLayout.NORTH);
@@ -479,6 +514,19 @@ public class DatabaseGUI extends JFrame {
                 showShardManager();
             }
         });
+        
+        // 谓词下推优化开关事件
+        predicatePushdownCheckBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                boolean enabled = predicatePushdownCheckBox.isSelected();
+                databaseEngine.setPredicatePushdownEnabled(enabled);
+                statusLabel.setText("谓词下推优化已" + (enabled ? "启用" : "禁用"));
+                statusLabel.setForeground(enabled ? Color.GREEN : Color.ORANGE);
+            }
+        });
+        
+        // 子查询优化开关事件 - 已移除，现在自动启用
 
         // AST可视化按钮事件处理器
         zoomInButton.addActionListener(new ActionListener() {
@@ -786,6 +834,12 @@ public class DatabaseGUI extends JFrame {
                     // 计算执行时间（毫秒）
                     double executionTimeMs = (endTime - startTime) / 1_000_000.0;
                     
+        // 更新性能指标显示
+        updatePerformanceMetrics(executionTimeMs, execResult, predicatePushdownCheckBox.isSelected());
+        
+        // 更新子查询改写信息显示
+        updateSubqueryRewriteInfo(execResult);
+                    
                     
                     // 判断是否为查询类指令
                     boolean isQuery = isQueryStatement(sql);
@@ -794,11 +848,11 @@ public class DatabaseGUI extends JFrame {
                         // 检查是否是批量执行结果
                         if (execResult.getBatchResults() != null && !execResult.getBatchResults().isEmpty()) {
                             // 批量执行结果
-                            resultTabbedPane.showQueryMessage(sql, true, true, executionTimeMs, selectedIndexType);
+                            resultTabbedPane.showQueryMessage(sql, true, true, executionTimeMs, selectedIndexType, execResult);
                             resultTabbedPane.showQueryResult(execResult); // 这会调用showBatchResults
                         } else if (isQuery && execResult.getData() != null && !execResult.getData().isEmpty()) {
                             // 单个查询类指令且有数据，显示查询消息和结果
-                            resultTabbedPane.showQueryMessage(sql, true, true, executionTimeMs, selectedIndexType);
+                            resultTabbedPane.showQueryMessage(sql, true, true, executionTimeMs, selectedIndexType, execResult);
                             resultTabbedPane.showQueryResult(execResult);
                         } else {
                             // 非查询类指令或查询无数据，显示详细消息
@@ -807,7 +861,7 @@ public class DatabaseGUI extends JFrame {
                         }
                     } else {
                         // 执行失败
-                        resultTabbedPane.showQueryMessage(sql, true, false, executionTimeMs, selectedIndexType);
+                        resultTabbedPane.showQueryMessage(sql, true, false, executionTimeMs, selectedIndexType, execResult);
                         resultTabbedPane.showError(execResult.getMessage());
                     }
                 } catch (Exception e) {
@@ -842,6 +896,55 @@ public class DatabaseGUI extends JFrame {
                trimmedSql.startsWith("desc") ||
                trimmedSql.startsWith("explain") ||
                trimmedSql.startsWith("call");
+    }
+    
+    /**
+     * 更新性能指标显示
+     */
+    private void updatePerformanceMetrics(double executionTimeMs, ExecutionResult result, boolean predicatePushdownEnabled) {
+        StringBuilder metrics = new StringBuilder();
+        metrics.append("性能: ");
+        metrics.append(String.format("%.2f", executionTimeMs)).append("ms");
+
+        if (result.isSuccess() && result.getData() != null) {
+            int rowCount = result.getData().size();
+            metrics.append(" | 行数: ").append(rowCount);
+
+            if (rowCount > 0) {
+                double rowsPerMs = rowCount / executionTimeMs;
+                metrics.append(" | 速率: ").append(String.format("%.1f", rowsPerMs)).append("行/ms");
+            }
+        }
+
+        if (predicatePushdownEnabled) {
+            metrics.append(" | 优化: 启用");
+        } else {
+            metrics.append(" | 优化: 禁用");
+        }
+
+        performanceLabel.setText(metrics.toString());
+
+        // 根据执行时间设置颜色
+        if (executionTimeMs < 10) {
+            performanceLabel.setForeground(Color.GREEN);
+        } else if (executionTimeMs < 100) {
+            performanceLabel.setForeground(Color.ORANGE);
+        } else {
+            performanceLabel.setForeground(Color.RED);
+        }
+    }
+    
+    /**
+     * 更新子查询改写信息显示
+     */
+    private void updateSubqueryRewriteInfo(ExecutionResult result) {
+        if (result.getSubqueryRewriteInfo() != null && !result.getSubqueryRewriteInfo().isEmpty()) {
+            subqueryRewriteLabel.setText("子查询优化: " + result.getSubqueryRewriteInfo());
+            subqueryRewriteLabel.setForeground(Color.BLUE);
+        } else {
+            subqueryRewriteLabel.setText("子查询优化: 自动检测中");
+            subqueryRewriteLabel.setForeground(Color.GREEN);
+        }
     }
     
     /**

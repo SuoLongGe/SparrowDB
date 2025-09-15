@@ -23,6 +23,8 @@ public class DatabaseEngine {
     private final LogManager logManager;
     private final SQLFileManager sqlFileManager;
     private final ShardManager shardManager;
+    private final PredicatePushdownOptimizer predicatePushdownOptimizer;
+    private final SubqueryOptimizer subqueryOptimizer;
     private final String databaseName;
     private final String dataDirectory;
     private final String currentNodeId;
@@ -33,6 +35,12 @@ public class DatabaseEngine {
     
     // 存储格式设置
     private String currentStorageFormat = "行式存储";
+    
+    // 谓词下推优化设置
+    private boolean predicatePushdownEnabled = true;
+    
+    // 子查询优化设置 - 自动启用，无需手动控制
+    private boolean subqueryOptimizationEnabled = true;
 
     public DatabaseEngine(String databaseName, String dataDirectory) {
         this.databaseName = databaseName;
@@ -75,6 +83,12 @@ public class DatabaseEngine {
         
         // 初始化分片管理器
         this.shardManager = new ShardManager(dataDirectory, currentNodeId, storageAdapter, catalogManager);
+        
+        // 初始化谓词下推优化器
+        this.predicatePushdownOptimizer = new PredicatePushdownOptimizer(catalogManager.getCatalog());
+        
+        // 初始化子查询优化器
+        this.subqueryOptimizer = new SubqueryOptimizer(catalogManager.getCatalog());
         
         System.out.println("数据库引擎 '" + databaseName + "' 已创建，数据目录: " + dataDirectory + "，节点ID: " + currentNodeId);
     }
@@ -195,6 +209,32 @@ public class DatabaseEngine {
                 return new ExecutionResult(false, "SQL解析失败", null);
             }
             
+            // 应用子查询优化 - 自动启用
+            SubqueryRewriter.RewriteResult subqueryResult = null;
+            String rewrittenSqlForGui = null;
+            if (subqueryOptimizationEnabled) {
+                subqueryResult = subqueryOptimizer.optimize(plan);
+                if (subqueryResult.isRewritten()) {
+                    // 输出子查询优化信息到控制台
+                    System.out.println("\n=== 子查询优化检测 ===");
+                    System.out.println("原始SQL: " + sql);
+                    System.out.println("优化类型: " + subqueryResult.getMessage());
+                    System.out.println("改写后SQL: " + subqueryResult.getRewrittenSql());
+                    System.out.println("=== 子查询优化完成 ===\n");
+                    
+                    plan = subqueryResult.getRewrittenPlan();
+                    // 记录供GUI显示的改写后SQL
+                    rewrittenSqlForGui = subqueryResult.getRewrittenSql();
+                } else {
+                    System.out.println("未检测到可优化的子查询");
+                }
+            }
+            
+            // 应用谓词下推优化
+            if (predicatePushdownEnabled) {
+                plan = predicatePushdownOptimizer.optimize(plan);
+            }
+            
             // 执行计划
             ExecutionResult result;
 
@@ -227,11 +267,28 @@ public class DatabaseEngine {
                 result = executor.execute(plan);
             }
             
+            // 如果有子查询改写信息，创建新的结果对象，并把改写后SQL拼到message里
+            if (subqueryResult != null && subqueryResult.isRewritten()) {
+                String rewriteInfo = subqueryResult.getMessage();
+                String baseMsg = result.getMessage();
+                if (rewrittenSqlForGui != null && !rewrittenSqlForGui.isEmpty()) {
+                    String appended = (baseMsg == null || baseMsg.isEmpty()) ?
+                        ("改写后SQL: " + rewrittenSqlForGui) :
+                        (baseMsg + " | 改写后SQL: " + rewrittenSqlForGui);
+                    result = new ExecutionResult(result.isSuccess(), appended, result.getData(), rewriteInfo);
+                } else {
+                    result = new ExecutionResult(result.isSuccess(), baseMsg, result.getData(), rewriteInfo);
+                }
+            }
+            
             // 记录执行结果
             if (result.isSuccess()) {
                 System.out.println("SQL执行成功");
-                logManager.logSQLOperation(transactionId, sql, tableName, "SQL执行成功", null, 
-                    result.getData() != null ? "返回 " + result.getData().size() + " 条记录" : "无数据返回");
+                String logMessage = result.getData() != null ? "返回 " + result.getData().size() + " 条记录" : "无数据返回";
+                if (result.getSubqueryRewriteInfo() != null) {
+                    logMessage += " | 子查询优化: " + result.getSubqueryRewriteInfo();
+                }
+                logManager.logSQLOperation(transactionId, sql, tableName, "SQL执行成功", null, logMessage);
                 logManager.commitTransaction(transactionId);
             } else {
                 System.out.println("SQL执行失败: " + result.getMessage());
@@ -468,6 +525,52 @@ public class DatabaseEngine {
     public void setStorageFormat(String storageFormat) {
         this.currentStorageFormat = storageFormat;
         System.out.println("存储格式已设置为: " + storageFormat);
+    }
+    
+    /**
+     * 设置谓词下推优化
+     */
+    public void setPredicatePushdownEnabled(boolean enabled) {
+        this.predicatePushdownEnabled = enabled;
+        this.predicatePushdownOptimizer.setEnabled(enabled);
+        System.out.println("谓词下推优化设置为: " + (enabled ? "启用" : "禁用"));
+    }
+    
+    /**
+     * 获取谓词下推优化状态
+     */
+    public boolean isPredicatePushdownEnabled() {
+        return predicatePushdownEnabled;
+    }
+    
+    /**
+     * 获取谓词下推优化器
+     */
+    public PredicatePushdownOptimizer getPredicatePushdownOptimizer() {
+        return predicatePushdownOptimizer;
+    }
+    
+    /**
+     * 设置子查询优化
+     */
+    public void setSubqueryOptimizationEnabled(boolean enabled) {
+        this.subqueryOptimizationEnabled = enabled;
+        this.subqueryOptimizer.setEnabled(enabled);
+        System.out.println("子查询优化设置为: " + (enabled ? "启用" : "禁用"));
+    }
+    
+    /**
+     * 获取子查询优化状态
+     */
+    public boolean isSubqueryOptimizationEnabled() {
+        return subqueryOptimizationEnabled;
+    }
+    
+    /**
+     * 获取子查询优化器
+     */
+    public SubqueryOptimizer getSubqueryOptimizer() {
+        return subqueryOptimizer;
     }
 
     /**

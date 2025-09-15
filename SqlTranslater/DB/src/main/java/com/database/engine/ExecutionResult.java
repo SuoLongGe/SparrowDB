@@ -11,12 +11,14 @@ public class ExecutionResult {
     private final String message;
     private final List<Map<String, Object>> data;
     private final List<ExecutionResult> batchResults;
+    private final String subqueryRewriteInfo;
     
     public ExecutionResult(boolean success, String message, List<Map<String, Object>> data) {
         this.success = success;
         this.message = message;
         this.data = data;
         this.batchResults = null;
+        this.subqueryRewriteInfo = null;
     }
     
     public ExecutionResult(boolean success, String message, List<ExecutionResult> batchResults, boolean isBatch) {
@@ -24,6 +26,15 @@ public class ExecutionResult {
         this.message = message;
         this.data = null;
         this.batchResults = batchResults;
+        this.subqueryRewriteInfo = null;
+    }
+    
+    public ExecutionResult(boolean success, String message, List<Map<String, Object>> data, String subqueryRewriteInfo) {
+        this.success = success;
+        this.message = message;
+        this.data = data;
+        this.batchResults = null;
+        this.subqueryRewriteInfo = subqueryRewriteInfo;
     }
     
     public boolean isSuccess() {
@@ -40,6 +51,10 @@ public class ExecutionResult {
     
     public List<ExecutionResult> getBatchResults() {
         return batchResults;
+    }
+    
+    public String getSubqueryRewriteInfo() {
+        return subqueryRewriteInfo;
     }
     
     @Override

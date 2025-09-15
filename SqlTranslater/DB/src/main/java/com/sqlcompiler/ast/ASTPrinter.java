@@ -374,7 +374,11 @@ public class ASTPrinter implements ASTVisitor<String> {
         sb.append("JoinClause {\n");
         increaseIndent();
         sb.append(getIndent()).append("joinType: ").append(node.getJoinType()).append("\n");
-        sb.append(getIndent()).append("tableName: ").append(node.getTableName()).append("\n");
+        if (node.isSubquery()) {
+            sb.append(getIndent()).append("subquery: ").append(node.getSubquery().accept(this)).append("\n");
+        } else {
+            sb.append(getIndent()).append("tableName: ").append(node.getTableName()).append("\n");
+        }
         if (node.getAlias() != null) {
             sb.append(getIndent()).append("alias: ").append(node.getAlias()).append("\n");
         }
