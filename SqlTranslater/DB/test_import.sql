@@ -14,7 +14,7 @@ CREATE TABLE student (
 );
 
 -- 创建课程表
-CREATE TABLE courses (
+CREATE TABLE course (
     course_id INT PRIMARY KEY,
     course_name VARCHAR(100) NOT NULL,
     credits INT,
@@ -39,7 +39,7 @@ INSERT INTO student (id, name, age, grade, email) VALUES
 (5, '钱七', 22, '研一', 'qianqi@example.com');
 
 -- 插入课程数据
-INSERT INTO courses (course_id, course_name, credits, instructor) VALUES 
+INSERT INTO course (course_id, course_name, credits, instructor) VALUES 
 (101, '数据库系统原理', 3, '陈教授'),
 (102, '算法与数据结构', 4, '李教授'),
 (103, '计算机网络', 3, '王教授'),
@@ -92,18 +92,18 @@ INSERT INTO teachers (teacher_id, teacher_name, dept_id, title, salary) VALUES
 
 -- 更新一些数据（测试UPDATE语句）
 UPDATE student SET grade = '大四' WHERE id = 2;
-UPDATE courses SET credits = 4 WHERE course_id = 103;
+UPDATE course SET credits = 4 WHERE course_id = 103;
 
 -- 测试一些查询语句（这些会在导入时执行，但不会影响数据）
 SELECT COUNT(*) AS total_students FROM student;
-SELECT course_name, credits FROM courses WHERE credits >= 3;
+SELECT course_name, credits FROM course WHERE credits >= 3;
 
 -- 创建一个视图（如果支持）
 CREATE VIEW student_course_view AS
 SELECT s.name AS student_name, c.course_name, e.score
 FROM student s
 JOIN enrollments e ON s.id = e.student_id
-JOIN courses c ON e.course_id = c.course_id;
+JOIN course c ON e.course_id = c.course_id;
 
 -- 测试删除操作
 DELETE FROM enrollments WHERE score < 80;
@@ -114,19 +114,19 @@ INSERT INTO student (id, name, age, grade, email) VALUES
 (7, '周九', 19, '大二', 'zhoujiu@example.com');
 
 -- 创建索引（如果支持）
--- CREATE INDEX idx_student_name ON students(name);
--- CREATE INDEX idx_course_name ON courses(course_name);
+-- CREATE INDEX idx_student_name ON student(name);
+-- CREATE INDEX idx_course_name ON course(course_name);
 
 -- 测试事务相关操作
 -- BEGIN TRANSACTION;
 INSERT INTO student (id, name, age, grade, email) VALUES (8, '吴十', 21, '大三', 'wushi@example.com');
-INSERT INTO courses (course_id, course_name, credits, instructor) VALUES (106, 'Web开发技术', 3, '新教授');
+INSERT INTO course (course_id, course_name, credits, instructor) VALUES (106, 'Web开发技术', 3, '新教授');
 -- COMMIT;
 
 -- 最后的数据验证查询
 SELECT 'Students Count' AS table_name, COUNT(*) AS record_count FROM student
 UNION ALL
-SELECT 'Courses Count', COUNT(*) FROM courses
+SELECT 'Courses Count', COUNT(*) FROM course
 UNION ALL
 SELECT 'Enrollments Count', COUNT(*) FROM enrollments
 UNION ALL
@@ -147,7 +147,7 @@ SELECT 'Teachers Count', COUNT(*) FROM teachers;
 -- 7. 复杂查询和统计
 -- 
 -- 导入成功后，数据库中应该包含：
--- - 5个表：student, courses, enrollments, departments, teachers
+-- - 5个表：student, course, enrollments, departments, teachers
 -- - 1个视图：student_course_view
 -- - 约30+条记录分布在各个表中
 -- ================================
