@@ -139,43 +139,83 @@ public class ResultTabbedPane extends JPanel {
      * 显示批量执行结果
      */
     public void showBatchResults(ExecutionResult batchResult) {
-        if (batchResult == null || !batchResult.isSuccess()) {
-            showError(batchResult != null ? batchResult.getMessage() : "批量执行失败");
+        if (batchResult == null) {
+            showError("批量执行失败：结果为空");
             return;
         }
         
         List<ExecutionResult> results = batchResult.getBatchResults();
         if (results == null || results.isEmpty()) {
-            showMessage("批量执行成功，但无结果返回");
+            if (batchResult.isSuccess()) {
+                showMessage("批量执行成功，但无结果返回");
+            } else {
+                showError(batchResult.getMessage());
+            }
             return;
         }
         
         // 清空现有的结果标签页
         clearResultTabs();
         
-        // 为每个有查询结果的结果创建标签页
+        // 构建详细的批处理执行报告
+        StringBuilder detailReport = new StringBuilder();
+        detailReport.append("=== 批量执行详细报告 ===\n");
+        detailReport.append(batchResult.getMessage()).append("\n\n");
+        
+        int successCount = 0;
+        int failureCount = 0;
+        
+        // 为每个有查询结果的结果创建标签页，同时构建详细报告
         int queryResultCount = 0;
         for (int i = 0; i < results.size(); i++) {
             ExecutionResult result = results.get(i);
-            if (result.isSuccess() && result.getData() != null && !result.getData().isEmpty()) {
-                queryResultCount++;
+            
+            // 添加到详细报告
+            detailReport.append("语句 ").append(i + 1).append(": ");
+            if (result.isSuccess()) {
+                successCount++;
+                detailReport.append("✓ 执行成功");
+                if (result.getMessage() != null && !result.getMessage().trim().isEmpty()) {
+                    detailReport.append(" - ").append(result.getMessage());
+                }
                 
-                // 创建结果表格
-                QueryResultTable resultTable = new QueryResultTable();
-                resultTable.displayResult(result);
-                
-                // 创建新的标签页
-                String tabTitle = "结果" + queryResultCount;
-                tabbedPane.addTab(tabTitle, resultTable);
+                // 如果有查询结果，创建标签页
+                if (result.getData() != null && !result.getData().isEmpty()) {
+                    queryResultCount++;
+                    
+                    // 创建结果表格
+                    QueryResultTable resultTable = new QueryResultTable();
+                    resultTable.displayResult(result);
+                    
+                    // 创建新的标签页
+                    String tabTitle = "结果" + queryResultCount + " (语句" + (i + 1) + ")";
+                    tabbedPane.addTab(tabTitle, resultTable);
+                    
+                    detailReport.append(" [查看结果标签页: ").append(tabTitle).append("]");
+                }
+            } else {
+                failureCount++;
+                detailReport.append("✗ 执行失败");
+                if (result.getMessage() != null && !result.getMessage().trim().isEmpty()) {
+                    detailReport.append(" - ").append(result.getMessage());
+                }
             }
+            detailReport.append("\n");
         }
+        
+        // 添加统计信息
+        detailReport.append("\n=== 执行统计 ===\n");
+        detailReport.append("总计语句: ").append(results.size()).append("\n");
+        detailReport.append("成功: ").append(successCount).append("\n");
+        detailReport.append("失败: ").append(failureCount).append("\n");
+        detailReport.append("成功率: ").append(String.format("%.1f%%", (double)successCount / results.size() * 100)).append("\n");
+        
+        // 显示详细报告
+        showMessage(detailReport.toString());
         
         // 如果有查询结果，切换到第一个结果标签页
         if (queryResultCount > 0) {
             tabbedPane.setSelectedIndex(1); // 跳过消息标签页
-        } else {
-            // 没有查询结果，显示批量执行消息
-            showMessage(batchResult.getMessage());
         }
     }
     

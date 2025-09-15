@@ -22,6 +22,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * 数据库GUI界面
@@ -57,7 +59,13 @@ public class DatabaseGUI extends JFrame {
     private JScrollPane treeScrollPane;
     private JButton refreshButton;
 
-    
+    // 右键上下文菜单
+    private JPopupMenu treeContextMenu;
+    private JMenuItem exportTableContextItem;
+    private JMenuItem showTableDataItem;
+    private JMenuItem deleteTableItem;
+
+
     // 索引选择组件
     private JComboBox<String> indexTypeComboBox;
     
@@ -142,7 +150,7 @@ public class DatabaseGUI extends JFrame {
         importButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
         importButton.setPreferredSize(new Dimension(120, 30));
         importButton.setToolTipText("从文件导入并执行SQL语句");
-        
+
         // 分片管理按钮
         shardManagerButton = new JButton("分片管理");
         shardManagerButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
@@ -222,6 +230,9 @@ public class DatabaseGUI extends JFrame {
         databaseTree.setRootVisible(false);
         databaseTree.setShowsRootHandles(true);
         treeScrollPane = new JScrollPane(databaseTree);
+
+        // 初始化右键上下文菜单
+        initializeContextMenu();
         treeScrollPane.setPreferredSize(new Dimension(250, 400));
         treeScrollPane.setBorder(BorderFactory.createTitledBorder("数据库对象"));
         
@@ -286,7 +297,7 @@ public class DatabaseGUI extends JFrame {
         buttonPanel.add(catalogButton);
         buttonPanel.add(importButton);
         buttonPanel.add(shardManagerButton);
-        
+
         // 添加索引选择组件
         JLabel indexLabel = new JLabel("索引方式:");
         indexLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
@@ -468,7 +479,7 @@ public class DatabaseGUI extends JFrame {
                 showShardManager();
             }
         });
-        
+
         // AST可视化按钮事件处理器
         zoomInButton.addActionListener(new ActionListener() {
             @Override
@@ -531,6 +542,78 @@ public class DatabaseGUI extends JFrame {
         setupMenuEventHandlers();
     }
     
+    /**
+     * 初始化右键上下文菜单
+     */
+    private void initializeContextMenu() {
+        treeContextMenu = new JPopupMenu();
+
+        // 导出表选项
+        exportTableContextItem = new JMenuItem("导出表");
+        exportTableContextItem.setIcon(new ImageIcon()); // 可以添加图标
+        exportTableContextItem.addActionListener(e -> exportSelectedTable());
+
+        // 显示表数据选项
+        showTableDataItem = new JMenuItem("显示表数据");
+        showTableDataItem.addActionListener(e -> showSelectedTableData());
+
+        // 删除表选项
+        deleteTableItem = new JMenuItem("删除表");
+        deleteTableItem.setForeground(Color.RED);
+        deleteTableItem.addActionListener(e -> deleteSelectedTable());
+
+        // 添加菜单项到上下文菜单
+        treeContextMenu.add(showTableDataItem);
+        treeContextMenu.addSeparator();
+        treeContextMenu.add(exportTableContextItem);
+        treeContextMenu.addSeparator();
+        treeContextMenu.add(deleteTableItem);
+
+        // 为数据库树添加鼠标右键监听器
+        databaseTree.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    showContextMenu(e);
+                }
+            }
+
+            @Override
+            public void mouseReleased(java.awt.event.MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    showContextMenu(e);
+                }
+            }
+        });
+    }
+
+    /**
+     * 显示右键上下文菜单
+     */
+    private void showContextMenu(java.awt.event.MouseEvent e) {
+        // 获取点击位置的节点
+        javax.swing.tree.TreePath path = databaseTree.getPathForLocation(e.getX(), e.getY());
+        if (path == null) return;
+
+        // 选中该节点
+        databaseTree.setSelectionPath(path);
+
+        // 获取选中的节点
+        javax.swing.tree.DefaultMutableTreeNode selectedNode =
+            (javax.swing.tree.DefaultMutableTreeNode) path.getLastPathComponent();
+
+        if (selectedNode == null) return;
+
+        // 获取父节点
+        javax.swing.tree.DefaultMutableTreeNode parentNode =
+            (javax.swing.tree.DefaultMutableTreeNode) selectedNode.getParent();
+
+        if (parentNode != null && parentNode.toString().equals("表")) {
+            // 只有在表节点上才显示上下文菜单
+            treeContextMenu.show(databaseTree, e.getX(), e.getY());
+        }
+    }
+
     /**
      * 设置菜单事件处理器
      */
@@ -1111,6 +1194,181 @@ public class DatabaseGUI extends JFrame {
     }
     
     /**
+     * 导出表到指定文件和格式
+     */
+    private void exportTableToFile(String tableName, File outputFile, String format) {
+        try {
+            statusLabel.setText("正在导出表 " + tableName + " 为 " + format + " 格式...");
+            statusLabel.setForeground(Color.BLUE);
+
+            switch (format.toUpperCase()) {
+                case "SQL":
+                    exportTableToSQL(tableName, outputFile);
+                    break;
+                case "CSV":
+                    exportTableToCSV(tableName, outputFile);
+                    break;
+                case "JSON":
+                    exportTableToJSON(tableName, outputFile);
+                    break;
+                default:
+                    throw new IllegalArgumentException("不支持的导出格式: " + format);
+            }
+
+            statusLabel.setText("导出成功");
+            statusLabel.setForeground(Color.GREEN);
+            resultTabbedPane.showMessage("表 " + tableName + " 导出成功!\n文件: " + outputFile.getAbsolutePath() + "\n格式: " + format);
+
+        } catch (Exception e) {
+            statusLabel.setText("导出失败");
+            statusLabel.setForeground(Color.RED);
+            resultTabbedPane.showError("导出失败:\n" + e.getMessage());
+        }
+    }
+
+    /**
+     * 导出表为SQL格式
+     */
+    private void exportTableToSQL(String tableName, File outputFile) throws Exception {
+        ExecutionResult result = databaseEngine.exportTableToSQL(tableName, outputFile.getAbsolutePath());
+        if (!result.isSuccess()) {
+            throw new Exception(result.getMessage());
+        }
+    }
+
+    /**
+     * 导出表为CSV格式
+     */
+    private void exportTableToCSV(String tableName, File outputFile) throws Exception {
+        // 获取表数据
+        ExecutionResult result = databaseEngine.executeSQL("SELECT * FROM " + tableName);
+        if (!result.isSuccess()) {
+            throw new Exception("查询表数据失败: " + result.getMessage());
+        }
+
+        // 写入CSV文件
+        java.io.FileWriter writer = new java.io.FileWriter(outputFile, java.nio.charset.StandardCharsets.UTF_8);
+        java.io.BufferedWriter bufferedWriter = new java.io.BufferedWriter(writer);
+
+        try {
+            List<Map<String, Object>> data = result.getData();
+            if (data != null && !data.isEmpty()) {
+                // 获取表结构信息作为CSV标题行
+                TableInfo tableInfo = databaseEngine.getCatalogManager().getTable(tableName);
+                if (tableInfo != null) {
+                    // 写入列名作为标题行
+                    List<String> columnNames = tableInfo.getColumnNames();
+                    for (int i = 0; i < columnNames.size(); i++) {
+                        if (i > 0) bufferedWriter.write(",");
+                        bufferedWriter.write("\"" + columnNames.get(i) + "\"");
+                    }
+                    bufferedWriter.newLine();
+                }
+
+                // 写入数据行
+                for (Map<String, Object> row : data) {
+                    List<String> columnNames = tableInfo.getColumnNames();
+                    for (int i = 0; i < columnNames.size(); i++) {
+                        if (i > 0) bufferedWriter.write(",");
+                        Object value = row.get(columnNames.get(i));
+                        if (value != null) {
+                            String valueStr = value.toString();
+                            // 处理包含逗号或引号的值
+                            if (valueStr.contains(",") || valueStr.contains("\"") || valueStr.contains("\n")) {
+                                valueStr = "\"" + valueStr.replace("\"", "\"\"") + "\"";
+                            }
+                            bufferedWriter.write(valueStr);
+                        }
+                    }
+                    bufferedWriter.newLine();
+                }
+            }
+        } finally {
+            bufferedWriter.close();
+        }
+    }
+
+    /**
+     * 导出表为JSON格式
+     */
+    private void exportTableToJSON(String tableName, File outputFile) throws Exception {
+        // 获取表数据
+        ExecutionResult result = databaseEngine.executeSQL("SELECT * FROM " + tableName);
+        if (!result.isSuccess()) {
+            throw new Exception("查询表数据失败: " + result.getMessage());
+        }
+
+        // 写入JSON文件
+        java.io.FileWriter writer = new java.io.FileWriter(outputFile, java.nio.charset.StandardCharsets.UTF_8);
+        java.io.BufferedWriter bufferedWriter = new java.io.BufferedWriter(writer);
+
+        try {
+            List<Map<String, Object>> data = result.getData();
+            TableInfo tableInfo = databaseEngine.getCatalogManager().getTable(tableName);
+
+            bufferedWriter.write("{\n");
+            bufferedWriter.write("  \"tableName\": \"" + tableName + "\",\n");
+            bufferedWriter.write("  \"exportTime\": \"" + java.time.LocalDateTime.now().toString() + "\",\n");
+
+            if (tableInfo != null) {
+                List<String> columnNames = tableInfo.getColumnNames();
+                bufferedWriter.write("  \"columns\": [");
+                for (int i = 0; i < columnNames.size(); i++) {
+                    if (i > 0) bufferedWriter.write(", ");
+                    bufferedWriter.write("\"" + columnNames.get(i) + "\"");
+                }
+                bufferedWriter.write("],\n");
+            }
+
+            bufferedWriter.write("  \"data\": [\n");
+
+            if (data != null && !data.isEmpty()) {
+                List<String> columnNames = tableInfo != null ? tableInfo.getColumnNames() : null;
+
+                for (int rowIndex = 0; rowIndex < data.size(); rowIndex++) {
+                    if (rowIndex > 0) bufferedWriter.write(",\n");
+
+                    Map<String, Object> row = data.get(rowIndex);
+                    bufferedWriter.write("    {\n");
+
+                    List<String> rowColumnNames = columnNames != null ? columnNames : new ArrayList<>(row.keySet());
+                    for (int colIndex = 0; colIndex < rowColumnNames.size(); colIndex++) {
+                        if (colIndex > 0) bufferedWriter.write(",\n");
+
+                        String columnName = rowColumnNames.get(colIndex);
+                        Object value = row.get(columnName);
+                        bufferedWriter.write("      \"" + columnName + "\": ");
+
+                        if (value == null) {
+                            bufferedWriter.write("null");
+                        } else if (value instanceof Number) {
+                            bufferedWriter.write(value.toString());
+                        } else if (value instanceof Boolean) {
+                            bufferedWriter.write(value.toString().toLowerCase());
+                        } else {
+                            // 字符串值需要转义
+                            String valueStr = value.toString()
+                                .replace("\\", "\\\\")
+                                .replace("\"", "\\\"")
+                                .replace("\n", "\\n")
+                                .replace("\r", "\\r")
+                                .replace("\t", "\\t");
+                            bufferedWriter.write("\"" + valueStr + "\"");
+                        }
+                    }
+                    bufferedWriter.write("\n    }");
+                }
+            }
+
+            bufferedWriter.write("\n  ]\n");
+            bufferedWriter.write("}\n");
+
+        } finally {
+            bufferedWriter.close();
+        }
+    }
+
+    /**
      * 批量导入目录
      */
     private void importDirectory() {
@@ -1369,7 +1627,143 @@ public class DatabaseGUI extends JFrame {
         }
     }
     
-    
+    /**
+     * 导出选中的表
+     */
+    private void exportSelectedTable() {
+        javax.swing.tree.DefaultMutableTreeNode selectedNode =
+            (javax.swing.tree.DefaultMutableTreeNode) databaseTree.getLastSelectedPathComponent();
+
+        if (selectedNode == null) return;
+
+        String tableName = selectedNode.toString();
+        javax.swing.tree.DefaultMutableTreeNode parentNode =
+            (javax.swing.tree.DefaultMutableTreeNode) selectedNode.getParent();
+
+        if (parentNode == null || !parentNode.toString().equals("表")) {
+            JOptionPane.showMessageDialog(this, "请选择一个表进行导出", "提示", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 显示导出格式选择对话框
+        String[] exportFormats = {"SQL", "CSV", "JSON"};
+        String selectedFormat = (String) JOptionPane.showInputDialog(
+            this,
+            "请选择导出格式:",
+            "导出表 - " + tableName,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            exportFormats,
+            exportFormats[0]
+        );
+
+        if (selectedFormat == null) return; // 用户取消了选择
+
+        // 显示文件选择对话框
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("导出表 - " + tableName);
+
+        // 根据选择的格式设置文件过滤器和默认文件名
+        String extension;
+        String description;
+        switch (selectedFormat) {
+            case "CSV":
+                extension = "csv";
+                description = "CSV文件 (*.csv)";
+                break;
+            case "JSON":
+                extension = "json";
+                description = "JSON文件 (*.json)";
+                break;
+            default: // SQL
+                extension = "sql";
+                description = "SQL文件 (*.sql)";
+                break;
+        }
+
+        fileChooser.setFileFilter(new FileNameExtensionFilter(description, extension));
+        fileChooser.setSelectedFile(new File(tableName + "." + extension));
+
+        int result = fileChooser.showSaveDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+
+            // 确保文件有正确的扩展名
+            if (!selectedFile.getName().toLowerCase().endsWith("." + extension)) {
+                selectedFile = new File(selectedFile.getAbsolutePath() + "." + extension);
+            }
+
+            // 执行导出
+            exportTableToFile(tableName, selectedFile, selectedFormat);
+        }
+    }
+
+    /**
+     * 显示选中表的数据
+     */
+    private void showSelectedTableData() {
+        javax.swing.tree.DefaultMutableTreeNode selectedNode =
+            (javax.swing.tree.DefaultMutableTreeNode) databaseTree.getLastSelectedPathComponent();
+
+        if (selectedNode == null) return;
+
+        String tableName = selectedNode.toString();
+        javax.swing.tree.DefaultMutableTreeNode parentNode =
+            (javax.swing.tree.DefaultMutableTreeNode) selectedNode.getParent();
+
+        if (parentNode != null && parentNode.toString().equals("表")) {
+            showTableData(tableName);
+        }
+    }
+
+    /**
+     * 删除选中的表
+     */
+    private void deleteSelectedTable() {
+        javax.swing.tree.DefaultMutableTreeNode selectedNode =
+            (javax.swing.tree.DefaultMutableTreeNode) databaseTree.getLastSelectedPathComponent();
+
+        if (selectedNode == null) return;
+
+        String tableName = selectedNode.toString();
+        javax.swing.tree.DefaultMutableTreeNode parentNode =
+            (javax.swing.tree.DefaultMutableTreeNode) selectedNode.getParent();
+
+        if (parentNode == null || !parentNode.toString().equals("表")) {
+            JOptionPane.showMessageDialog(this, "请选择一个表进行删除", "提示", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // 确认对话框
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "确定要删除表 '" + tableName + "' 吗？\n此操作不可撤销！",
+            "确认删除",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                ExecutionResult result = databaseEngine.executeSQL("DROP TABLE " + tableName);
+                if (result.isSuccess()) {
+                    statusLabel.setText("表 " + tableName + " 已删除");
+                    statusLabel.setForeground(Color.GREEN);
+                    refreshDatabaseTree(); // 刷新树显示
+                    resultTabbedPane.showMessage("表 " + tableName + " 删除成功！");
+                } else {
+                    statusLabel.setText("删除表失败");
+                    statusLabel.setForeground(Color.RED);
+                    resultTabbedPane.showError("删除表失败:\n" + result.getMessage());
+                }
+            } catch (Exception e) {
+                statusLabel.setText("删除表失败: " + e.getMessage());
+                statusLabel.setForeground(Color.RED);
+                resultTabbedPane.showError("删除表失败:\n" + e.getMessage());
+            }
+        }
+    }
+
     /**
      * 显示函数信息
      */
@@ -1434,15 +1828,6 @@ public class DatabaseGUI extends JFrame {
             statusLabel.setForeground(Color.RED);
         }
     }
-    
-    /**
-     * 显示分片管理器
-     */
-    private void showShardManager() {
-        ShardManagerDialog dialog = new ShardManagerDialog(this, databaseEngine);
-        dialog.setVisible(true);
-    }
-    
     /**
      * 主方法
      */

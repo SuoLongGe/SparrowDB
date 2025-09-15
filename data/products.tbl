@@ -1,17 +1,18 @@
 # Table Metadata
 TABLE_NAME=products
-COLUMN_COUNT=4
-COLUMN=id:INT:0
-COLUMN=name:VARCHAR:100
-COLUMN=price:DECIMAL:10
+COLUMN_COUNT=7
+COLUMN=product_id:INT:0
+COLUMN=product_name:VARCHAR:100
 COLUMN=category:VARCHAR:50
+COLUMN=price:DECIMAL:8
+COLUMN=stock_quantity:INT:0
+COLUMN=supplier:VARCHAR:50
+COLUMN=created_date:DATE:0
 # End Metadata
 
-RECORD:price=999.99|name=Laptop|id=1|category=Electronics
-RECORD:price=29.99|name=Mouse|id=2|category=Electronics
-RECORD:price=15.50|name=Book|id=3|category=Education
-RECORD:price=1299.99|name=Laptop|id=1|category=Electronics
-RECORD:price=25.50|name=Mouse|id=2|category=Electronics
-RECORD:price=15.99|name=Book|id=3|category=Education
-RECORD:price=89.99|name=Chair|id=4|category=Furniture
-RECORD:price=299.99|name=Monitor|id=5|category=Electronics
+RECORD:price=3999.00|product_id=101|supplier=科技公司A|created_date=2025-01-10|category=电子产品|stock_quantity=50|product_name=智能手机Pro
+RECORD:price=6999.00|product_id=103|supplier=科技公司C|created_date=2025-01-20|category=电子产品|stock_quantity=30|product_name=笔记本电脑
+RECORD:price=2999.00|product_id=105|supplier=科技公司D|created_date=2025-02-15|category=电子产品|stock_quantity=40|product_name=平板电脑
+RECORD:price=299.00|product_id=102|supplier=科技公司B|created_date=2025-01-15|category=电子产品|stock_quantity=null|product_name=无线耳机
+RECORD:price=1999.00|product_id=104|supplier=科技公司A|created_date=2025-02-01|category=电子产品|stock_quantity=null|product_name=智能手表
+RECORD:price=199.00|product_id=106|supplier=科技公司B|created_date=2025-03-01|category=电子产品|stock_quantity=null|product_name=蓝牙音箱
