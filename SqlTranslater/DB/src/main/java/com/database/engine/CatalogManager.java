@@ -240,40 +240,32 @@ public class CatalogManager {
         systemFunctionsInfo.addColumn(new ColumnInfo("create_time", "BIGINT", 8, false, false, false, false, null, false));
         catalog.addTable(systemFunctionsInfo);
         
-        // 只在系统表不存在时才创建存储
-        if (storageAdapter != null) {
-            if (!storageAdapter.tableExists(systemTableName)) {
-                storageEngine.createTableStorage(systemTableName, systemTablesInfo);
-            }
-            if (!storageAdapter.tableExists(systemColumnsName)) {
-                storageEngine.createTableStorage(systemColumnsName, systemColumnsInfo);
-            }
-            if (!storageAdapter.tableExists(systemConstraintsName)) {
-                storageEngine.createTableStorage(systemConstraintsName, systemConstraintsInfo);
-            }
-            if (!storageAdapter.tableExists(systemFunctionsName)) {
-                storageEngine.createTableStorage(systemFunctionsName, systemFunctionsInfo);
-            }
-        } else {
-            // 如果没有StorageAdapter，总是创建系统表（向后兼容）
-            storageEngine.createTableStorage(systemTableName, systemTablesInfo);
-            storageEngine.createTableStorage(systemColumnsName, systemColumnsInfo);
-            storageEngine.createTableStorage(systemConstraintsName, systemConstraintsInfo);
-            storageEngine.createTableStorage(systemFunctionsName, systemFunctionsInfo);
-        }
+        // 总是创建系统表的存储，确保StorageEngine中有注册
+        System.out.println("创建所有系统表存储...");
+        storageEngine.createTableStorage(systemTableName, systemTablesInfo);
+        storageEngine.createTableStorage(systemColumnsName, systemColumnsInfo);
+        storageEngine.createTableStorage(systemConstraintsName, systemConstraintsInfo);
+        storageEngine.createTableStorage(systemFunctionsName, systemFunctionsInfo);
+        System.out.println("系统表存储创建完成");
     }
     
     private void persistTableMetadata(TableInfo tableInfo) {
         try {
+            System.out.println("开始持久化表元数据: " + tableInfo.getName());
+            
             // 保存表基本信息
             Map<String, Object> tableRecord = new HashMap<>();
             tableRecord.put("table_name", tableInfo.getName());
             tableRecord.put("create_time", System.currentTimeMillis());
             tableRecord.put("column_count", tableInfo.getColumns().size());
             tableRecord.put("constraint_count", tableInfo.getConstraints().size());
-            storageEngine.insertRecord(systemTableName, tableRecord);
+            
+            System.out.println("插入表基本信息到 " + systemTableName);
+            boolean tableInsertSuccess = storageEngine.insertRecord(systemTableName, tableRecord);
+            System.out.println("表基本信息插入结果: " + tableInsertSuccess);
             
             // 保存列信息
+            System.out.println("开始插入列信息，共 " + tableInfo.getColumns().size() + " 列");
             for (ColumnInfo column : tableInfo.getColumns()) {
                 Map<String, Object> columnRecord = new HashMap<>();
                 columnRecord.put("table_name", tableInfo.getName());
@@ -285,10 +277,14 @@ public class CatalogManager {
                 columnRecord.put("unique", column.isUnique());
                 columnRecord.put("default_value", column.getDefaultValue());
                 columnRecord.put("auto_increment", column.isAutoIncrement());
-                storageEngine.insertRecord(systemColumnsName, columnRecord);
+                
+                System.out.println("插入列信息: " + column.getName() + " (" + column.getDataType() + ")");
+                boolean columnInsertSuccess = storageEngine.insertRecord(systemColumnsName, columnRecord);
+                System.out.println("列信息插入结果: " + columnInsertSuccess);
             }
             
             // 保存约束信息
+            System.out.println("开始插入约束信息，共 " + tableInfo.getConstraints().size() + " 个约束");
             for (ConstraintInfo constraint : tableInfo.getConstraints()) {
                 Map<String, Object> constraintRecord = new HashMap<>();
                 constraintRecord.put("table_name", tableInfo.getName());
@@ -299,11 +295,19 @@ public class CatalogManager {
                 constraintRecord.put("referenced_columns", constraint.getReferencedColumns() != null ? 
                     String.join(",", constraint.getReferencedColumns()) : null);
                 constraintRecord.put("default_value", constraint.getDefaultValue());
-                storageEngine.insertRecord(systemConstraintsName, constraintRecord);
+                
+                System.out.println("插入约束信息: " + constraint.getName() + " (" + constraint.getType() + ")");
+                boolean constraintInsertSuccess = storageEngine.insertRecord(systemConstraintsName, constraintRecord);
+                System.out.println("约束信息插入结果: " + constraintInsertSuccess);
             }
+            
+            System.out.println("表元数据持久化完成: " + tableInfo.getName());
             
         } catch (Exception e) {
             System.err.println("持久化表元数据失败: " + e.getMessage());
+            e.printStackTrace();
+            // 重新抛出异常，让调用者知道失败
+            throw new RuntimeException("持久化表元数据失败: " + e.getMessage(), e);
         }
     }
     
