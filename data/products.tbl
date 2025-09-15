@@ -10,3 +10,8 @@ COLUMN=category:VARCHAR:50
 RECORD:price=999.99|name=Laptop|id=1|category=Electronics
 RECORD:price=29.99|name=Mouse|id=2|category=Electronics
 RECORD:price=15.50|name=Book|id=3|category=Education
+RECORD:price=1299.99|name=Laptop|id=1|category=Electronics
+RECORD:price=25.50|name=Mouse|id=2|category=Electronics
+RECORD:price=15.99|name=Book|id=3|category=Education
+RECORD:price=89.99|name=Chair|id=4|category=Furniture
+RECORD:price=299.99|name=Monitor|id=5|category=Electronics

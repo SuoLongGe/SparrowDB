@@ -109,27 +109,90 @@ public class ResultTabbedPane extends JPanel {
             return;
         }
         
+        // 检查是否是批量结果
+        if (result.getBatchResults() != null && !result.getBatchResults().isEmpty()) {
+            showBatchResults(result);
+            return;
+        }
+        
         List<Map<String, Object>> data = result.getData();
         if (data == null || data.isEmpty()) {
             showMessage("查询成功，但无数据返回");
             return;
         }
         
-        // 创建新的结果标签页
-        resultTabCount++;
+        // 清空现有的结果标签页，为单个查询结果做准备
+        clearResultTabs();
         
         // 创建表格组件
         QueryResultTable resultTable = new QueryResultTable();
         resultTable.displayResult(result);
         
-        // 添加到结果面板
-        resultPanel.removeAll();
-        resultPanel.add(resultTable, BorderLayout.CENTER);
-        resultPanel.revalidate();
-        resultPanel.repaint();
+        // 创建新的结果标签页
+        tabbedPane.addTab("结果", resultTable);
         
         // 切换到结果标签页
         tabbedPane.setSelectedIndex(1);
+    }
+    
+    /**
+     * 显示批量执行结果
+     */
+    public void showBatchResults(ExecutionResult batchResult) {
+        if (batchResult == null || !batchResult.isSuccess()) {
+            showError(batchResult != null ? batchResult.getMessage() : "批量执行失败");
+            return;
+        }
+        
+        List<ExecutionResult> results = batchResult.getBatchResults();
+        if (results == null || results.isEmpty()) {
+            showMessage("批量执行成功，但无结果返回");
+            return;
+        }
+        
+        // 清空现有的结果标签页
+        clearResultTabs();
+        
+        // 为每个有查询结果的结果创建标签页
+        int queryResultCount = 0;
+        for (int i = 0; i < results.size(); i++) {
+            ExecutionResult result = results.get(i);
+            if (result.isSuccess() && result.getData() != null && !result.getData().isEmpty()) {
+                queryResultCount++;
+                
+                // 创建结果表格
+                QueryResultTable resultTable = new QueryResultTable();
+                resultTable.displayResult(result);
+                
+                // 创建新的标签页
+                String tabTitle = "结果" + queryResultCount;
+                tabbedPane.addTab(tabTitle, resultTable);
+            }
+        }
+        
+        // 如果有查询结果，切换到第一个结果标签页
+        if (queryResultCount > 0) {
+            tabbedPane.setSelectedIndex(1); // 跳过消息标签页
+        } else {
+            // 没有查询结果，显示批量执行消息
+            showMessage(batchResult.getMessage());
+        }
+    }
+    
+    /**
+     * 清空结果标签页
+     */
+    private void clearResultTabs() {
+        // 保留消息标签页，删除其他标签页
+        while (tabbedPane.getTabCount() > 1) {
+            tabbedPane.removeTabAt(1);
+        }
+        resultTabCount = 0;
+        
+        // 清空结果面板
+        resultPanel.removeAll();
+        resultPanel.revalidate();
+        resultPanel.repaint();
     }
     
     /**
@@ -174,10 +237,8 @@ public class ResultTabbedPane extends JPanel {
         resultPanel.removeAll();
         resultTabCount = 0;
         
-        // 重置结果标签页标题
-        if (tabbedPane.getTabCount() > 1) {
-            tabbedPane.setTitleAt(1, "结果");
-        }
+        // 清空所有结果标签页
+        clearResultTabs();
         
         // 切换到消息标签页
         tabbedPane.setSelectedIndex(0);

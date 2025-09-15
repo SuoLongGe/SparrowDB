@@ -15,12 +15,14 @@ import java.io.*;
  */
 public class ViewManager {
     private final Map<String, ViewInfo> views;
-    private final String systemViewsFile = "data/__system_views__.tbl";
+    private final String systemViewsFile;
     private final StorageEngine storageEngine;
     
     public ViewManager(StorageEngine storageEngine) {
         this.views = new HashMap<>();
         this.storageEngine = storageEngine;
+        // 使用StorageEngine的数据目录来构建正确的视图文件路径
+        this.systemViewsFile = storageEngine.getDataDirectory() + "/__system_views__.tbl";
         loadViewsFromStorage();
     }
     

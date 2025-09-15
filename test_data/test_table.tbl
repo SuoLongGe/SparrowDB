@@ -1,9 +1,0 @@
-# Table Metadata
-TABLE_NAME=test_table
-COLUMN_COUNT=3
-COLUMN=id:INT:0
-COLUMN=name:VARCHAR:50
-COLUMN=age:INT:0
-# End Metadata
-
-RECORD:name=Alice|id=1|age=25

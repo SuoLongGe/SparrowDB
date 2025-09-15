@@ -30,7 +30,7 @@ public class SQLCompiler {
         this.lexicalAnalyzer = null; // 将在编译时创建
         this.syntaxAnalyzer = null; // 将在编译时创建
         this.semanticAnalyzer = new SemanticAnalyzer(catalog);
-        this.executionPlanGenerator = new ExecutionPlanGenerator();
+        this.executionPlanGenerator = new ExecutionPlanGenerator(catalog);
     }
     
     public SQLCompiler(Catalog catalog) {
@@ -38,7 +38,14 @@ public class SQLCompiler {
         this.lexicalAnalyzer = null; // 将在编译时创建
         this.syntaxAnalyzer = null; // 将在编译时创建
         this.semanticAnalyzer = new SemanticAnalyzer(catalog);
-        this.executionPlanGenerator = new ExecutionPlanGenerator();
+        this.executionPlanGenerator = new ExecutionPlanGenerator(catalog);
+    }
+    
+    /**
+     * 设置视图管理器
+     */
+    public void setViewManager(com.database.engine.ViewManager viewManager) {
+        catalog.setViewManager(viewManager);
     }
     
     /**

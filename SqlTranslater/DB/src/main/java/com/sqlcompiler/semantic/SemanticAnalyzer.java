@@ -187,11 +187,11 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
     
     @Override
     public Void visit(SelectStatement node) throws CompilationException {
-        // 检查FROM子句中的表是否存在
+        // 检查FROM子句中的表或视图是否存在
         if (node.getFromClause() != null) {
             for (TableReference tableRef : node.getFromClause()) {
                 String tableName = tableRef.getTableName();
-                if (!catalog.tableExists(tableName)) {
+                if (!catalog.tableOrViewExists(tableName)) {
                     errors.add(String.format("[语义错误, %s, 表 '%s' 不存在]", 
                                            tableRef.getPosition(), tableName));
                 }
