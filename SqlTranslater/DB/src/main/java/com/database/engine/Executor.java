@@ -1006,7 +1006,6 @@ public class Executor {
                     return false;
             }
         }
-        return true;
     }
     
     private String getColumnValue(Map<String, Object> row, ExpressionPlan expr, TableInfo tableInfo) {
