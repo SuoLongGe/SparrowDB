@@ -10,7 +10,7 @@ import java.awt.*;
  * 提供独立的AST图形化显示窗口
  */
 public class ASTVisualizationWindow extends JFrame {
-    private ASTVisualizer visualizer;
+    private BeautifulASTVisualizer visualizer;
     private JToolBar toolBar;
     private JLabel statusLabel;
     
@@ -28,7 +28,7 @@ public class ASTVisualizationWindow extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         
         // 创建AST可视化器
-        visualizer = new ASTVisualizer();
+        visualizer = new BeautifulASTVisualizer();
         
         // 创建工具栏
         toolBar = new JToolBar();

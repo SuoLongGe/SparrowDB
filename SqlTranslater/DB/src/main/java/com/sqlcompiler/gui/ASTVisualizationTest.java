@@ -12,7 +12,7 @@ import java.awt.event.ActionListener;
  * 用于测试AST图形化显示功能
  */
 public class ASTVisualizationTest extends JFrame {
-    private ASTVisualizer visualizer;
+    private BeautifulASTVisualizer visualizer;
     private JTextArea sqlInputArea;
     private JButton visualizeButton;
     private JButton testButton;
@@ -38,7 +38,7 @@ public class ASTVisualizationTest extends JFrame {
         sqlInputArea.setText("SELECT name, age FROM students WHERE age > 18 ORDER BY name");
         
         // AST可视化器
-        visualizer = new ASTVisualizer();
+        visualizer = new BeautifulASTVisualizer();
         
         // 按钮
         visualizeButton = new JButton("可视化AST");

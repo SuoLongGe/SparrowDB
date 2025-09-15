@@ -2,6 +2,7 @@ package com.sqlcompiler;
 
 import com.database.engine.DatabaseEngine;
 import com.database.engine.ExecutionResult;
+import com.database.MultiDatabaseManager;
 import com.sqlcompiler.catalog.TableInfo;
 
 import com.sqlcompiler.gui.SQLAutoComplete;
@@ -23,6 +24,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.ArrayList;
 
 /**
@@ -32,6 +34,7 @@ import java.util.ArrayList;
 public class DatabaseGUI extends JFrame {
     private EnhancedSQLCompiler compiler;
     private DatabaseEngine databaseEngine;
+    private MultiDatabaseManager databaseManager;
     
     // 界面组件
     private JTextPane sqlInputArea;
@@ -58,6 +61,11 @@ public class DatabaseGUI extends JFrame {
     private JTree databaseTree;
     private JScrollPane treeScrollPane;
     private JButton refreshButton;
+    
+    // 数据库选择组件
+    private JComboBox<String> databaseComboBox;
+    private JButton createDatabaseButton;
+    private JButton dropDatabaseButton;
 
     // 右键上下文菜单
     private JPopupMenu treeContextMenu;
@@ -238,6 +246,20 @@ public class DatabaseGUI extends JFrame {
         
         refreshButton = new JButton("刷新");
         refreshButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        
+        // 数据库选择组件
+        databaseComboBox = new JComboBox<>();
+        databaseComboBox.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        databaseComboBox.setToolTipText("选择当前数据库");
+        
+        createDatabaseButton = new JButton("创建数据库");
+        createDatabaseButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+        createDatabaseButton.setToolTipText("创建新数据库");
+        
+        dropDatabaseButton = new JButton("删除数据库");
+        dropDatabaseButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+        dropDatabaseButton.setToolTipText("删除当前数据库");
+        dropDatabaseButton.setForeground(Color.RED);
 
     }
     
@@ -245,7 +267,7 @@ public class DatabaseGUI extends JFrame {
      * 设置布局
      */
     private void setupLayout() {
-        setTitle("SparrowDB");
+        updateWindowTitle();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         
@@ -259,8 +281,29 @@ public class DatabaseGUI extends JFrame {
 
         // 左侧：数据库对象树
         JPanel leftPanel = new JPanel(new BorderLayout());
-        leftPanel.setPreferredSize(new Dimension(280, 0));
+        leftPanel.setPreferredSize(new Dimension(300, 0));
         leftPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 5));
+        
+        // 顶部：数据库选择面板
+        JPanel databaseSelectionPanel = new JPanel(new GridBagLayout());
+        databaseSelectionPanel.setBorder(BorderFactory.createTitledBorder("数据库"));
+        
+        GridBagConstraints dbGbc = new GridBagConstraints();
+        dbGbc.insets = new Insets(2, 2, 2, 2);
+        
+        // 数据库下拉框
+        dbGbc.gridx = 0; dbGbc.gridy = 0; dbGbc.gridwidth = 2; dbGbc.fill = GridBagConstraints.HORIZONTAL; dbGbc.weightx = 1.0;
+        databaseSelectionPanel.add(databaseComboBox, dbGbc);
+        
+        // 创建数据库按钮
+        dbGbc.gridx = 0; dbGbc.gridy = 1; dbGbc.gridwidth = 1; dbGbc.fill = GridBagConstraints.HORIZONTAL; dbGbc.weightx = 0.5;
+        databaseSelectionPanel.add(createDatabaseButton, dbGbc);
+        
+        // 删除数据库按钮
+        dbGbc.gridx = 1; dbGbc.gridy = 1; dbGbc.gridwidth = 1; dbGbc.fill = GridBagConstraints.HORIZONTAL; dbGbc.weightx = 0.5;
+        databaseSelectionPanel.add(dropDatabaseButton, dbGbc);
+        
+        leftPanel.add(databaseSelectionPanel, BorderLayout.NORTH);
         
         // 数据库对象树
         leftPanel.add(treeScrollPane, BorderLayout.CENTER);
@@ -510,6 +553,30 @@ public class DatabaseGUI extends JFrame {
             }
         });
         
+        // 数据库选择事件处理器
+        databaseComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                switchDatabase();
+            }
+        });
+        
+        // 创建数据库按钮事件处理器
+        createDatabaseButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                createDatabase();
+            }
+        });
+        
+        // 删除数据库按钮事件处理器
+        dropDatabaseButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dropDatabase();
+            }
+        });
+        
         // 数据库树点击事件处理器
         databaseTree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
             @Override
@@ -636,21 +703,26 @@ public class DatabaseGUI extends JFrame {
      */
     private void initializeDatabase() {
         try {
-            // 先初始化数据库引擎 - 使用自动检测的数据目录路径
-            String dataDirectory = DatabaseConfig.getAutoDetectedDataDirectory();
-            databaseEngine = new DatabaseEngine("SparrowDB", dataDirectory);
+            // 初始化多数据库管理器
+            String baseDataDirectory = DatabaseConfig.getAutoDetectedDataDirectory();
+            databaseManager = new MultiDatabaseManager(baseDataDirectory);
             
-            if (databaseEngine.initialize()) {
-
+            // 获取默认数据库引擎（main数据库）
+            databaseEngine = databaseManager.getCurrentDatabaseEngine();
+            
+            if (databaseEngine != null) {
                 // 使用数据库引擎的目录管理器创建SQL编译器，确保目录同步
                 compiler = new EnhancedSQLCompiler(databaseEngine.getCatalogManager().getCatalog());
                 
                 // 初始化自动补全组件
                 autoComplete = new SQLAutoComplete(sqlInputArea, compiler.getCatalog());
                 
-                statusLabel.setText("数据库已连接");
+                statusLabel.setText("数据库已连接 - " + databaseManager.getCurrentDatabase());
                 statusLabel.setForeground(Color.GREEN);
-                resultTabbedPane.showMessage("数据库引擎初始化成功！");
+                resultTabbedPane.showMessage("多数据库系统初始化成功！当前数据库: " + databaseManager.getCurrentDatabase());
+                
+                // 刷新数据库列表
+                refreshDatabaseList();
                 
                 // 初始化完成后自动刷新数据库树
                 refreshDatabaseTree();
@@ -724,6 +796,11 @@ public class DatabaseGUI extends JFrame {
         if ("clear".equalsIgnoreCase(sql)) {
             compiler.clearCatalog();
             resultTabbedPane.showMessage("目录已清空");
+            return;
+        }
+        
+        // 处理数据库管理命令
+        if (handleDatabaseCommands(sql)) {
             return;
         }
         
@@ -867,6 +944,164 @@ public class DatabaseGUI extends JFrame {
         } else {
             astVisualizer.setAST(null);
         }
+    }
+    
+    /**
+     * 处理数据库管理命令
+     */
+    private boolean handleDatabaseCommands(String sql) {
+        String trimmedSql = sql.trim().toLowerCase();
+        
+        // CREATE DATABASE命令
+        if (trimmedSql.startsWith("create database")) {
+            String[] parts = sql.trim().split("\\s+");
+            if (parts.length >= 3) {
+                String dbName = parts[2].replaceAll("[;]", "").trim();
+                try {
+                    if (databaseManager.createDatabase(dbName)) {
+                        statusLabel.setText("数据库 '" + dbName + "' 创建成功");
+                        statusLabel.setForeground(Color.GREEN);
+                        resultTabbedPane.showMessage("数据库 '" + dbName + "' 创建成功！");
+                        refreshDatabaseList();
+                        return true;
+                    } else {
+                        statusLabel.setText("数据库创建失败");
+                        statusLabel.setForeground(Color.RED);
+                        resultTabbedPane.showError("数据库 '" + dbName + "' 已存在或创建失败");
+                        return true;
+                    }
+                } catch (Exception e) {
+                    statusLabel.setText("创建数据库错误");
+                    statusLabel.setForeground(Color.RED);
+                    resultTabbedPane.showError("创建数据库错误: " + e.getMessage());
+                    return true;
+                }
+            } else {
+                resultTabbedPane.showError("CREATE DATABASE语法错误，正确语法: CREATE DATABASE database_name");
+                return true;
+            }
+        }
+        
+        // DROP DATABASE命令
+        if (trimmedSql.startsWith("drop database")) {
+            String[] parts = sql.trim().split("\\s+");
+            if (parts.length >= 3) {
+                String dbName = parts[2].replaceAll("[;]", "").trim();
+                if (dbName.equals("main")) {
+                    resultTabbedPane.showError("不能删除main数据库！");
+                    return true;
+                }
+                
+                int confirm = JOptionPane.showConfirmDialog(this,
+                    "确定要删除数据库 '" + dbName + "' 吗？\n此操作不可撤销！",
+                    "确认删除数据库",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+                
+                if (confirm == JOptionPane.YES_OPTION) {
+                    try {
+                        if (databaseManager.dropDatabase(dbName)) {
+                            statusLabel.setText("数据库 '" + dbName + "' 已删除");
+                            statusLabel.setForeground(Color.GREEN);
+                            resultTabbedPane.showMessage("数据库 '" + dbName + "' 删除成功！");
+                            refreshDatabaseList();
+                            
+                            // 如果删除的是当前数据库，需要更新界面
+                            if (dbName.equals(databaseManager.getCurrentDatabase())) {
+                                databaseEngine = databaseManager.getCurrentDatabaseEngine();
+                                compiler = new EnhancedSQLCompiler(databaseEngine.getCatalogManager().getCatalog());
+                                autoComplete = new SQLAutoComplete(sqlInputArea, compiler.getCatalog());
+                                refreshDatabaseTree();
+                            }
+                            return true;
+                        } else {
+                            statusLabel.setText("数据库删除失败");
+                            statusLabel.setForeground(Color.RED);
+                            resultTabbedPane.showError("数据库 '" + dbName + "' 不存在或删除失败");
+                            return true;
+                        }
+                    } catch (Exception e) {
+                        statusLabel.setText("删除数据库错误");
+                        statusLabel.setForeground(Color.RED);
+                        resultTabbedPane.showError("删除数据库错误: " + e.getMessage());
+                        return true;
+                    }
+                }
+                return true; // 用户取消了删除操作
+            } else {
+                resultTabbedPane.showError("DROP DATABASE语法错误，正确语法: DROP DATABASE database_name");
+                return true;
+            }
+        }
+        
+        // USE DATABASE命令
+        if (trimmedSql.startsWith("use")) {
+            String[] parts = sql.trim().split("\\s+");
+            if (parts.length >= 2) {
+                String dbName = parts[1].replaceAll("[;]", "").trim();
+                try {
+                    if (databaseManager.useDatabase(dbName)) {
+                        // 更新界面
+                        databaseEngine = databaseManager.getCurrentDatabaseEngine();
+                        compiler = new EnhancedSQLCompiler(databaseEngine.getCatalogManager().getCatalog());
+                        autoComplete = new SQLAutoComplete(sqlInputArea, compiler.getCatalog());
+                        
+                        statusLabel.setText("已切换到数据库: " + dbName);
+                        statusLabel.setForeground(Color.GREEN);
+                        resultTabbedPane.showMessage("已切换到数据库: " + dbName);
+                        
+                        // 更新UI组件
+                        databaseComboBox.setSelectedItem(dbName);
+                        dropDatabaseButton.setEnabled(!dbName.equals("main"));
+                        updateWindowTitle();
+                        refreshDatabaseTree();
+                        return true;
+                    } else {
+                        statusLabel.setText("切换数据库失败");
+                        statusLabel.setForeground(Color.RED);
+                        resultTabbedPane.showError("数据库 '" + dbName + "' 不存在");
+                        return true;
+                    }
+                } catch (Exception e) {
+                    statusLabel.setText("切换数据库错误");
+                    statusLabel.setForeground(Color.RED);
+                    resultTabbedPane.showError("切换数据库错误: " + e.getMessage());
+                    return true;
+                }
+            } else {
+                resultTabbedPane.showError("USE语法错误，正确语法: USE database_name");
+                return true;
+            }
+        }
+        
+        // SHOW DATABASES命令
+        if (trimmedSql.startsWith("show databases")) {
+            try {
+                Set<String> databaseNames = databaseManager.getAllDatabaseNames();
+                StringBuilder result = new StringBuilder("数据库列表:\n");
+                String currentDb = databaseManager.getCurrentDatabase();
+                
+                for (String dbName : databaseNames) {
+                    result.append("- ").append(dbName);
+                    if (dbName.equals(currentDb)) {
+                        result.append(" (当前)");
+                    }
+                    result.append("\n");
+                }
+                
+                resultTabbedPane.showMessage(result.toString());
+                statusLabel.setText("显示数据库列表成功");
+                statusLabel.setForeground(Color.GREEN);
+                return true;
+            } catch (Exception e) {
+                statusLabel.setText("显示数据库列表失败");
+                statusLabel.setForeground(Color.RED);
+                resultTabbedPane.showError("显示数据库列表失败: " + e.getMessage());
+                return true;
+            }
+        }
+        
+        return false; // 不是数据库管理命令
     }
     
     /**
@@ -1521,6 +1756,169 @@ public class DatabaseGUI extends JFrame {
     }
     
     /**
+     * 更新窗口标题显示当前数据库
+     */
+    private void updateWindowTitle() {
+        try {
+            String currentDb = databaseManager.getCurrentDatabase();
+            setTitle("SparrowDB - 当前数据库: " + (currentDb != null ? currentDb : "未选择"));
+        } catch (Exception e) {
+            setTitle("SparrowDB");
+        }
+    }
+    
+    /**
+     * 刷新数据库列表
+     */
+    private void refreshDatabaseList() {
+        try {
+            Set<String> databaseNames = databaseManager.getAllDatabaseNames();
+            
+            // 清空并重新填充数据库下拉框
+            databaseComboBox.removeAllItems();
+            for (String dbName : databaseNames) {
+                databaseComboBox.addItem(dbName);
+            }
+            
+            // 选择当前数据库
+            String currentDb = databaseManager.getCurrentDatabase();
+            if (currentDb != null && databaseNames.contains(currentDb)) {
+                databaseComboBox.setSelectedItem(currentDb);
+            }
+            
+            // 更新删除按钮状态（main数据库不能删除）
+            dropDatabaseButton.setEnabled(!currentDb.equals("main"));
+            
+        } catch (Exception e) {
+            statusLabel.setText("刷新数据库列表失败: " + e.getMessage());
+            statusLabel.setForeground(Color.RED);
+        }
+    }
+    
+    /**
+     * 切换数据库
+     */
+    private void switchDatabase() {
+        String selectedDb = (String) databaseComboBox.getSelectedItem();
+        if (selectedDb != null && !selectedDb.equals(databaseManager.getCurrentDatabase())) {
+            try {
+                if (databaseManager.useDatabase(selectedDb)) {
+                    // 更新当前数据库引擎
+                    databaseEngine = databaseManager.getCurrentDatabaseEngine();
+                    
+                    // 重新初始化编译器和自动补全
+                    compiler = new EnhancedSQLCompiler(databaseEngine.getCatalogManager().getCatalog());
+                    autoComplete = new SQLAutoComplete(sqlInputArea, compiler.getCatalog());
+                    
+                    // 更新状态
+                    statusLabel.setText("已切换到数据库: " + selectedDb);
+                    statusLabel.setForeground(Color.GREEN);
+                    
+                    // 更新删除按钮状态
+                    dropDatabaseButton.setEnabled(!selectedDb.equals("main"));
+                    
+                    // 更新窗口标题
+                    updateWindowTitle();
+                    
+                    // 刷新数据库树
+                    refreshDatabaseTree();
+                    
+                    resultTabbedPane.showMessage("已切换到数据库: " + selectedDb);
+                } else {
+                    statusLabel.setText("切换数据库失败");
+                    statusLabel.setForeground(Color.RED);
+                    resultTabbedPane.showError("数据库 '" + selectedDb + "' 不存在");
+                }
+            } catch (Exception e) {
+                statusLabel.setText("切换数据库错误: " + e.getMessage());
+                statusLabel.setForeground(Color.RED);
+                resultTabbedPane.showError("切换数据库错误: " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * 创建数据库
+     */
+    private void createDatabase() {
+        String dbName = JOptionPane.showInputDialog(this,
+            "请输入新数据库名称:\n(只能包含字母、数字、下划线，且不能以数字开头)",
+            "创建数据库",
+            JOptionPane.QUESTION_MESSAGE);
+        
+        if (dbName != null && !dbName.trim().isEmpty()) {
+            dbName = dbName.trim();
+            try {
+                if (databaseManager.createDatabase(dbName)) {
+                    statusLabel.setText("数据库 '" + dbName + "' 创建成功");
+                    statusLabel.setForeground(Color.GREEN);
+                    resultTabbedPane.showMessage("数据库 '" + dbName + "' 创建成功！");
+                    
+                    // 刷新数据库列表
+                    refreshDatabaseList();
+                } else {
+                    statusLabel.setText("数据库创建失败");
+                    statusLabel.setForeground(Color.RED);
+                    resultTabbedPane.showError("数据库 '" + dbName + "' 已存在或创建失败");
+                }
+            } catch (Exception e) {
+                statusLabel.setText("创建数据库错误: " + e.getMessage());
+                statusLabel.setForeground(Color.RED);
+                resultTabbedPane.showError("创建数据库错误: " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * 删除数据库
+     */
+    private void dropDatabase() {
+        String currentDb = databaseManager.getCurrentDatabase();
+        
+        if (currentDb.equals("main")) {
+            JOptionPane.showMessageDialog(this,
+                "不能删除main数据库！",
+                "警告",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "确定要删除数据库 '" + currentDb + "' 吗？\n" +
+            "此操作将删除该数据库中的所有表、视图、函数等数据，且不可撤销！",
+            "确认删除数据库",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                if (databaseManager.dropDatabase(currentDb)) {
+                    statusLabel.setText("数据库 '" + currentDb + "' 已删除");
+                    statusLabel.setForeground(Color.GREEN);
+                    resultTabbedPane.showMessage("数据库 '" + currentDb + "' 删除成功！已切换到main数据库。");
+                    
+                    // 刷新数据库列表和树
+                    refreshDatabaseList();
+                    
+                    // 切换到main数据库
+                    databaseEngine = databaseManager.getCurrentDatabaseEngine();
+                    compiler = new EnhancedSQLCompiler(databaseEngine.getCatalogManager().getCatalog());
+                    autoComplete = new SQLAutoComplete(sqlInputArea, compiler.getCatalog());
+                    refreshDatabaseTree();
+                } else {
+                    statusLabel.setText("数据库删除失败");
+                    statusLabel.setForeground(Color.RED);
+                    resultTabbedPane.showError("数据库 '" + currentDb + "' 不存在或删除失败");
+                }
+            } catch (Exception e) {
+                statusLabel.setText("删除数据库错误: " + e.getMessage());
+                statusLabel.setForeground(Color.RED);
+                resultTabbedPane.showError("删除数据库错误: " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
      * 刷新数据库树
      */
     private void refreshDatabaseTree() {
@@ -1529,7 +1927,8 @@ public class DatabaseGUI extends JFrame {
             java.util.Set<String> tableNames = databaseEngine.getCatalogManager().getAllTableNames();
             
             // 创建树模型
-            javax.swing.tree.DefaultMutableTreeNode root = new javax.swing.tree.DefaultMutableTreeNode("数据库");
+            String currentDbName = databaseManager.getCurrentDatabase();
+            javax.swing.tree.DefaultMutableTreeNode root = new javax.swing.tree.DefaultMutableTreeNode("数据库: " + currentDbName);
             
             // 添加表节点
             javax.swing.tree.DefaultMutableTreeNode tablesNode = new javax.swing.tree.DefaultMutableTreeNode("表");
