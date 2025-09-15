@@ -401,8 +401,9 @@ public class SyntaxAnalyzer {
                 expect(TokenType.LEFT_PAREN);
                 Expression checkCondition = parseExpression();
                 expect(TokenType.RIGHT_PAREN);
+                // CHECK约束需要保存条件表达式作为defaultValue参数
                 return new Constraint(Constraint.ConstraintType.CHECK, null, 
-                                    List.of(), null, null, null, startPos);
+                                    List.of(), null, null, checkCondition.toString(), startPos);
             default:
                 throw new SyntaxException("未知的约束类型", currentToken().getPosition());
         }
