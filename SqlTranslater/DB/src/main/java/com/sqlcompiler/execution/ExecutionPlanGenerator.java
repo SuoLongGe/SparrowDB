@@ -302,6 +302,16 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
         return null; // LIMIT子句在SELECT中处理
     }
     
+    @Override
+    public ExecutionPlan visit(SelectListClause node) throws CompilationException {
+        return null; // SELECT列表在SELECT中处理
+    }
+    
+    @Override
+    public ExecutionPlan visit(FromClause node) throws CompilationException {
+        return null; // FROM子句在SELECT中处理
+    }
+    
     /**
      * 转换表达式
      */

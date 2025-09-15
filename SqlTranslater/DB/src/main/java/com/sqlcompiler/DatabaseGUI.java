@@ -6,7 +6,7 @@ import com.sqlcompiler.catalog.TableInfo;
 
 import com.sqlcompiler.gui.SQLAutoComplete;
 import com.sqlcompiler.gui.SQLSyntaxHighlighter;
-import com.sqlcompiler.gui.ASTVisualizer;
+import com.sqlcompiler.gui.BeautifulASTVisualizer;
 import com.sqlcompiler.gui.LineNumberScrollPane;
 import com.sqlcompiler.gui.ResultTabbedPane;
 
@@ -70,7 +70,7 @@ public class DatabaseGUI extends JFrame {
     private SQLSyntaxHighlighter syntaxHighlighter;
     
     // AST可视化组件
-    private ASTVisualizer astVisualizer;
+    private BeautifulASTVisualizer astVisualizer;
     
     // AST可视化控制按钮
     private JButton zoomInButton;
@@ -102,7 +102,7 @@ public class DatabaseGUI extends JFrame {
         syntaxHighlighter = new SQLSyntaxHighlighter(sqlInputArea);
         
         // 初始化AST可视化组件
-        astVisualizer = new ASTVisualizer();
+        astVisualizer = new BeautifulASTVisualizer();
         
         // 设置键盘快捷键
         setupKeyboardShortcuts();
