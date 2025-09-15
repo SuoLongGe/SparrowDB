@@ -42,6 +42,13 @@ public class SQLCompiler {
     }
     
     /**
+     * 设置视图管理器
+     */
+    public void setViewManager(com.database.engine.ViewManager viewManager) {
+        catalog.setViewManager(viewManager);
+    }
+    
+    /**
      * 编译SQL语句
      */
     public CompilationResult compile(String sql) {

@@ -562,8 +562,8 @@ public class DatabaseGUI extends JFrame {
                             resultTabbedPane.showQueryMessage(sql, true, true, executionTimeMs, selectedIndexType);
                             resultTabbedPane.showQueryResult(execResult);
                         } else {
-                            // 非查询类指令或查询无数据，只显示消息
-                            String message = isQuery ? "查询成功，但无数据返回" : "执行成功";
+                            // 非查询类指令或查询无数据，显示详细消息
+                            String message = isQuery ? "查询成功，但无数据返回" : execResult.getMessage();
                             resultTabbedPane.showMessage(message);
                         }
                     } else {

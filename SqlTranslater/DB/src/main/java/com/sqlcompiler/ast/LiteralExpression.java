@@ -28,4 +28,13 @@ public class LiteralExpression extends Expression {
     public <T> T accept(ASTVisitor<T> visitor) throws com.sqlcompiler.exception.CompilationException {
         return visitor.visit(this);
     }
+    
+    @Override
+    public String toString() {
+        if (type == TokenType.STRING_LITERAL) {
+            return "'" + value + "'";
+        } else {
+            return value;
+        }
+    }
 }

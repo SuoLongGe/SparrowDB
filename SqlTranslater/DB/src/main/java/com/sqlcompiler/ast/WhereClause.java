@@ -21,4 +21,9 @@ public class WhereClause extends ASTNode {
     public <T> T accept(ASTVisitor<T> visitor) throws com.sqlcompiler.exception.CompilationException {
         return visitor.visit(this);
     }
+    
+    @Override
+    public String toString() {
+        return condition.toString();
+    }
 }

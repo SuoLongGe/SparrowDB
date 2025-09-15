@@ -77,6 +77,9 @@ public class DatabaseEngine {
 
             // 确保StorageAdapter中的列式存储表信息同步到CatalogManager
             syncColumnarTablesToCatalog();
+            
+            // 设置ViewManager到SQLCompiler，以便语义分析器可以检查视图
+            sqlCompiler.setViewManager(viewManager);
 
             initialized = true;
             return true;
@@ -343,6 +346,13 @@ public class DatabaseEngine {
      */
     public List<String> listTables() {
         return new ArrayList<>(catalogManager.getAllTableNames());
+    }
+    
+    /**
+     * 获取视图管理器
+     */
+    public ViewManager getViewManager() {
+        return viewManager;
     }
     
     /**

@@ -2,6 +2,7 @@ package com.database.engine;
 
 import com.sqlcompiler.execution.*;
 import com.sqlcompiler.catalog.*;
+import com.sqlcompiler.ast.*;
 import java.util.*;
 import java.util.Arrays;
 
@@ -21,7 +22,7 @@ public class Executor {
         this.storageAdapter = storageAdapter;
         this.catalogManager = catalogManager;
         this.databaseEngine = databaseEngine;
-        this.viewManager = null; // TODO: 需要正确初始化ViewManager
+        this.viewManager = databaseEngine.getViewManager(); // 从DatabaseEngine获取ViewManager
     }
     
     /**
@@ -314,8 +315,32 @@ public class Executor {
             TablePlan tablePlan = plan.getFromClause().get(0);
             String tableName = tablePlan.getTableName();
             
+            // 检查是否为视图
+            if (viewManager != null && viewManager.viewExists(tableName)) {
+                // 这是一个视图查询，使用简化的实现
+                ViewInfo viewInfo = viewManager.getView(tableName);
+                if (viewInfo.getOriginalQuery() != null) {
+                    try {
+                        // 使用DatabaseEngine直接执行视图的原始查询
+                        ExecutionResult viewResult = databaseEngine.executeSQL(viewInfo.getOriginalQuery());
+                        
+                        if (viewResult.isSuccess()) {
+                            return new ExecutionResult(true, "查询视图完成，返回 " + 
+                                (viewResult.getData() != null ? viewResult.getData().size() : 0) + " 行", 
+                                viewResult.getData());
+                        } else {
+                            return viewResult;
+                        }
+                    } catch (Exception e) {
+                        return new ExecutionResult(false, "执行视图查询失败: " + e.getMessage(), null);
+                    }
+                } else {
+                    return new ExecutionResult(false, "视图 " + tableName + " 定义无效", null);
+                }
+            }
+            
             if (!catalogManager.tableExists(tableName)) {
-                return new ExecutionResult(false, "表 " + tableName + " 不存在", null);
+                return new ExecutionResult(false, "表或视图 " + tableName + " 不存在", null);
             }
             
             TableInfo tableInfo = catalogManager.getTable(tableName);
@@ -1536,16 +1561,44 @@ public class Executor {
      * 执行创建视图操作
      */
     private ExecutionResult executeCreateView(CreateViewPlan plan) {
-        // TODO: 实现创建视图功能
-        return new ExecutionResult(false, "视图功能暂未完整实现", null);
+        try {
+            // 使用ViewManager创建视图
+            viewManager.createView(plan.getViewName(), plan.getSelectStatement(), plan.getOriginalQuery());
+            
+            String message = String.format("视图 '%s' 创建成功", plan.getViewName());
+            return new ExecutionResult(true, message, null);
+            
+        } catch (Exception e) {
+            String message = String.format("创建视图失败: %s", e.getMessage());
+            return new ExecutionResult(false, message, null);
+        }
     }
 
     /**
      * 执行删除视图操作
      */
     private ExecutionResult executeDropView(DropViewPlan plan) {
-        // TODO: 实现删除视图功能
-        return new ExecutionResult(false, "视图功能暂未完整实现", null);
+        try {
+            // 使用ViewManager删除视图
+            boolean result = viewManager.dropView(plan.getViewName(), plan.isIfExists());
+            
+            String message;
+            if (result) {
+                if (plan.isIfExists() && !viewManager.viewExists(plan.getViewName())) {
+                    message = String.format("视图 '%s' 不存在（IF EXISTS 语义）", plan.getViewName());
+                } else {
+                    message = String.format("视图 '%s' 删除成功", plan.getViewName());
+                }
+            } else {
+                message = String.format("删除视图 '%s' 失败", plan.getViewName());
+            }
+            
+            return new ExecutionResult(true, message, null);
+            
+        } catch (Exception e) {
+            String message = String.format("删除视图失败: %s", e.getMessage());
+            return new ExecutionResult(false, message, null);
+        }
     }
 
     /**
@@ -1591,4 +1644,5 @@ public class Executor {
         // TODO: 实现类型转换功能
         return value;
     }
+    
 }
