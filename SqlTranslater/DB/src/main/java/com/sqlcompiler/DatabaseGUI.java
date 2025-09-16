@@ -1514,6 +1514,9 @@ public class DatabaseGUI extends JFrame {
                 // 刷新数据库列表
                 refreshDatabaseList();
                 
+                // 自动切换到包含用户表的数据库
+                autoSwitchToDatabaseWithTables();
+                
                 // 初始化完成后自动刷新数据库树
                 refreshDatabaseTree();
             } else {
@@ -2746,6 +2749,66 @@ public class DatabaseGUI extends JFrame {
             setTitle("SparrowDB - 当前数据库: " + (currentDb != null ? currentDb : "未选择"));
         } catch (Exception e) {
             setTitle("SparrowDB");
+        }
+    }
+    
+    /**
+     * 自动切换到包含用户表的数据库
+     */
+    private void autoSwitchToDatabaseWithTables() {
+        try {
+            Set<String> databaseNames = databaseManager.getAllDatabaseNames();
+            String databaseWithUserTables = null;
+            
+            // 查找包含用户表的数据库
+            for (String dbName : databaseNames) {
+                try {
+                    DatabaseEngine engine = databaseManager.getDatabaseEngine(dbName);
+                    if (engine != null) {
+                        Set<String> tables = engine.getCatalogManager().getAllTableNames();
+                        // 过滤掉系统表，检查是否有用户表
+                        long userTableCount = tables.stream()
+                            .filter(tableName -> !tableName.startsWith("__system_"))
+                            .count();
+                        
+                        if (userTableCount > 0 && databaseWithUserTables == null) {
+                            databaseWithUserTables = dbName;
+                        }
+                    }
+                } catch (Exception e) {
+                    // 忽略单个数据库加载失败
+                }
+            }
+            
+            // 如果找到包含用户表的数据库且不是当前数据库，则切换
+            if (databaseWithUserTables != null && !databaseWithUserTables.equals(databaseManager.getCurrentDatabase())) {
+                if (databaseManager.useDatabase(databaseWithUserTables)) {
+                    // 更新当前数据库引擎
+                    databaseEngine = databaseManager.getCurrentDatabaseEngine();
+                    
+                    // 重新初始化编译器和自动补全
+                    compiler = new EnhancedSQLCompiler(databaseEngine.getCatalogManager().getCatalog());
+                    autoComplete = new SQLAutoComplete(sqlInputArea, compiler.getCatalog());
+                    
+                    // 更新数据库下拉框选择
+                    databaseComboBox.setSelectedItem(databaseWithUserTables);
+                    
+                    // 更新状态
+                    statusLabel.setText("已自动切换到数据库: " + databaseWithUserTables);
+                    statusLabel.setForeground(Color.BLUE);
+                    
+                    // 更新删除按钮状态
+                    dropDatabaseButton.setEnabled(!databaseWithUserTables.equals("main"));
+                    
+                    // 更新窗口标题
+                    updateWindowTitle();
+                    
+                    resultTabbedPane.showMessage("已自动切换到包含用户表的数据库: " + databaseWithUserTables);
+                }
+            }
+        } catch (Exception e) {
+            // 自动切换失败不影响正常启动
+            System.err.println("自动切换数据库失败: " + e.getMessage());
         }
     }
     

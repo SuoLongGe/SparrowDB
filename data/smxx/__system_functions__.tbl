@@ -11,3 +11,4 @@ COLUMN=create_time:BIGINT:8
 # End Metadata
 
 
+RECORD:return_type=DECIMAL|create_time=1758012550476|signature=original_price:DECIMAL,discount_rate:DECIMAL|function_name=calculate_discount|is_permanent=true|body=RETURN original_price * discount_rate ;

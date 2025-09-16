@@ -1,8 +1,0 @@
-2025-09-16 09:28:24.331 | LSN:00000041 | TXN_START    | TXN:1757986104330 |                 | 事务开始 | INFO:事务ID: 1757986104330
-2025-09-16 09:28:24.336 | LSN:00000042 | SELECT       | TXN:1757986104330 | student         | SQL执行开始 | INFO:SQL: select * from student where id=1
-2025-09-16 09:28:24.349 | LSN:00000043 | SELECT       | TXN:1757986104330 | student         | SQL执行成功 | DATA:NEW[返回 1 条记录] | INFO:SQL: select * from student where id=1
-2025-09-16 09:28:24.349 | LSN:00000044 | TXN_COMMIT   | TXN:1757986104330 |                 | 事务提交 | INFO:事务ID: 1757986104330
-2025-09-16 09:35:24.733 | LSN:00000045 | TXN_START    | TXN:1757986524731 |                 | 事务开始 | INFO:事务ID: 1757986524731
-2025-09-16 09:35:24.739 | LSN:00000046 | SELECT       | TXN:1757986524731 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
-2025-09-16 09:35:24.856 | LSN:00000047 | SELECT       | TXN:1757986524731 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
-2025-09-16 09:35:24.857 | LSN:00000048 | TXN_COMMIT   | TXN:1757986524731 |                 | 事务提交 | INFO:事务ID: 1757986524731

@@ -109,40 +109,15 @@ public class ShardInfo {
             return false;
         }
         
-        // 统一转换为字符串进行比较（适用于字符串分片键）
-        if (value instanceof String && min instanceof String && max instanceof String) {
-            String strValue = (String) value;
-            String strMin = (String) min;
-            String strMax = (String) max;
-            return strValue.compareTo(strMin) >= 0 && strValue.compareTo(strMax) < 0;
-        }
-        
-        // 数值类型比较
-        if (value instanceof Number && min instanceof Number && max instanceof Number) {
-            double numValue = ((Number) value).doubleValue();
-            double numMin = ((Number) min).doubleValue();
-            double numMax = ((Number) max).doubleValue();
-            return numValue >= numMin && numValue < numMax;
-        }
-        
-        // 通用Comparable比较
         if (value instanceof Comparable && min instanceof Comparable && max instanceof Comparable) {
-            try {
-                @SuppressWarnings("unchecked")
-                Comparable<Object> compValue = (Comparable<Object>) value;
-                @SuppressWarnings("unchecked")
-                Comparable<Object> compMin = (Comparable<Object>) min;
-                @SuppressWarnings("unchecked")
-                Comparable<Object> compMax = (Comparable<Object>) max;
-                
-                return compValue.compareTo(compMin) >= 0 && compValue.compareTo(compMax) < 0;
-            } catch (ClassCastException e) {
-                // 类型不兼容，尝试字符串比较
-                String strValue = value.toString();
-                String strMin = min.toString();
-                String strMax = max.toString();
-                return strValue.compareTo(strMin) >= 0 && strValue.compareTo(strMax) < 0;
-            }
+            @SuppressWarnings("unchecked")
+            Comparable<Object> compValue = (Comparable<Object>) value;
+            @SuppressWarnings("unchecked")
+            Comparable<Object> compMin = (Comparable<Object>) min;
+            @SuppressWarnings("unchecked")
+            Comparable<Object> compMax = (Comparable<Object>) max;
+            
+            return compValue.compareTo(compMin) >= 0 && compValue.compareTo(compMax) < 0;
         }
         
         return false;

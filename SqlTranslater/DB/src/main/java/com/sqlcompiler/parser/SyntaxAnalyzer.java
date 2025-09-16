@@ -203,11 +203,13 @@ public class SyntaxAnalyzer {
             return parseDropViewStatement();
         } else if (nextToken.getType() == TokenType.FUNCTION) {
             return parseDropFunctionStatement();
+        } else if (nextToken.getType() == TokenType.SHARD) {
+            return parseDropShardStatement();
         } else {
             throw new SyntaxException(
-                String.format("DROP后面应该是TABLE、VIEW或FUNCTION，而不是 '%s'", nextToken.getValue()),
+                String.format("DROP后面应该是TABLE、VIEW、FUNCTION或SHARD，而不是 '%s'", nextToken.getValue()),
                 nextToken.getPosition(),
-                "TABLE、VIEW 或 FUNCTION"
+                "TABLE、VIEW、FUNCTION 或 SHARD"
             );
         }
     }
@@ -1749,5 +1751,86 @@ public class SyntaxAnalyzer {
         }
 
         return bodyBuilder.toString().trim();
+    }
+    
+    /**
+     * 解析CREATE SHARD语句
+     * 格式: CREATE SHARD table_name BY shard_key_column USING strategy (shard_count)
+     */
+    private CreateShardStatement parseCreateShardStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+
+        // SHARD
+        expect(TokenType.SHARD);
+
+        // 表名
+        String tableName = expectIdentifier();
+
+        // BY
+        expect(TokenType.BY);
+
+        // 分片键列名
+        String shardKeyColumn = expectIdentifier();
+
+        // USING
+        expect(TokenType.USING);
+
+        // 分片策略 (HASH, RANGE)
+        Token strategyToken = currentToken();
+        String strategy;
+        if (strategyToken.getType() == TokenType.HASH) {
+            strategy = "HASH";
+            nextToken(); // 消费HASH
+        } else if (strategyToken.getType() == TokenType.RANGE) {
+            strategy = "RANGE";
+            nextToken(); // 消费RANGE
+        } else {
+            throw new SyntaxException(
+                String.format("USING后面应该是HASH或RANGE，而不是 '%s'", strategyToken.getValue()),
+                strategyToken.getPosition(),
+                "HASH 或 RANGE"
+            );
+        }
+
+        // (
+        expect(TokenType.LEFT_PAREN);
+
+        // 分片数量
+        Token shardCountToken = currentToken();
+        if (shardCountToken.getType() != TokenType.NUMBER_LITERAL) {
+            throw new SyntaxException(
+                "分片数量必须是整数",
+                shardCountToken.getPosition(),
+                "整数"
+            );
+        }
+        int shardCount = Integer.parseInt(shardCountToken.getValue());
+        nextToken(); // 消费数字
+
+        // )
+        expect(TokenType.RIGHT_PAREN);
+
+        return new CreateShardStatement(tableName, shardKeyColumn, strategy, shardCount, startPos);
+    }
+
+    /**
+     * 解析DROP SHARD语句
+     * 格式: DROP SHARD table_name
+     */
+    private DropShardStatement parseDropShardStatement() throws SyntaxException {
+        Position startPos = currentToken().getPosition();
+
+        // SHARD
+        expect(TokenType.SHARD);
+
+        // 表名
+        String tableName = expectIdentifier();
+
+        // 可选的分号
+        if (currentToken().getType() == TokenType.SEMICOLON) {
+            nextToken();
+        }
+
+        return new DropShardStatement(tableName, startPos);
     }
 }
