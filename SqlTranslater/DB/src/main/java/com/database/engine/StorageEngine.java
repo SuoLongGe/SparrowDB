@@ -51,10 +51,12 @@ public class StorageEngine {
             File file = new File(tableFile);
             if (!file.exists()) {
                 file.createNewFile();
+                // 只有在文件不存在时才写入表元数据
+                writeTableMetadata(tableFile, tableInfo);
+            } else {
+                // 文件已存在，只注册到内存中，不覆盖文件内容
+                System.out.println("表文件已存在，跳过元数据写入: " + tableName);
             }
-            
-            // 写入表元数据到文件头
-            writeTableMetadata(tableFile, tableInfo);
             
             return true;
         } catch (Exception e) {

@@ -1,1 +1,11 @@
-RECORD:return_type=INT|create_time=1757940791439|signature=a:INT,b:INT|function_name=multiply1|is_permanent=true|body=RETURN a + b ;
+# Table Metadata
+TABLE_NAME=__system_functions__
+COLUMN_COUNT=6
+COLUMN=function_name:VARCHAR:255
+COLUMN=signature:VARCHAR:500
+COLUMN=return_type:VARCHAR:50
+COLUMN=body:TEXT:10000
+COLUMN=is_permanent:BOOLEAN:1
+COLUMN=create_time:BIGINT:8
+# End Metadata
+

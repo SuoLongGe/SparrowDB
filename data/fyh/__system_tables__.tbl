@@ -1,3 +1,4 @@
+
 # Table Metadata
 TABLE_NAME=__system_tables__
 COLUMN_COUNT=4
@@ -7,6 +8,7 @@ COLUMN=column_count:INT:4
 COLUMN=constraint_count:INT:4
 # End Metadata
 PAGE:1
-create_time=1757987604465|constraint_count=0|column_count=4|table_name=course
-create_time=1757987604470|constraint_count=0|column_count=4|table_name=course
+create_time=1757986561386|constraint_count=0|column_count=4|table_name=course
+create_time=1757986561425|constraint_count=0|column_count=4|table_name=course
+
 
