@@ -115,8 +115,6 @@ public class SyntaxAnalyzer {
      * 解析CREATE语句 (TABLE 或 VIEW)
      */
     private Statement parseCreateStatement() throws SyntaxException {
-        Position startPos = currentToken().getPosition();
-
         // CREATE
         expect(TokenType.CREATE);
 
@@ -145,54 +143,11 @@ public class SyntaxAnalyzer {
         }
     }
 
-    /**
-     * 解析CREATE SHARD语句
-     * 格式: CREATE SHARD table_name BY column USING strategy (count)
-     */
-    private CreateShardStatement parseCreateShardStatement() throws SyntaxException {
-        Position pos = currentToken().getPosition();
-        
-        // SHARD
-        expect(TokenType.SHARD);
-        
-        // 表名
-        String tableName = expectIdentifier();
-        
-        // BY
-        expect(TokenType.BY);
-        
-        // 分片键列名
-        String shardKeyColumn = expectIdentifier();
-        
-        // USING
-        expect(TokenType.USING);
-        
-        // 策略 (RANGE, HASH 等)
-        String strategy = expectIdentifier();
-        
-        // (count)
-        expect(TokenType.LEFT_PAREN);
-        if (currentToken().getType() != TokenType.NUMBER_LITERAL) {
-            throw new SyntaxException("期望数字", currentToken().getPosition());
-        }
-        int shardCount = Integer.parseInt(currentToken().getValue());
-        nextToken();
-        expect(TokenType.RIGHT_PAREN);
-        
-        // 可选的分号
-        if (currentToken().getType() == TokenType.SEMICOLON) {
-            nextToken();
-        }
-        
-        return new CreateShardStatement(tableName, shardKeyColumn, strategy, shardCount, pos);
-    }
 
     /**
      * 解析DROP语句 (TABLE, VIEW, FUNCTION)
      */
     private Statement parseDropStatement() throws SyntaxException {
-        Position startPos = currentToken().getPosition();
-
         // DROP
         expect(TokenType.DROP);
 

@@ -904,11 +904,14 @@ public class StorageAdapter implements RollbackCallback {
     }
 
     /**
-     * 从系统表删除数据
+     * 从系统表删除数据（删除所有匹配的记录）
      */
     public boolean deleteFromSystemTable(String tableName, Map<String, Object> condition) {
         try {
             List<Map<String, Object>> records = scanTable(tableName);
+            List<Map<String, Object>> toDelete = new ArrayList<>();
+            
+            // 找到所有匹配的记录
             for (Map<String, Object> record : records) {
                 boolean matches = true;
                 for (Map.Entry<String, Object> entry : condition.entrySet()) {
@@ -918,12 +921,27 @@ public class StorageAdapter implements RollbackCallback {
                     }
                 }
                 if (matches) {
-                    return deleteRecord(tableName, record);
+                    toDelete.add(record);
                 }
             }
-            return true; // 没有匹配的记录也认为删除成功
+            
+            // 删除所有匹配的记录
+            boolean allDeleted = true;
+            for (Map<String, Object> record : toDelete) {
+                if (!deleteRecord(tableName, record)) {
+                    allDeleted = false;
+                    System.err.println("删除记录失败: " + record);
+                }
+            }
+            
+            if (toDelete.size() > 0) {
+                System.out.println("从系统表 " + tableName + " 删除了 " + toDelete.size() + " 条记录");
+            }
+            
+            return allDeleted;
         } catch (Exception e) {
             System.err.println("从系统表删除数据失败: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }

@@ -137,7 +137,7 @@ ORDER BY category DESC;
 
 SELECT '=== 性能验证测试 ===' as test_name;
 
--- 6.1 全表扫描性能        !!!!!!!!!!!!!!!!!!!!!!!!!!
+-- 6.1 全表扫描性能        
 SELECT COUNT(*) as total_products FROM demo_products;
 
 -- 6.2 索引查询性能
@@ -146,7 +146,7 @@ SELECT * FROM demo_products WHERE product_id = 5;
 -- 6.3 范围查询性能
 SELECT * FROM demo_products WHERE price BETWEEN 50 AND 200;
 
--- 6.4 排序查询性能       !!!!!!!!!!!!!!!!!!!!!!!!!!
+-- 6.4 排序查询性能       
 SELECT * FROM demo_products ORDER BY price DESC;
 
 -- 7. 数据修改验证

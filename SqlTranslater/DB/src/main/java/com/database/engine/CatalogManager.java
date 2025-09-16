@@ -309,23 +309,43 @@ public class CatalogManager {
     
     private void removeTableMetadata(String tableName) {
         try {
-            // 删除表记录
-            Map<String, Object> tableRecord = new HashMap<>();
-            tableRecord.put("table_name", tableName);
-            storageEngine.deleteRecord(systemTableName, tableRecord);
-            
-            // 删除列记录
-            Map<String, Object> columnRecord = new HashMap<>();
-            columnRecord.put("table_name", tableName);
-            storageEngine.deleteRecord(systemColumnsName, columnRecord);
-            
-            // 删除约束记录
-            Map<String, Object> constraintRecord = new HashMap<>();
-            constraintRecord.put("table_name", tableName);
-            storageEngine.deleteRecord(systemConstraintsName, constraintRecord);
+            if (storageAdapter != null) {
+                // 使用StorageAdapter删除系统表记录
+                
+                // 删除表记录
+                Map<String, Object> tableCondition = new HashMap<>();
+                tableCondition.put("table_name", tableName);
+                storageAdapter.deleteFromSystemTable(systemTableName, tableCondition);
+                
+                // 删除列记录
+                Map<String, Object> columnCondition = new HashMap<>();
+                columnCondition.put("table_name", tableName);
+                storageAdapter.deleteFromSystemTable(systemColumnsName, columnCondition);
+                
+                // 删除约束记录
+                Map<String, Object> constraintCondition = new HashMap<>();
+                constraintCondition.put("table_name", tableName);
+                storageAdapter.deleteFromSystemTable(systemConstraintsName, constraintCondition);
+                
+                System.out.println("已删除表 " + tableName + " 的系统表元数据记录");
+            } else {
+                // 如果没有StorageAdapter，使用传统方式（向后兼容）
+                Map<String, Object> tableRecord = new HashMap<>();
+                tableRecord.put("table_name", tableName);
+                storageEngine.deleteRecord(systemTableName, tableRecord);
+                
+                Map<String, Object> columnRecord = new HashMap<>();
+                columnRecord.put("table_name", tableName);
+                storageEngine.deleteRecord(systemColumnsName, columnRecord);
+                
+                Map<String, Object> constraintRecord = new HashMap<>();
+                constraintRecord.put("table_name", tableName);
+                storageEngine.deleteRecord(systemConstraintsName, constraintRecord);
+            }
             
         } catch (Exception e) {
             System.err.println("删除表元数据失败: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
