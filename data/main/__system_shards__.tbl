@@ -1,4 +1,4 @@
 # 分片元数据文件
 # 格式: table_name|shard_key_column|strategy|shard_count
-users|id|HASH|4|1757948888245|1757948888245|users_hash_shard_0:node_1757948698369:../../data\main:HASH:true:0|users_hash_shard_1:node_1757948698369:../../data\main:HASH:true:0|users_hash_shard_2:node_1757948698369:../../data\main:HASH:true:0|users_hash_shard_3:node_1757948698369:../../data\main:HASH:true:0
+users|id|HASH|4|1757989509113|1757989509113|users_hash_shard_0:node_1757989361524:../../data\main:HASH:true:0|users_hash_shard_1:node_1757989361524:../../data\main:HASH:true:0|users_hash_shard_2:node_1757989361524:../../data\main:HASH:true:0|users_hash_shard_3:node_1757989361524:../../data\main:HASH:true:0
 products|supplier|RANGE|4|1757942965522|1757942965522|products_shard_0:node_1757942962416:../../data\main:RANGE:true:0|products_shard_1:node_1757942962416:../../data\main:RANGE:true:0|products_shard_2:node_1757942962416:../../data\main:RANGE:true:0|products_shard_3:node_1757942962416:../../data\main:RANGE:true:0

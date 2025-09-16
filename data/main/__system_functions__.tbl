@@ -9,3 +9,4 @@ COLUMN=is_permanent:BOOLEAN:1
 COLUMN=create_time:BIGINT:8
 # End Metadata
 
+RECORD:return_type=INT|create_time=1757988688963|signature=x:INT,y:INT|function_name=multiply|is_permanent=true|body=RETURN x * y ;

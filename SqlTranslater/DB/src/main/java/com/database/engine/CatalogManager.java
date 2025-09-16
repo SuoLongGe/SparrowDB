@@ -249,9 +249,42 @@ public class CatalogManager {
         System.out.println("系统表存储创建完成");
     }
     
+    /**
+     * 检查表是否已存在于系统表中
+     */
+    private boolean checkTableExists(String tableName) {
+        try {
+            if (storageAdapter == null) {
+                return false;
+            }
+            
+            // 查询系统表，检查表是否已存在
+            List<Map<String, Object>> records = storageAdapter.scanTable(systemTableName);
+            if (records != null) {
+                for (Map<String, Object> record : records) {
+                    String existingTableName = (String) record.get("table_name");
+                    if (tableName.equals(existingTableName)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            System.err.println("检查表是否存在时出错: " + e.getMessage());
+            return false;
+        }
+    }
+    
     private void persistTableMetadata(TableInfo tableInfo) {
         try {
             System.out.println("开始持久化表元数据: " + tableInfo.getName());
+            
+            // 检查表基本信息是否已存在
+            boolean tableExists = checkTableExists(tableInfo.getName());
+            if (tableExists) {
+                System.out.println("表 " + tableInfo.getName() + " 的元数据已存在，跳过插入");
+                return;
+            }
             
             // 保存表基本信息
             Map<String, Object> tableRecord = new HashMap<>();

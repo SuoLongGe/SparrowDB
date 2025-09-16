@@ -677,6 +677,22 @@ public class EnhancedFunctionManager extends FunctionManager {
     }
     
     /**
+     * 获取所有函数名 - 重写父类方法
+     */
+    @Override
+    public Set<String> getAllFunctionNames() {
+        return new HashSet<>(functionOverloads.keySet());
+    }
+    
+    /**
+     * 检查函数是否存在 - 重写父类方法
+     */
+    @Override
+    public boolean functionExists(String functionName) {
+        return functionOverloads.containsKey(functionName.toLowerCase());
+    }
+    
+    /**
      * 函数执行上下文
      */
     private static class FunctionExecutionContext {

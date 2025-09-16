@@ -2,6 +2,8 @@ package com.database.engine.sharding;
 
 import com.database.engine.StorageAdapter;
 import com.database.engine.CatalogManager;
+import com.sqlcompiler.catalog.TableInfo;
+import com.sqlcompiler.catalog.ColumnInfo;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.*;
@@ -92,6 +94,11 @@ public class ShardManager {
             saveShardMetadata();
             System.out.println("分片元数据保存完成");
             
+            // 迁移现有数据到分片
+            System.out.println("开始迁移现有数据到分片...");
+            migrateExistingData(tableName, shardKeyColumn, shards);
+            System.out.println("数据迁移完成");
+            
             System.out.println("成功为表 " + tableName + " 创建了 " + shardCount + " 个分片");
             return true;
             
@@ -123,7 +130,193 @@ public class ShardManager {
                 tableName, currentNodeId, dataDirectory, shardKeyColumn, shardCount);
         }
         
+        // 为每个分片创建独立的存储文件
+        createShardFiles(tableName, shards);
+        
         return shards;
+    }
+    
+    /**
+     * 为每个分片创建独立的存储文件
+     */
+    private void createShardFiles(String tableName, List<ShardInfo> shards) {
+        try {
+            // 获取原表的结构信息
+            TableInfo tableInfo = catalogManager.getTable(tableName);
+            if (tableInfo == null) {
+                System.err.println("无法获取表 " + tableName + " 的结构信息");
+                return;
+            }
+            
+            System.out.println("开始创建分片文件，共 " + shards.size() + " 个分片");
+            
+            for (ShardInfo shard : shards) {
+                String shardFileName = shard.getShardId() + ".tbl";
+                String shardFilePath = dataDirectory + File.separator + shardFileName;
+                
+                System.out.println("创建分片文件: " + shardFilePath);
+                
+                // 创建分片文件，复制原表的结构
+                createShardFileWithSchema(shardFilePath, tableInfo);
+                
+                // 更新分片信息，记录实际的文件路径
+                shard.setDataDirectory(dataDirectory);
+                shard.setShardId(shard.getShardId()); // 确保分片ID正确
+                
+                System.out.println("分片文件创建完成: " + shardFileName);
+            }
+            
+            System.out.println("所有分片文件创建完成");
+            
+        } catch (Exception e) {
+            System.err.println("创建分片文件失败: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * 创建分片文件并写入表结构
+     */
+    private void createShardFileWithSchema(String filePath, TableInfo tableInfo) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath, StandardCharsets.UTF_8))) {
+            // 写入表元数据头
+            writer.println("# Table Metadata");
+            writer.println("TABLE_NAME=" + tableInfo.getName());
+            writer.println("COLUMN_COUNT=" + tableInfo.getColumns().size());
+            
+            // 写入列定义
+            for (ColumnInfo column : tableInfo.getColumns()) {
+                writer.println("COLUMN=" + column.getName() + ":" + column.getDataType() + ":" + column.getLength());
+            }
+            
+            writer.println("# End Metadata");
+            writer.println("PAGE:1");
+            
+            System.out.println("分片文件结构写入完成: " + filePath);
+            
+        } catch (IOException e) {
+            System.err.println("创建分片文件失败: " + filePath + " - " + e.getMessage());
+            throw new RuntimeException("创建分片文件失败", e);
+        }
+    }
+    
+    /**
+     * 迁移现有数据到分片
+     */
+    private void migrateExistingData(String tableName, String shardKeyColumn, List<ShardInfo> shards) {
+        try {
+            // 读取原表的所有数据
+            List<Map<String, Object>> allRecords = storageAdapter.scanTable(tableName);
+            System.out.println("读取到原表数据 " + allRecords.size() + " 条记录");
+            
+            if (allRecords.isEmpty()) {
+                System.out.println("原表无数据，跳过迁移");
+                return;
+            }
+            
+            // 为每个分片准备数据
+            Map<String, List<Map<String, Object>>> shardDataMap = new HashMap<>();
+            for (ShardInfo shard : shards) {
+                shardDataMap.put(shard.getShardId(), new ArrayList<>());
+            }
+            
+            // 根据分片键将数据分配到对应分片
+            ShardStrategy strategy = shardMetadataMap.get(tableName).getStrategy();
+            int migratedCount = 0;
+            
+            for (Map<String, Object> record : allRecords) {
+                Object shardKeyValue = record.get(shardKeyColumn);
+                if (shardKeyValue == null) {
+                    System.err.println("警告: 记录缺少分片键 " + shardKeyColumn + "，跳过: " + record);
+                    continue;
+                }
+                
+                // 根据分片策略选择目标分片
+                ShardInfo targetShard = strategy.selectShard(shards, shardKeyColumn, shardKeyValue);
+                if (targetShard != null) {
+                    shardDataMap.get(targetShard.getShardId()).add(record);
+                    migratedCount++;
+                } else {
+                    System.err.println("警告: 无法为记录找到合适的分片，跳过: " + record);
+                }
+            }
+            
+            System.out.println("数据分配完成，共分配 " + migratedCount + " 条记录");
+            
+            // 将数据写入对应的分片文件
+            for (ShardInfo shard : shards) {
+                List<Map<String, Object>> shardRecords = shardDataMap.get(shard.getShardId());
+                if (!shardRecords.isEmpty()) {
+                    writeRecordsToShardFile(shard, shardRecords);
+                    System.out.println("分片 " + shard.getShardId() + " 写入 " + shardRecords.size() + " 条记录");
+                }
+            }
+            
+        } catch (Exception e) {
+            System.err.println("数据迁移失败: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * 将记录写入分片文件
+     */
+    private void writeRecordsToShardFile(ShardInfo shard, List<Map<String, Object>> records) {
+        try {
+            String shardFilePath = dataDirectory + File.separator + shard.getShardId() + ".tbl";
+            File shardFile = new File(shardFilePath);
+            
+            // 读取现有文件内容
+            List<String> existingLines = new ArrayList<>();
+            if (shardFile.exists()) {
+                try (BufferedReader reader = new BufferedReader(new FileReader(shardFile, StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        existingLines.add(line);
+                    }
+                }
+            }
+            
+            // 写入数据到文件
+            try (PrintWriter writer = new PrintWriter(new FileWriter(shardFile, StandardCharsets.UTF_8))) {
+                // 写入元数据部分
+                for (String line : existingLines) {
+                    if (line.startsWith("PAGE:1")) {
+                        writer.println(line);
+                        break;
+                    }
+                    writer.println(line);
+                }
+                
+                // 写入数据记录
+                for (Map<String, Object> record : records) {
+                    String serializedRecord = serializeRecord(record);
+                    writer.println(serializedRecord);
+                }
+            }
+            
+        } catch (IOException e) {
+            System.err.println("写入分片文件失败: " + shard.getShardId() + " - " + e.getMessage());
+            throw new RuntimeException("写入分片文件失败", e);
+        }
+    }
+    
+    /**
+     * 序列化记录为字符串
+     */
+    private String serializeRecord(Map<String, Object> record) {
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        
+        for (Map.Entry<String, Object> entry : record.entrySet()) {
+            if (!first) {
+                sb.append("|");
+            }
+            sb.append(entry.getKey()).append("=").append(entry.getValue());
+            first = false;
+        }
+        
+        return sb.toString();
     }
     
     /**
@@ -223,6 +416,13 @@ public class ShardManager {
      */
     public ShardMetadata getShardMetadata(String tableName) {
         return shardMetadataMap.get(tableName);
+    }
+    
+    /**
+     * 检查表是否有分片
+     */
+    public boolean hasShards(String tableName) {
+        return shardMetadataMap.containsKey(tableName);
     }
     
     /**
