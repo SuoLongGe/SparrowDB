@@ -3,8 +3,6 @@ package com.database.engine;
 import com.sqlcompiler.catalog.ViewInfo;
 import com.sqlcompiler.ast.SelectStatement;
 import com.sqlcompiler.ast.TableReference;
-import com.sqlcompiler.ast.IdentifierExpression;
-import com.sqlcompiler.ast.Expression;
 
 import java.util.*;
 import java.io.*;
@@ -211,9 +209,24 @@ public class ViewManager {
                 String viewName = parts[0].substring("VIEW:".length());
                 String query = parts[1].substring("QUERY:".length());
                 
-                // 这里简化处理，实际应该重新解析SQL语句生成AST
-                // 暂时只存储查询字符串
-                ViewInfo viewInfo = new ViewInfo(viewName, null, query);
+                // 重新解析SQL语句生成AST
+                SelectStatement selectStatement = null;
+                try {
+                    // 使用SQL编译器重新解析查询
+                    com.sqlcompiler.lexer.LexicalAnalyzer lexer = new com.sqlcompiler.lexer.LexicalAnalyzer(query);
+                    java.util.List<com.sqlcompiler.lexer.Token> tokens = lexer.tokenize();
+                    com.sqlcompiler.parser.SyntaxAnalyzer parser = new com.sqlcompiler.parser.SyntaxAnalyzer(tokens);
+                    com.sqlcompiler.ast.Statement statement = parser.parse();
+                    
+                    if (statement instanceof SelectStatement) {
+                        selectStatement = (SelectStatement) statement;
+                    }
+                } catch (Exception parseException) {
+                    System.err.println("重新解析视图查询失败: " + parseException.getMessage());
+                    // 如果解析失败，selectStatement保持为null，但仍保存查询字符串
+                }
+                
+                ViewInfo viewInfo = new ViewInfo(viewName, selectStatement, query);
                 views.put(viewName.toLowerCase(), viewInfo);
             }
         } catch (Exception e) {

@@ -1,4 +1,5 @@
 
+
 # Table Metadata
 TABLE_NAME=__system_tables__
 COLUMN_COUNT=4
@@ -10,5 +11,6 @@ COLUMN=constraint_count:INT:4
 PAGE:1
 create_time=1757986561386|constraint_count=0|column_count=4|table_name=course
 create_time=1757986561425|constraint_count=0|column_count=4|table_name=course
+
 
 

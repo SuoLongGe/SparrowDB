@@ -16,10 +16,16 @@ import com.database.config.DatabaseConfig;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.border.Border;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -36,6 +42,248 @@ public class DatabaseGUI extends JFrame {
     private DatabaseEngine databaseEngine;
     private MultiDatabaseManager databaseManager;
     
+    // 主题系统
+    private static Theme currentTheme = new LightTheme();
+    private JMenu themeMenu;
+    
+    // 字体管理系统
+    private static class FontManager {
+        private static Font chinesePrimaryFont;
+        private static Font chineseCodeFont;
+        
+        /**
+         * 获取支持中文的主要字体
+         */
+        public static Font getChineseFont(int style, int size) {
+            if (chinesePrimaryFont == null) {
+                chinesePrimaryFont = findBestChineseFont(false);
+            }
+            return chinesePrimaryFont.deriveFont(style, (float)size);
+        }
+        
+        /**
+         * 获取支持中文的代码字体
+         */
+        public static Font getChineseCodeFont(int style, int size) {
+            if (chineseCodeFont == null) {
+                chineseCodeFont = findBestChineseFont(true);
+            }
+            return chineseCodeFont.deriveFont(style, (float)size);
+        }
+        
+        /**
+         * 查找系统中最佳的中文字体
+         */
+        private static Font findBestChineseFont(boolean isCodeFont) {
+            // 定义字体候选列表
+            String[] primaryFonts = {
+                "Microsoft YaHei UI Light",  // 微软雅黑UI Light
+                "Microsoft YaHei UI",        // 微软雅黑UI
+                "Microsoft YaHei",           // 微软雅黑
+                "PingFang SC",               // 苹方 (macOS)
+                "Noto Sans CJK SC",          // Google Noto
+                "Source Han Sans SC",        // 思源黑体
+                "WenQuanYi Micro Hei",       // 文泉驿微米黑 (Linux)
+                "SimHei",                    // 黑体
+                "SimSun",                    // 宋体
+                "Dialog"                     // 系统默认
+            };
+            
+            String[] codeFonts = {
+                "JetBrains Mono",            // JetBrains Mono
+                "Fira Code",                 // Fira Code
+                "Source Code Pro",           // Source Code Pro
+                "Consolas",                  // Consolas
+                "Monaco",                    // Monaco (macOS)
+                "Menlo",                     // Menlo (macOS)
+                "DejaVu Sans Mono",          // DejaVu Sans Mono (Linux)
+                "Liberation Mono",           // Liberation Mono (Linux)
+                "Courier New",               // Courier New
+                "Microsoft YaHei",           // 微软雅黑（备选）
+                "Monospaced"                 // 系统等宽字体
+            };
+            
+            String[] candidates = isCodeFont ? codeFonts : primaryFonts;
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            String[] availableFonts = ge.getAvailableFontFamilyNames();
+            
+            // 测试中文字符
+            String testChars = "中文测试ABCabc123";
+            
+            for (String fontName : candidates) {
+                // 检查字体是否可用
+                boolean fontAvailable = false;
+                for (String available : availableFonts) {
+                    if (available.equals(fontName)) {
+                        fontAvailable = true;
+                        break;
+                    }
+                }
+                
+                if (fontAvailable) {
+                    try {
+                        Font testFont = new Font(fontName, Font.PLAIN, 12);
+                        
+                        // 测试字体是否能显示中文
+                        boolean canDisplayChinese = true;
+                        for (char c : testChars.toCharArray()) {
+                            if (!testFont.canDisplay(c)) {
+                                canDisplayChinese = false;
+                                break;
+                            }
+                        }
+                        
+                        if (canDisplayChinese) {
+                            System.out.println("字体选择成功: " + fontName + " (类型: " + (isCodeFont ? "代码" : "界面") + ")");
+                            return testFont;
+                        }
+                    } catch (Exception e) {
+                        System.err.println("字体测试失败: " + fontName + " - " + e.getMessage());
+                    }
+                }
+            }
+            
+            // 如果所有字体都不可用，创建一个复合字体
+            System.out.println("使用复合字体方案");
+            return createFallbackFont(isCodeFont);
+        }
+        
+        /**
+         * 创建备用复合字体
+         */
+        private static Font createFallbackFont(boolean isCodeFont) {
+            try {
+                // 尝试创建逻辑字体，这些字体会自动映射到系统可用的物理字体
+                String logicalFontName = isCodeFont ? Font.MONOSPACED : Font.DIALOG;
+                Font logicalFont = new Font(logicalFontName, Font.PLAIN, 12);
+                
+                // 测试逻辑字体
+                if (logicalFont.canDisplay('中') && logicalFont.canDisplay('文')) {
+                    System.out.println("使用逻辑字体: " + logicalFontName);
+                    return logicalFont;
+                }
+                
+                // 最后的备选方案：使用SansSerif
+                Font sansSerifFont = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
+                System.out.println("使用SansSerif字体");
+                return sansSerifFont;
+                
+            } catch (Exception e) {
+                System.err.println("创建备用字体失败: " + e.getMessage());
+                // 返回默认字体
+                return new Font(Font.DIALOG, Font.PLAIN, 12);
+            }
+        }
+        
+        /**
+         * 重置字体缓存
+         */
+        public static void resetFontCache() {
+            chinesePrimaryFont = null;
+            chineseCodeFont = null;
+        }
+        
+        /**
+         * 初始化字体系统
+         */
+        public static void initializeFontSystem() {
+            try {
+                // 设置系统属性以改善字体渲染
+                System.setProperty("awt.useSystemAAFontSettings", "on");
+                System.setProperty("swing.aatext", "true");
+                // 设置默认外观
+                // UIManager相关方法在某些JDK版本中可能不可用，暂时注释
+                /*
+                try {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeel());
+                } catch (Exception e) {
+                    System.err.println("设置外观失败: " + e.getMessage());
+                }
+                */
+                
+                // 预加载字体
+                getChineseFont(Font.PLAIN, 12);
+                getChineseCodeFont(Font.PLAIN, 14);
+                
+                System.out.println("字体系统初始化完成");
+            } catch (Exception e) {
+                System.err.println("字体系统初始化失败: " + e.getMessage());
+            }
+        }
+    }
+    
+    // 主题接口
+    interface Theme {
+        Color getPrimaryColor();
+        Color getSecondaryColor();
+        Color getAccentColor();
+        Color getSuccessColor();
+        Color getWarningColor();
+        Color getDangerColor();
+        Color getBackgroundColor();
+        Color getCardBackgroundColor();
+        Color getTextPrimaryColor();
+        Color getTextSecondaryColor();
+        Color getBorderColor();
+        String getName();
+        Font getPrimaryFont();
+        Font getCodeFont();
+    }
+    
+    // 现代浅色主题
+    static class LightTheme implements Theme {
+        public Color getPrimaryColor() { return new Color(33, 37, 41); }
+        public Color getSecondaryColor() { return new Color(108, 117, 125); }
+        public Color getAccentColor() { return new Color(99, 102, 241); }  // 现代紫蓝色
+        public Color getSuccessColor() { return new Color(34, 197, 94); }  // 鲜艳绿色
+        public Color getWarningColor() { return new Color(251, 191, 36); } // 温暖橙色
+        public Color getDangerColor() { return new Color(239, 68, 68); }   // 现代红色
+        public Color getBackgroundColor() { return new Color(250, 250, 250); } // 纯净白背景
+        public Color getCardBackgroundColor() { return new Color(255, 255, 255); } // 卡片白色
+        public Color getTextPrimaryColor() { return new Color(17, 24, 39); }   // 深色文字
+        public Color getTextSecondaryColor() { return new Color(107, 114, 128); } // 中性灰文字
+        public Color getBorderColor() { return new Color(229, 231, 235); }      // 淡边框
+        public String getName() { return "\u73b0\u4ee3\u6d45\u8272"; }
+        public Font getPrimaryFont() { return FontManager.getChineseFont(Font.PLAIN, 12); }
+        public Font getCodeFont() { return FontManager.getChineseCodeFont(Font.PLAIN, 14); }
+    }
+    
+    // 科技深色主题
+    static class DarkTheme implements Theme {
+        public Color getPrimaryColor() { return new Color(248, 249, 250); }
+        public Color getSecondaryColor() { return new Color(156, 163, 175); }
+        public Color getAccentColor() { return new Color(99, 102, 241); }  // 科技紫
+        public Color getSuccessColor() { return new Color(34, 197, 94); }  // 霓虹绿
+        public Color getWarningColor() { return new Color(251, 191, 36); } // 电子橙
+        public Color getDangerColor() { return new Color(239, 68, 68); }   // 警告红
+        public Color getBackgroundColor() { return new Color(17, 24, 39); } // 深空背景
+        public Color getCardBackgroundColor() { return new Color(31, 41, 55); } // 卡片背景
+        public Color getTextPrimaryColor() { return new Color(243, 244, 246); } // 亮文字
+        public Color getTextSecondaryColor() { return new Color(156, 163, 175); } // 灰文字
+        public Color getBorderColor() { return new Color(55, 65, 81); }          // 边框色
+        public String getName() { return "\u79d1\u6280\u6df1\u8272"; }
+        public Font getPrimaryFont() { return FontManager.getChineseFont(Font.PLAIN, 12); }
+        public Font getCodeFont() { return FontManager.getChineseCodeFont(Font.PLAIN, 14); }
+    }
+    
+    // 极光蓝主题
+    static class BlueTheme implements Theme {
+        public Color getPrimaryColor() { return new Color(255, 255, 255); }
+        public Color getSecondaryColor() { return new Color(100, 116, 139); }
+        public Color getAccentColor() { return new Color(59, 130, 246); }   // 极光蓝
+        public Color getSuccessColor() { return new Color(16, 185, 129); }  // 青绿色
+        public Color getWarningColor() { return new Color(245, 158, 11); }  // 琥珀色
+        public Color getDangerColor() { return new Color(239, 68, 68); }    // 珊瑚红
+        public Color getBackgroundColor() { return new Color(240, 249, 255); } // 冰蓝背景
+        public Color getCardBackgroundColor() { return new Color(255, 255, 255); } // 纯白卡片
+        public Color getTextPrimaryColor() { return new Color(15, 23, 42); }    // 深蓝文字
+        public Color getTextSecondaryColor() { return new Color(100, 116, 139); } // 石板灰
+        public Color getBorderColor() { return new Color(186, 230, 253); }       // 天蓝边框
+        public String getName() { return "\u6781\u5149\u84dd"; }
+        public Font getPrimaryFont() { return FontManager.getChineseFont(Font.PLAIN, 12); }
+        public Font getCodeFont() { return FontManager.getChineseCodeFont(Font.PLAIN, 14); }
+    }
+    
     // 界面组件
     private JTextPane sqlInputArea;
     private ResultTabbedPane resultTabbedPane;
@@ -43,7 +291,6 @@ public class DatabaseGUI extends JFrame {
     private JTextArea astArea;
     private JButton executeButton;
     private JButton clearButton;
-    private JButton catalogButton;
     private JButton importButton;
     private JButton shardManagerButton;
     private JLabel statusLabel;
@@ -113,13 +360,447 @@ public class DatabaseGUI extends JFrame {
     }
     
     /**
+     * 设置现代化外观
+     */
+    private void setupModernLookAndFeel() {
+        try {
+            // 设置系统外观
+            // UIManager.setLookAndFeel(UIManager.getSystemLookAndFeel());
+            
+            // 自定义UI属性
+            UIManager.put("Button.font", currentTheme.getPrimaryFont());
+            UIManager.put("Label.font", currentTheme.getPrimaryFont());
+            UIManager.put("TextField.font", currentTheme.getPrimaryFont());
+            UIManager.put("ComboBox.font", currentTheme.getPrimaryFont());
+            UIManager.put("Table.font", new Font(currentTheme.getPrimaryFont().getName(), Font.PLAIN, 11));
+            UIManager.put("Tree.font", currentTheme.getPrimaryFont());
+            
+            // 设置背景色
+            UIManager.put("Panel.background", currentTheme.getBackgroundColor());
+            UIManager.put("Button.background", currentTheme.getCardBackgroundColor());
+            UIManager.put("TextField.background", currentTheme.getCardBackgroundColor());
+            UIManager.put("ComboBox.background", currentTheme.getCardBackgroundColor());
+            
+        } catch (Exception e) {
+            System.err.println("无法设置外观: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 创建现代科技风格按钮
+     */
+    private JButton createStyledButton(String text, Color bgColor, Color textColor, int fontSize, boolean isBold) {
+        JButton button = new JButton(text) {
+            private boolean isAnimating = false;
+            private float animationProgress = 0f;
+            
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                
+                int width = getWidth();
+                int height = getHeight();
+                int cornerRadius = 12; // 更大的圆角
+                
+                // 创建按钮阴影
+                if (!getModel().isPressed()) {
+                    g2d.setColor(new Color(0, 0, 0, 25));
+                    g2d.fillRoundRect(2, 4, width - 4, height - 4, cornerRadius, cornerRadius);
+                }
+                
+                // 创建渐变背景
+                Color startColor, endColor;
+                if (getModel().isPressed()) {
+                    startColor = darkenColor(bgColor, 0.2f);
+                    endColor = darkenColor(bgColor, 0.1f);
+                } else if (getModel().isRollover()) {
+                    startColor = brightenColor(bgColor, 0.1f);
+                    endColor = bgColor;
+                } else {
+                    startColor = brightenColor(bgColor, 0.05f);
+                    endColor = darkenColor(bgColor, 0.05f);
+                }
+                
+                // 绘制渐变背景
+                GradientPaint gradient = new GradientPaint(0, 0, startColor, 0, height, endColor);
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, width, height, cornerRadius, cornerRadius);
+                
+                // 添加高光效果
+                if (!getModel().isPressed()) {
+                    g2d.setColor(new Color(255, 255, 255, 40));
+                    g2d.fillRoundRect(1, 1, width - 2, height / 2, cornerRadius, cornerRadius);
+                }
+                
+                // 绘制边框
+                g2d.setStroke(new BasicStroke(1.5f));
+                if (getModel().isRollover()) {
+                    g2d.setColor(brightenColor(bgColor, 0.3f));
+                } else {
+                    g2d.setColor(new Color(bgColor.getRed(), bgColor.getGreen(), bgColor.getBlue(), 100));
+                }
+                g2d.drawRoundRect(0, 0, width - 1, height - 1, cornerRadius, cornerRadius);
+                
+                // 绘制文本
+                g2d.setColor(textColor);
+                g2d.setFont(getFont());
+                FontMetrics fm = g2d.getFontMetrics();
+                int textX = (width - fm.stringWidth(getText())) / 2;
+                int textY = (height + fm.getAscent() - fm.getDescent()) / 2;
+                g2d.drawString(getText(), textX, textY);
+                
+                g2d.dispose();
+            }
+        };
+        
+        button.setFont(FontManager.getChineseFont(isBold ? Font.BOLD : Font.PLAIN, fontSize));
+        button.setForeground(textColor);
+        button.setBackground(bgColor);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setPreferredSize(new Dimension(120, 35));
+        
+        // 添加悬停效果
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.repaint();
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.repaint();
+            }
+        });
+        
+        return button;
+    }
+    
+    /**
+     * 加亮颜色
+     */
+    private Color brightenColor(Color color, float factor) {
+        int red = Math.min(255, (int) (color.getRed() + (255 - color.getRed()) * factor));
+        int green = Math.min(255, (int) (color.getGreen() + (255 - color.getGreen()) * factor));
+        int blue = Math.min(255, (int) (color.getBlue() + (255 - color.getBlue()) * factor));
+        return new Color(red, green, blue);
+    }
+    
+    /**
+     * 变暗颜色
+     */
+    private Color darkenColor(Color color, float factor) {
+        int red = Math.max(0, (int) (color.getRed() * (1 - factor)));
+        int green = Math.max(0, (int) (color.getGreen() * (1 - factor)));
+        int blue = Math.max(0, (int) (color.getBlue() * (1 - factor)));
+        return new Color(red, green, blue);
+    }
+    
+    /**
+     * 样式化下拉框
+     */
+    private void styleComboBox(JComboBox<?> comboBox) {
+        comboBox.setFont(FontManager.getChineseFont(Font.PLAIN, 12));
+        comboBox.setBackground(currentTheme.getCardBackgroundColor());
+        comboBox.setForeground(currentTheme.getTextPrimaryColor());
+        comboBox.setBorder(new CompoundBorder(
+            new LineBorder(currentTheme.getBorderColor(), 1, true),
+            new EmptyBorder(8, 12, 8, 12)
+        ));
+        comboBox.setPreferredSize(new Dimension(130, 35));
+    }
+    
+    /**
+     * 样式化复选框
+     */
+    private void styleCheckBox(JCheckBox checkBox) {
+        checkBox.setFont(FontManager.getChineseFont(Font.PLAIN, 12));
+        checkBox.setBackground(currentTheme.getBackgroundColor());
+        checkBox.setForeground(currentTheme.getTextPrimaryColor());
+        checkBox.setBorder(new CompoundBorder(
+            new LineBorder(currentTheme.getBorderColor(), 1, true),
+            new EmptyBorder(8, 12, 8, 12)
+        ));
+        checkBox.setFocusPainted(false);
+    }
+    
+    /**
+     * 样式化菜单项
+     */
+    private void styleMenuItem(JMenuItem menuItem) {
+        menuItem.setFont(FontManager.getChineseFont(Font.PLAIN, 12));
+        menuItem.setBackground(currentTheme.getCardBackgroundColor());
+        menuItem.setForeground(currentTheme.getTextPrimaryColor());
+        menuItem.setBorder(new EmptyBorder(8, 15, 8, 15));
+    }
+    
+    /**
+     * 样式化树形控件
+     */
+    private void styleTree(JTree tree) {
+        tree.setFont(FontManager.getChineseFont(Font.PLAIN, 12));
+        tree.setBackground(currentTheme.getCardBackgroundColor());
+        tree.setForeground(currentTheme.getTextPrimaryColor());
+        tree.setRootVisible(false);
+        tree.setShowsRootHandles(true);
+        tree.setRowHeight(28);
+        tree.setBorder(new EmptyBorder(8, 8, 8, 8));
+    }
+    
+    /**
+     * 样式化标签
+     */
+    private void styleLabel(JLabel label) {
+        label.setFont(FontManager.getChineseFont(Font.PLAIN, 12));
+        label.setForeground(currentTheme.getTextPrimaryColor());
+    }
+    
+    /**
+     * 创建现代科技风格标题边框
+     */
+    private TitledBorder createStyledTitledBorder(String title) {
+        // 创建自定义边框类
+        Border customBorder = new Border() {
+            @Override
+            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // 绘制渐变边框
+                int borderWidth = 2;
+                Color accentColor = currentTheme.getAccentColor();
+                
+                // 左侧渐变线
+                GradientPaint leftGradient = new GradientPaint(x, y, accentColor, x, y + height, 
+                    new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 50));
+                g2d.setPaint(leftGradient);
+                g2d.fillRect(x, y, borderWidth, height);
+                
+                // 顶部渐变线
+                GradientPaint topGradient = new GradientPaint(x, y, accentColor, x + width, y, 
+                    new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 30));
+                g2d.setPaint(topGradient);
+                g2d.fillRect(x, y, width, borderWidth);
+                
+                // 右侧和底部淡化边框
+                g2d.setColor(new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 80));
+                g2d.fillRect(x + width - borderWidth, y, borderWidth, height);
+                g2d.fillRect(x, y + height - borderWidth, width, borderWidth);
+                
+                g2d.dispose();
+            }
+            
+            @Override
+            public Insets getBorderInsets(Component c) {
+                return new Insets(15, 15, 15, 15);
+            }
+            
+            @Override
+            public boolean isBorderOpaque() {
+                return false;
+            }
+        };
+        
+        TitledBorder border = BorderFactory.createTitledBorder(customBorder, title);
+        border.setTitleFont(FontManager.getChineseFont(Font.BOLD, 13));
+        border.setTitleColor(currentTheme.getAccentColor());
+        border.setTitleJustification(TitledBorder.LEFT);
+        border.setTitlePosition(TitledBorder.TOP);
+        return border;
+    }
+    
+    /**
+     * 创建科技风格窗口图标
+     */
+    private Image createWindowIcon() {
+        int size = 32;
+        java.awt.image.BufferedImage icon = new java.awt.image.BufferedImage(size, size, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = icon.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        
+        // 创建渐变背景
+        Color accentColor = currentTheme.getAccentColor();
+        GradientPaint gradient = new GradientPaint(0, 0, brightenColor(accentColor, 0.2f), 
+                                                   size, size, darkenColor(accentColor, 0.1f));
+        g2d.setPaint(gradient);
+        g2d.fillRoundRect(2, 2, size-4, size-4, 10, 10);
+        
+        // 添加高光效果
+        g2d.setColor(new Color(255, 255, 255, 60));
+        g2d.fillRoundRect(3, 3, size-6, (size-4)/2, 8, 8);
+        
+        // 绘制数据库层状结构
+        g2d.setColor(currentTheme.getCardBackgroundColor());
+        g2d.setStroke(new BasicStroke(1.5f));
+        
+        // 数据库圆柱体效果
+        int centerX = size / 2;
+        int baseY = size - 8;
+        int layerHeight = 3;
+        
+        // 绘制三层数据
+        for (int i = 0; i < 3; i++) {
+            int y = baseY - i * layerHeight - 2;
+            g2d.drawOval(centerX - 8, y - 1, 16, 4);
+            if (i < 2) {
+                g2d.drawLine(centerX - 8, y + 1, centerX - 8, y + layerHeight + 1);
+                g2d.drawLine(centerX + 8, y + 1, centerX + 8, y + layerHeight + 1);
+            }
+        }
+        
+        // 添加科技光点
+        g2d.setColor(brightenColor(accentColor, 0.5f));
+        g2d.fillOval(size - 8, 4, 3, 3);
+        g2d.fillOval(6, size - 8, 2, 2);
+        
+        g2d.dispose();
+        return icon;
+    }
+    
+    /**
+     * 切换主题
+     */
+    private void switchTheme(Theme newTheme) {
+        currentTheme = newTheme;
+        
+        // 更新所有组件的样式
+        updateComponentThemes();
+        
+        // 刷新界面
+        SwingUtilities.updateComponentTreeUI(this);
+        repaint();
+        
+        statusLabel.setText("已切换到" + currentTheme.getName());
+        statusLabel.setForeground(currentTheme.getSuccessColor());
+    }
+    
+    /**
+     * 更新组件主题
+     */
+    private void updateComponentThemes() {
+        // 更新背景
+        getContentPane().setBackground(currentTheme.getBackgroundColor());
+        
+        // 更新SQL输入区域
+        sqlInputArea.setFont(currentTheme.getCodeFont());
+        sqlInputArea.setBackground(currentTheme.getCardBackgroundColor());
+        sqlInputArea.setForeground(currentTheme.getTextPrimaryColor());
+        
+        // 更新Token和AST显示区域
+        tokenArea.setFont(currentTheme.getCodeFont());
+        tokenArea.setBackground(currentTheme.getBackgroundColor());
+        tokenArea.setForeground(currentTheme.getTextPrimaryColor());
+        
+        astArea.setFont(currentTheme.getCodeFont());
+        astArea.setBackground(currentTheme.getBackgroundColor());
+        astArea.setForeground(currentTheme.getTextPrimaryColor());
+        
+        // 更新按钮 - 统一使用指定颜色
+        Color buttonColor = new Color(127, 198, 255);
+        updateButtonTheme(executeButton, buttonColor);
+        updateButtonTheme(clearButton, buttonColor);
+        updateButtonTheme(importButton, buttonColor);
+        updateButtonTheme(shardManagerButton, buttonColor);
+        updateButtonTheme(refreshButton, buttonColor);
+        updateButtonTheme(createDatabaseButton, buttonColor);
+        updateButtonTheme(dropDatabaseButton, buttonColor);
+        
+        // 更新缩放按钮
+        if (zoomInButton != null) updateButtonTheme(zoomInButton, buttonColor);
+        if (zoomOutButton != null) updateButtonTheme(zoomOutButton, buttonColor);
+        if (fitButton != null) updateButtonTheme(fitButton, buttonColor);
+        
+        // 更新状态标签
+        statusLabel.setFont(FontManager.getChineseFont(Font.PLAIN, 12));
+        statusLabel.setBackground(currentTheme.getBackgroundColor());
+        performanceLabel.setFont(FontManager.getChineseFont(Font.PLAIN, 11));
+        performanceLabel.setBackground(currentTheme.getBackgroundColor());
+        subqueryRewriteLabel.setFont(FontManager.getChineseFont(Font.PLAIN, 11));
+        subqueryRewriteLabel.setBackground(currentTheme.getBackgroundColor());
+        
+        // 更新菜单栏
+        menuBar.setBackground(currentTheme.getCardBackgroundColor());
+        fileMenu.setFont(FontManager.getChineseFont(Font.BOLD, 14));
+        fileMenu.setForeground(currentTheme.getTextPrimaryColor());
+        themeMenu.setFont(FontManager.getChineseFont(Font.BOLD, 14));
+        themeMenu.setForeground(currentTheme.getTextPrimaryColor());
+        
+        // 更新树形控件
+        databaseTree.setBackground(currentTheme.getCardBackgroundColor());
+        databaseTree.setForeground(currentTheme.getTextPrimaryColor());
+        
+        // 更新面板
+        updatePanelThemes();
+    }
+    
+    /**
+     * 更新按钮主题
+     */
+    private void updateButtonTheme(JButton button, Color bgColor) {
+        if (button != null) {
+            button.setBackground(bgColor);
+            button.setForeground(currentTheme.getCardBackgroundColor());
+            button.repaint();
+        }
+    }
+    
+    /**
+     * 更新面板主题
+     */
+    private void updatePanelThemes() {
+        // 递归更新所有面板的背景色
+        updatePanelBackground(this);
+    }
+    
+    /**
+     * 递归更新面板背景
+     */
+    private void updatePanelBackground(Container container) {
+        for (Component component : container.getComponents()) {
+            if (component instanceof JPanel) {
+                JPanel panel = (JPanel) component;
+                if (panel.getBorder() instanceof TitledBorder || 
+                    panel.getComponentCount() > 0) {
+                    panel.setBackground(currentTheme.getCardBackgroundColor());
+                } else {
+                    panel.setBackground(currentTheme.getBackgroundColor());
+                }
+                updatePanelBackground(panel);
+            } else if (component instanceof Container) {
+                updatePanelBackground((Container) component);
+            }
+        }
+    }
+    
+    /**
      * 初始化组件
      */
     private void initializeComponents() {
+        // 初始化字体系统
+        FontManager.initializeFontSystem();
+        
+        // 设置现代化外观和编码
+        setupModernLookAndFeel();
+        
+        // 设置系统编码为UTF-8
+        System.setProperty("file.encoding", "UTF-8");
+        System.setProperty("user.language", "zh");
+        System.setProperty("user.country", "CN");
+        
         // SQL输入区域 - 使用JTextPane支持语法高亮
         sqlInputArea = new JTextPane();
-        sqlInputArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
-        //sqlInputArea.setBorder(new TitledBorder("SQL输入区域"));
+        sqlInputArea.setFont(currentTheme.getCodeFont());
+        sqlInputArea.setBackground(currentTheme.getCardBackgroundColor());
+        sqlInputArea.setForeground(currentTheme.getTextPrimaryColor());
+        sqlInputArea.setBorder(new CompoundBorder(
+            new LineBorder(currentTheme.getBorderColor(), 1, true),
+            new EmptyBorder(10, 10, 10, 10)
+        ));
         // 设置固定大小，防止根据内容自动调整
         sqlInputArea.setSize(new Dimension(600, 200));
         sqlInputArea.setMinimumSize(new Dimension(600, 200));
@@ -140,57 +821,56 @@ public class DatabaseGUI extends JFrame {
         
         // Token显示区域
         tokenArea = new JTextArea(15, 30);
-        tokenArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        tokenArea.setFont(currentTheme.getCodeFont());
         tokenArea.setEditable(false);
-        tokenArea.setBackground(Color.WHITE);
+        tokenArea.setBackground(currentTheme.getBackgroundColor());
+        tokenArea.setForeground(currentTheme.getTextPrimaryColor());
+        tokenArea.setBorder(new EmptyBorder(10, 10, 10, 10));
         
         // AST显示区域
         astArea = new JTextArea(15, 30);
-        astArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-        astArea.setBorder(new TitledBorder("AST结构"));
+        astArea.setFont(currentTheme.getCodeFont());
         astArea.setEditable(false);
-        astArea.setBackground(Color.WHITE);
+        astArea.setBackground(currentTheme.getBackgroundColor());
+        astArea.setForeground(currentTheme.getTextPrimaryColor());
+        astArea.setBorder(new EmptyBorder(10, 10, 10, 10));
         
-        // 按钮
-        executeButton = new JButton("执行SQL");
-        executeButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
-        executeButton.setBackground(new Color(76, 175, 80));
-        executeButton.setForeground(Color.BLACK);
+        // 按钮 - 使用统一颜色
+        Color buttonColor = new Color(127, 198, 255);
+        executeButton = createStyledButton("执行SQL", buttonColor, currentTheme.getCardBackgroundColor(), 14, true);
         executeButton.setToolTipText("执行SQL语句（有选中文本时执行选中部分，否则执行全部）");
         
-        clearButton = new JButton("清空");
-        clearButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        
-        catalogButton = new JButton("查看目录");
-        catalogButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        clearButton = createStyledButton("清空", buttonColor, currentTheme.getCardBackgroundColor(), 12, true);
         
         // 导入SQL文件按钮
-        importButton = new JButton("导入SQL文件");
-        importButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        importButton.setPreferredSize(new Dimension(120, 30));
+        importButton = createStyledButton("导入SQL文件", buttonColor, currentTheme.getCardBackgroundColor(), 11, true);
+        importButton.setPreferredSize(new Dimension(120, 35));
         importButton.setToolTipText("从文件导入并执行SQL语句");
 
         // 分片管理按钮
-        shardManagerButton = new JButton("分片管理");
-        shardManagerButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        shardManagerButton.setPreferredSize(new Dimension(100, 30));
+        shardManagerButton = createStyledButton("分片管理", buttonColor, currentTheme.getCardBackgroundColor(), 11, true);
+        shardManagerButton.setPreferredSize(new Dimension(100, 35));
         shardManagerButton.setToolTipText("管理数据库分片");
 
         // 索引选择组件
         String[] indexTypes = {"智能选择", "B+树索引", "哈希索引", "线性查找"};
         indexTypeComboBox = new JComboBox<>(indexTypes);
-        indexTypeComboBox.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        styleComboBox(indexTypeComboBox);
+        // 单独调整索引选择框的尺寸以确保文字完全显示
+        indexTypeComboBox.setPreferredSize(new Dimension(140, 38));
         indexTypeComboBox.setSelectedIndex(0); // 默认选择智能选择
         
         // 存储格式选择组件
         String[] storageFormats = {"行式存储", "列式存储"};
         storageFormatComboBox = new JComboBox<>(storageFormats);
-        storageFormatComboBox.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        styleComboBox(storageFormatComboBox);
+        // 单独调整存储格式选择框的尺寸以确保文字完全显示
+        storageFormatComboBox.setPreferredSize(new Dimension(120, 38));
         storageFormatComboBox.setSelectedIndex(0); // 默认选择行式存储
         
         // 谓词下推优化开关
         predicatePushdownCheckBox = new JCheckBox("谓词下推优化");
-        predicatePushdownCheckBox.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        styleCheckBox(predicatePushdownCheckBox);
         predicatePushdownCheckBox.setSelected(true); // 默认启用
         predicatePushdownCheckBox.setToolTipText("启用谓词下推优化，将WHERE条件下推到数据源以减少数据传输");
         
@@ -198,18 +878,36 @@ public class DatabaseGUI extends JFrame {
         
         // 状态标签
         statusLabel = new JLabel("就绪");
-        statusLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        statusLabel.setForeground(Color.BLUE);
+        statusLabel.setFont(currentTheme.getPrimaryFont());
+        statusLabel.setForeground(currentTheme.getAccentColor());
+        statusLabel.setOpaque(true);
+        statusLabel.setBackground(currentTheme.getBackgroundColor());
+        statusLabel.setBorder(new CompoundBorder(
+            new LineBorder(currentTheme.getBorderColor(), 1, true),
+            new EmptyBorder(8, 15, 8, 15)
+        ));
         
         // 性能指标标签
         performanceLabel = new JLabel("性能: 未测量");
-        performanceLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
-        performanceLabel.setForeground(Color.GRAY);
+        performanceLabel.setFont(new Font(currentTheme.getPrimaryFont().getName(), Font.PLAIN, 11));
+        performanceLabel.setForeground(currentTheme.getTextSecondaryColor());
+        performanceLabel.setOpaque(true);
+        performanceLabel.setBackground(currentTheme.getBackgroundColor());
+        performanceLabel.setBorder(new CompoundBorder(
+            new LineBorder(currentTheme.getBorderColor(), 1, true),
+            new EmptyBorder(5, 12, 5, 12)
+        ));
         
         // 子查询改写信息标签
         subqueryRewriteLabel = new JLabel("子查询优化: 无");
-        subqueryRewriteLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
-        subqueryRewriteLabel.setForeground(Color.GRAY);
+        subqueryRewriteLabel.setFont(new Font(currentTheme.getPrimaryFont().getName(), Font.PLAIN, 11));
+        subqueryRewriteLabel.setForeground(currentTheme.getTextSecondaryColor());
+        subqueryRewriteLabel.setOpaque(true);
+        subqueryRewriteLabel.setBackground(currentTheme.getBackgroundColor());
+        subqueryRewriteLabel.setBorder(new CompoundBorder(
+            new LineBorder(currentTheme.getBorderColor(), 1, true),
+            new EmptyBorder(5, 12, 5, 12)
+        ));
         
 
         // 初始化菜单栏
@@ -221,33 +919,58 @@ public class DatabaseGUI extends JFrame {
      */
     private void initializeMenuBar() {
         menuBar = new JMenuBar();
-        // 设置菜单栏的背景色，确保可见
-        menuBar.setBackground(Color.LIGHT_GRAY);
-        menuBar.setBorder(BorderFactory.createRaisedBevelBorder());
+        // 设置主题化菜单栏样式
+        menuBar.setBackground(currentTheme.getCardBackgroundColor());
+        menuBar.setBorder(new CompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 2, 0, currentTheme.getAccentColor()),
+            new EmptyBorder(8, 15, 8, 15)
+        ));
         
         // 文件菜单
         fileMenu = new JMenu("文件");
-        fileMenu.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
-        fileMenu.setForeground(Color.BLACK);
+        fileMenu.setFont(FontManager.getChineseFont(Font.BOLD, 14));
+        fileMenu.setForeground(currentTheme.getTextPrimaryColor());
+        
+        // 主题菜单
+        themeMenu = new JMenu("主题");
+        themeMenu.setFont(FontManager.getChineseFont(Font.BOLD, 14));
+        themeMenu.setForeground(currentTheme.getTextPrimaryColor());
+        
+        // 添加主题选项
+        JMenuItem lightThemeItem = new JMenuItem("现代浅色");
+        lightThemeItem.setFont(FontManager.getChineseFont(Font.PLAIN, 12));
+        lightThemeItem.addActionListener(e -> switchTheme(new LightTheme()));
+        
+        JMenuItem darkThemeItem = new JMenuItem("科技深色");
+        darkThemeItem.setFont(FontManager.getChineseFont(Font.PLAIN, 12));
+        darkThemeItem.addActionListener(e -> switchTheme(new DarkTheme()));
+        
+        JMenuItem blueThemeItem = new JMenuItem("极光蓝");
+        blueThemeItem.setFont(FontManager.getChineseFont(Font.PLAIN, 12));
+        blueThemeItem.addActionListener(e -> switchTheme(new BlueTheme()));
+        
+        themeMenu.add(lightThemeItem);
+        themeMenu.add(darkThemeItem);
+        themeMenu.add(blueThemeItem);
         
         // 导入SQL文件
         importSQLItem = new JMenuItem("导入SQL文件...");
-        importSQLItem.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        styleMenuItem(importSQLItem);
         importSQLItem.setToolTipText("从文件导入并执行SQL语句");
         
         // 导出数据库
         exportDBItem = new JMenuItem("导出数据库...");
-        exportDBItem.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        styleMenuItem(exportDBItem);
         exportDBItem.setToolTipText("将整个数据库导出为SQL文件");
         
         // 导出单个表
         exportTableItem = new JMenuItem("导出单个表...");
-        exportTableItem.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        styleMenuItem(exportTableItem);
         exportTableItem.setToolTipText("将指定表导出为SQL文件");
         
         // 批量导入目录
         importDirItem = new JMenuItem("批量导入目录...");
-        importDirItem.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        styleMenuItem(importDirItem);
         importDirItem.setToolTipText("从目录批量导入SQL文件");
         
         // 添加菜单项到文件菜单
@@ -260,12 +983,11 @@ public class DatabaseGUI extends JFrame {
         
         // 添加菜单到菜单栏
         menuBar.add(fileMenu);
+        menuBar.add(themeMenu);
 
         // 数据库对象管理组件
         databaseTree = new JTree();
-        databaseTree.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        databaseTree.setRootVisible(false);
-        databaseTree.setShowsRootHandles(true);
+        styleTree(databaseTree);
         treeScrollPane = new JScrollPane(databaseTree);
 
         // 初始化右键上下文菜单
@@ -273,22 +995,22 @@ public class DatabaseGUI extends JFrame {
         treeScrollPane.setPreferredSize(new Dimension(250, 400));
         treeScrollPane.setBorder(BorderFactory.createTitledBorder("数据库对象"));
         
-        refreshButton = new JButton("刷新");
-        refreshButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        Color buttonColor = new Color(127, 198, 255);
+        refreshButton = createStyledButton("刷新", buttonColor, currentTheme.getCardBackgroundColor(), 11, true);
+        refreshButton.setPreferredSize(new Dimension(80, 32));
         
         // 数据库选择组件
         databaseComboBox = new JComboBox<>();
-        databaseComboBox.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        styleComboBox(databaseComboBox);
         databaseComboBox.setToolTipText("选择当前数据库");
         
-        createDatabaseButton = new JButton("创建数据库");
-        createDatabaseButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+        createDatabaseButton = createStyledButton("创建数据库", buttonColor, currentTheme.getCardBackgroundColor(), 11, false);
+        createDatabaseButton.setPreferredSize(new Dimension(110, 35));
         createDatabaseButton.setToolTipText("创建新数据库");
         
-        dropDatabaseButton = new JButton("删除数据库");
-        dropDatabaseButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+        dropDatabaseButton = createStyledButton("删除数据库", buttonColor, currentTheme.getCardBackgroundColor(), 11, false);
+        dropDatabaseButton.setPreferredSize(new Dimension(110, 35));
         dropDatabaseButton.setToolTipText("删除当前数据库");
-        dropDatabaseButton.setForeground(Color.RED);
 
     }
     
@@ -299,6 +1021,9 @@ public class DatabaseGUI extends JFrame {
         updateWindowTitle();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
+        
+        // 设置整体背景
+        getContentPane().setBackground(currentTheme.getBackgroundColor());
         
 
 
@@ -311,11 +1036,16 @@ public class DatabaseGUI extends JFrame {
         // 左侧：数据库对象树
         JPanel leftPanel = new JPanel(new BorderLayout());
         leftPanel.setPreferredSize(new Dimension(300, 0));
-        leftPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 5));
+        leftPanel.setBackground(currentTheme.getCardBackgroundColor());
+        leftPanel.setBorder(new CompoundBorder(
+            new LineBorder(currentTheme.getBorderColor(), 1, true),
+            new EmptyBorder(20, 20, 20, 15)
+        ));
         
         // 顶部：数据库选择面板
         JPanel databaseSelectionPanel = new JPanel(new GridBagLayout());
-        databaseSelectionPanel.setBorder(BorderFactory.createTitledBorder("数据库"));
+        databaseSelectionPanel.setBackground(currentTheme.getCardBackgroundColor());
+        databaseSelectionPanel.setBorder(createStyledTitledBorder("数据库"));
         
         GridBagConstraints dbGbc = new GridBagConstraints();
         dbGbc.insets = new Insets(2, 2, 2, 2);
@@ -335,10 +1065,13 @@ public class DatabaseGUI extends JFrame {
         leftPanel.add(databaseSelectionPanel, BorderLayout.NORTH);
         
         // 数据库对象树
+        treeScrollPane.setBackground(currentTheme.getCardBackgroundColor());
+        treeScrollPane.setBorder(createStyledTitledBorder("数据库对象"));
         leftPanel.add(treeScrollPane, BorderLayout.CENTER);
         
         // 左侧按钮面板
-        JPanel leftButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel leftButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        leftButtonPanel.setBackground(currentTheme.getCardBackgroundColor());
         leftButtonPanel.add(refreshButton);
         leftPanel.add(leftButtonPanel, BorderLayout.SOUTH);
         
@@ -346,10 +1079,15 @@ public class DatabaseGUI extends JFrame {
         
         // 右侧：主要内容区域
         JPanel rightPanel = new JPanel(new BorderLayout());
+        rightPanel.setBackground(currentTheme.getBackgroundColor());
         
         // 顶部：SQL输入区域、自动补全建议和按钮
         JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 10));
+        topPanel.setBackground(currentTheme.getCardBackgroundColor());
+        topPanel.setBorder(new CompoundBorder(
+            new LineBorder(currentTheme.getBorderColor(), 2, true),
+            new EmptyBorder(20, 20, 20, 20)
+        ));
         
         // SQL输入区域 - 使用带行号的滚动面板
         LineNumberScrollPane sqlScrollPane = new LineNumberScrollPane(sqlInputArea);
@@ -363,22 +1101,22 @@ public class DatabaseGUI extends JFrame {
         topPanel.add(sqlScrollPane, BorderLayout.CENTER);
         
         // 按钮面板
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        buttonPanel.setBackground(currentTheme.getCardBackgroundColor());
         buttonPanel.add(executeButton);
         buttonPanel.add(clearButton);
-        buttonPanel.add(catalogButton);
         buttonPanel.add(importButton);
         buttonPanel.add(shardManagerButton);
 
         // 添加索引选择组件
         JLabel indexLabel = new JLabel("索引方式:");
-        indexLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        styleLabel(indexLabel);
         buttonPanel.add(indexLabel);
         buttonPanel.add(indexTypeComboBox);
         
         // 添加存储格式选择组件
         JLabel storageLabel = new JLabel("存储格式:");
-        storageLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+        styleLabel(storageLabel);
         buttonPanel.add(storageLabel);
         buttonPanel.add(storageFormatComboBox);
         
@@ -395,12 +1133,14 @@ public class DatabaseGUI extends JFrame {
         rightPanel.add(topPanel, BorderLayout.NORTH);
         
         // 底部：结果显示区域
-        JPanel bottomPanel = new JPanel(new GridLayout(1, 2));
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 10));
+        JPanel bottomPanel = new JPanel(new GridLayout(1, 2, 10, 0));
+        bottomPanel.setBackground(currentTheme.getBackgroundColor());
+        bottomPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         
         // 左侧：执行结果（占满整个左侧）
         JPanel resultPanel = new JPanel(new BorderLayout());
-        resultPanel.setBorder(BorderFactory.createTitledBorder("执行结果"));
+        resultPanel.setBackground(currentTheme.getCardBackgroundColor());
+        resultPanel.setBorder(createStyledTitledBorder("执行结果"));
         
         // 直接添加标签栏组件
         resultPanel.add(resultTabbedPane, BorderLayout.CENTER);
@@ -408,15 +1148,18 @@ public class DatabaseGUI extends JFrame {
         
         // 右侧：Token列表和AST可视化（上下分布，高度比例2:3）
         JPanel rightDetailPanel = new JPanel(new GridBagLayout());
+        rightDetailPanel.setBackground(currentTheme.getBackgroundColor());
         GridBagConstraints gbc = new GridBagConstraints();
         
         // Token列表（上半部分，占2/5高度）
         JPanel tokenPanel = new JPanel(new BorderLayout());
-        tokenPanel.setBorder(BorderFactory.createTitledBorder("Token列表"));
+        tokenPanel.setBackground(currentTheme.getCardBackgroundColor());
+        tokenPanel.setBorder(createStyledTitledBorder("Token列表"));
         JScrollPane tokenScrollPane = new JScrollPane(tokenArea);
         tokenScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         tokenScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        tokenScrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY)); // 内层单纯线框
+        tokenScrollPane.setBorder(new LineBorder(currentTheme.getBorderColor(), 1, true));
+        tokenScrollPane.setBackground(currentTheme.getCardBackgroundColor());
         tokenPanel.add(tokenScrollPane, BorderLayout.CENTER);
         
         gbc.gridx = 0;
@@ -428,30 +1171,32 @@ public class DatabaseGUI extends JFrame {
         
         // AST可视化（下半部分，占3/5高度）
         JPanel astPanel = new JPanel(new BorderLayout());
-        astPanel.setBorder(BorderFactory.createTitledBorder("AST可视化"));
+        astPanel.setBackground(currentTheme.getCardBackgroundColor());
+        astPanel.setBorder(createStyledTitledBorder("AST可视化"));
         
         // 添加AST可视化组件
         JScrollPane astVisualizerScrollPane = new JScrollPane(astVisualizer);
         astVisualizerScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         astVisualizerScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        astVisualizerScrollPane.setBorder(BorderFactory.createLineBorder(Color.GRAY)); // 内层单纯线框
+        astVisualizerScrollPane.setBorder(new LineBorder(currentTheme.getBorderColor(), 1, true));
+        astVisualizerScrollPane.setBackground(currentTheme.getCardBackgroundColor());
         astPanel.add(astVisualizerScrollPane, BorderLayout.CENTER);
         
         // 添加放大缩小按钮
-        JPanel astButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        zoomInButton = new JButton("+");
-        zoomInButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
-        zoomInButton.setPreferredSize(new Dimension(30, 25));
+        JPanel astButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        astButtonPanel.setBackground(currentTheme.getCardBackgroundColor());
+        
+        Color zoomButtonColor = new Color(127, 198, 255);
+        zoomInButton = createStyledButton("+", zoomButtonColor, currentTheme.getCardBackgroundColor(), 12, true);
+        zoomInButton.setPreferredSize(new Dimension(40, 35));
         zoomInButton.setToolTipText("放大");
         
-        zoomOutButton = new JButton("-");
-        zoomOutButton.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
-        zoomOutButton.setPreferredSize(new Dimension(30, 25));
+        zoomOutButton = createStyledButton("-", zoomButtonColor, currentTheme.getCardBackgroundColor(), 12, true);
+        zoomOutButton.setPreferredSize(new Dimension(40, 35));
         zoomOutButton.setToolTipText("缩小");
         
-        fitButton = new JButton("适应");
-        fitButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
-        fitButton.setPreferredSize(new Dimension(40, 25));
+        fitButton = createStyledButton("适应", zoomButtonColor, currentTheme.getCardBackgroundColor(), 10, true);
+        fitButton.setPreferredSize(new Dimension(70, 35));
         fitButton.setToolTipText("适应窗口大小");
         
         astButtonPanel.add(zoomInButton);
@@ -474,6 +1219,9 @@ public class DatabaseGUI extends JFrame {
         // 设置窗口大小和位置
         setSize(1600, 900);
         setLocationRelativeTo(null);
+        
+        // 添加窗口图标（可选）
+        setIconImage(createWindowIcon());
     }
     
     /**
@@ -535,12 +1283,6 @@ public class DatabaseGUI extends JFrame {
             }
         });
         
-        catalogButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                showCatalog();
-            }
-        });
         
         // 导入SQL文件按钮事件
         importButton.addActionListener(new ActionListener() {
