@@ -29,5 +29,12 @@ auto_increment=false|not_null=false|unique=false|column_name=proj_id|data_type=I
 auto_increment=false|not_null=false|unique=false|column_name=proj_name|data_type=VARCHAR|length=100|default_value=null|table_name=project|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=dept_id|data_type=INT|length=0|default_value=null|table_name=project|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=budget|data_type=DECIMAL|length=12|default_value=null|table_name=project|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=product_id|data_type=INT|length=0|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=product_name|data_type=VARCHAR|length=100|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=category|data_type=VARCHAR|length=50|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=price|data_type=DECIMAL|length=8|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=stock_quantity|data_type=INT|length=0|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=supplier|data_type=VARCHAR|length=50|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=created_date|data_type=DATE|length=0|default_value=null|table_name=products|primary_key=false
 
 PAGE:2

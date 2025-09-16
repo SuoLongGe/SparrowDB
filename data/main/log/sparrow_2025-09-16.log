@@ -1,1086 +1,132 @@
-2025-09-16 08:38:29.239 | LSN:00000181 | TXN_START    | TXN:1757983109238 |                 | 事务开始 | INFO:事务ID: 1757983109238
-2025-09-16 08:38:29.245 | LSN:00000182 | SELECT       | TXN:1757983109238 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:38:29.364 | LSN:00000183 | SELECT       | TXN:1757983109238 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:38:29.365 | LSN:00000184 | TXN_COMMIT   | TXN:1757983109238 |                 | 事务提交 | INFO:事务ID: 1757983109238
-2025-09-16 08:39:01.310 | LSN:00000185 | TXN_START    | TXN:1757983141310 |                 | 事务开始 | INFO:事务ID: 1757983141310
-2025-09-16 08:39:01.311 | LSN:00000186 | SELECT       | TXN:1757983141310 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users where age>25;
-2025-09-16 08:39:01.322 | LSN:00000187 | SELECT       | TXN:1757983141310 | users           | SQL执行成功 | DATA:NEW[返回 6 条记录] | INFO:SQL: SELECT * FROM users where age>25;
-2025-09-16 08:39:01.322 | LSN:00000188 | TXN_COMMIT   | TXN:1757983141310 |                 | 事务提交 | INFO:事务ID: 1757983141310
-2025-09-16 08:39:16.078 | LSN:00000189 | TXN_START    | TXN:1757983156078 |                 | 事务开始 | INFO:事务ID: 1757983156078
-2025-09-16 08:39:16.079 | LSN:00000190 | SELECT       | TXN:1757983156078 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users where age>25;
-2025-09-16 08:39:16.198 | LSN:00000191 | SELECT       | TXN:1757983156078 | users           | SQL执行成功 | DATA:NEW[返回 6 条记录] | INFO:SQL: SELECT * FROM users where age>25;
-2025-09-16 08:39:16.200 | LSN:00000192 | TXN_COMMIT   | TXN:1757983156078 |                 | 事务提交 | INFO:事务ID: 1757983156078
-2025-09-16 08:39:28.250 | LSN:00000193 | TXN_START    | TXN:1757983168250 |                 | 事务开始 | INFO:事务ID: 1757983168250
-2025-09-16 08:39:28.251 | LSN:00000194 | SELECT       | TXN:1757983168250 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users where age>25;
-2025-09-16 08:39:28.264 | LSN:00000195 | SELECT       | TXN:1757983168250 | users           | SQL执行成功 | DATA:NEW[返回 6 条记录] | INFO:SQL: SELECT * FROM users where age>25;
-2025-09-16 08:39:28.264 | LSN:00000196 | TXN_COMMIT   | TXN:1757983168250 |                 | 事务提交 | INFO:事务ID: 1757983168250
-2025-09-16 08:39:34.497 | LSN:00000197 | TXN_START    | TXN:1757983174496 |                 | 事务开始 | INFO:事务ID: 1757983174496
-2025-09-16 08:39:34.498 | LSN:00000198 | SELECT       | TXN:1757983174496 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users where age>25;
-2025-09-16 08:39:34.510 | LSN:00000199 | SELECT       | TXN:1757983174496 | users           | SQL执行成功 | DATA:NEW[返回 6 条记录] | INFO:SQL: SELECT * FROM users where age>25;
-2025-09-16 08:39:34.510 | LSN:00000200 | TXN_COMMIT   | TXN:1757983174496 |                 | 事务提交 | INFO:事务ID: 1757983174496
-2025-09-16 08:39:40.572 | LSN:00000201 | TXN_START    | TXN:1757983180572 |                 | 事务开始 | INFO:事务ID: 1757983180572
-2025-09-16 08:39:40.572 | LSN:00000202 | SELECT       | TXN:1757983180572 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users where age>25;
-2025-09-16 08:39:40.583 | LSN:00000203 | SELECT       | TXN:1757983180572 | users           | SQL执行成功 | DATA:NEW[返回 6 条记录] | INFO:SQL: SELECT * FROM users where age>25;
-2025-09-16 08:39:40.584 | LSN:00000204 | TXN_COMMIT   | TXN:1757983180572 |                 | 事务提交 | INFO:事务ID: 1757983180572
-2025-09-16 08:41:23.082 | LSN:00000205 | TXN_START    | TXN:1757983283082 |                 | 事务开始 | INFO:事务ID: 1757983283082
-2025-09-16 08:41:23.083 | LSN:00000206 | SELECT       | TXN:1757983283082 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:41:23.198 | LSN:00000207 | SELECT       | TXN:1757983283082 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:41:23.199 | LSN:00000208 | TXN_COMMIT   | TXN:1757983283082 |                 | 事务提交 | INFO:事务ID: 1757983283082
-2025-09-16 08:41:28.136 | LSN:00000209 | TXN_START    | TXN:1757983288136 |                 | 事务开始 | INFO:事务ID: 1757983288136
-2025-09-16 08:41:28.137 | LSN:00000210 | SELECT       | TXN:1757983288136 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:41:28.202 | LSN:00000211 | SELECT       | TXN:1757983288136 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:41:28.202 | LSN:00000212 | TXN_COMMIT   | TXN:1757983288136 |                 | 事务提交 | INFO:事务ID: 1757983288136
-2025-09-16 08:41:40.293 | LSN:00000213 | TXN_START    | TXN:1757983300292 |                 | 事务开始 | INFO:事务ID: 1757983300292
-2025-09-16 08:41:40.293 | LSN:00000214 | SELECT       | TXN:1757983300292 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:41:40.325 | LSN:00000215 | SELECT       | TXN:1757983300292 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:41:40.326 | LSN:00000216 | TXN_COMMIT   | TXN:1757983300292 |                 | 事务提交 | INFO:事务ID: 1757983300292
-2025-09-16 08:41:43.849 | LSN:00000217 | TXN_START    | TXN:1757983303849 |                 | 事务开始 | INFO:事务ID: 1757983303849
-2025-09-16 08:41:43.849 | LSN:00000218 | SELECT       | TXN:1757983303849 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:41:43.965 | LSN:00000219 | SELECT       | TXN:1757983303849 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:41:43.966 | LSN:00000220 | TXN_COMMIT   | TXN:1757983303849 |                 | 事务提交 | INFO:事务ID: 1757983303849
-2025-09-16 08:41:49.203 | LSN:00000221 | TXN_START    | TXN:1757983309203 |                 | 事务开始 | INFO:事务ID: 1757983309203
-2025-09-16 08:41:49.204 | LSN:00000222 | SELECT       | TXN:1757983309203 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:41:49.239 | LSN:00000223 | SELECT       | TXN:1757983309203 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:41:49.240 | LSN:00000224 | TXN_COMMIT   | TXN:1757983309203 |                 | 事务提交 | INFO:事务ID: 1757983309203
-2025-09-16 08:42:11.668 | LSN:00000225 | TXN_START    | TXN:1757983331668 |                 | 事务开始 | INFO:事务ID: 1757983331668
-2025-09-16 08:42:11.669 | LSN:00000226 | SELECT       | TXN:1757983331668 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:42:11.781 | LSN:00000227 | SELECT       | TXN:1757983331668 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:42:11.781 | LSN:00000228 | TXN_COMMIT   | TXN:1757983331668 |                 | 事务提交 | INFO:事务ID: 1757983331668
-2025-09-16 08:42:21.914 | LSN:00000229 | TXN_START    | TXN:1757983341914 |                 | 事务开始 | INFO:事务ID: 1757983341914
-2025-09-16 08:42:21.915 | LSN:00000230 | SELECT       | TXN:1757983341914 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:42:22.032 | LSN:00000231 | SELECT       | TXN:1757983341914 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:42:22.033 | LSN:00000232 | TXN_COMMIT   | TXN:1757983341914 |                 | 事务提交 | INFO:事务ID: 1757983341914
-2025-09-16 08:42:24.268 | LSN:00000233 | TXN_START    | TXN:1757983344267 |                 | 事务开始 | INFO:事务ID: 1757983344267
-2025-09-16 08:42:24.268 | LSN:00000234 | SELECT       | TXN:1757983344267 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:42:24.374 | LSN:00000235 | SELECT       | TXN:1757983344267 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:42:24.375 | LSN:00000236 | TXN_COMMIT   | TXN:1757983344267 |                 | 事务提交 | INFO:事务ID: 1757983344267
-2025-09-16 08:42:24.384 | LSN:00000237 | TXN_START    | TXN:1757983344384 |                 | 事务开始 | INFO:事务ID: 1757983344384
-2025-09-16 08:42:24.385 | LSN:00000238 | SELECT       | TXN:1757983344384 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:42:24.499 | LSN:00000239 | SELECT       | TXN:1757983344384 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:42:24.500 | LSN:00000240 | TXN_COMMIT   | TXN:1757983344384 |                 | 事务提交 | INFO:事务ID: 1757983344384
-2025-09-16 08:42:37.048 | LSN:00000241 | TXN_START    | TXN:1757983357048 |                 | 事务开始 | INFO:事务ID: 1757983357048
-2025-09-16 08:42:37.049 | LSN:00000242 | SELECT       | TXN:1757983357048 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:42:37.166 | LSN:00000243 | SELECT       | TXN:1757983357048 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:42:37.166 | LSN:00000244 | TXN_COMMIT   | TXN:1757983357048 |                 | 事务提交 | INFO:事务ID: 1757983357048
-2025-09-16 08:42:40.166 | LSN:00000245 | TXN_START    | TXN:1757983360166 |                 | 事务开始 | INFO:事务ID: 1757983360166
-2025-09-16 08:42:40.167 | LSN:00000246 | SELECT       | TXN:1757983360166 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:42:40.279 | LSN:00000247 | SELECT       | TXN:1757983360166 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:42:40.279 | LSN:00000248 | TXN_COMMIT   | TXN:1757983360166 |                 | 事务提交 | INFO:事务ID: 1757983360166
-2025-09-16 08:46:31.895 | LSN:00000249 | TXN_START    | TXN:1757983591895 |                 | 事务开始 | INFO:事务ID: 1757983591895
-2025-09-16 08:46:31.896 | LSN:00000250 | SELECT       | TXN:1757983591895 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:46:32.012 | LSN:00000251 | SELECT       | TXN:1757983591895 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:46:32.012 | LSN:00000252 | TXN_COMMIT   | TXN:1757983591895 |                 | 事务提交 | INFO:事务ID: 1757983591895
-2025-09-16 08:46:36.815 | LSN:00000253 | TXN_START    | TXN:1757983596815 |                 | 事务开始 | INFO:事务ID: 1757983596815
-2025-09-16 08:46:36.816 | LSN:00000254 | SELECT       | TXN:1757983596815 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:46:36.925 | LSN:00000255 | SELECT       | TXN:1757983596815 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:46:36.927 | LSN:00000256 | TXN_COMMIT   | TXN:1757983596815 |                 | 事务提交 | INFO:事务ID: 1757983596815
-2025-09-16 08:46:52.327 | LSN:00000257 | TXN_START    | TXN:1757983612327 |                 | 事务开始 | INFO:事务ID: 1757983612327
-2025-09-16 08:46:52.327 | LSN:00000258 | SELECT       | TXN:1757983612327 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users WHERE age>25
-2025-09-16 08:46:52.442 | LSN:00000259 | SELECT       | TXN:1757983612327 | users           | SQL执行成功 | DATA:NEW[返回 6 条记录] | INFO:SQL: SELECT * FROM users WHERE age>25
-2025-09-16 08:46:52.443 | LSN:00000260 | TXN_COMMIT   | TXN:1757983612327 |                 | 事务提交 | INFO:事务ID: 1757983612327
-2025-09-16 08:46:55.940 | LSN:00000261 | TXN_START    | TXN:1757983615940 |                 | 事务开始 | INFO:事务ID: 1757983615940
-2025-09-16 08:46:55.940 | LSN:00000262 | SELECT       | TXN:1757983615940 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users WHERE age>25
-2025-09-16 08:46:55.952 | LSN:00000263 | SELECT       | TXN:1757983615940 | users           | SQL执行成功 | DATA:NEW[返回 6 条记录] | INFO:SQL: SELECT * FROM users WHERE age>25
-2025-09-16 08:46:55.952 | LSN:00000264 | TXN_COMMIT   | TXN:1757983615940 |                 | 事务提交 | INFO:事务ID: 1757983615940
-2025-09-16 08:47:04.786 | LSN:00000265 | TXN_START    | TXN:1757983624786 |                 | 事务开始 | INFO:事务ID: 1757983624786
-2025-09-16 08:47:04.787 | LSN:00000266 | SELECT       | TXN:1757983624786 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users WHERE age>25
-2025-09-16 08:47:04.800 | LSN:00000267 | SELECT       | TXN:1757983624786 | users           | SQL执行成功 | DATA:NEW[返回 6 条记录] | INFO:SQL: SELECT * FROM users WHERE age>25
-2025-09-16 08:47:04.800 | LSN:00000268 | TXN_COMMIT   | TXN:1757983624786 |                 | 事务提交 | INFO:事务ID: 1757983624786
-2025-09-16 08:47:10.879 | LSN:00000269 | TXN_START    | TXN:1757983630879 |                 | 事务开始 | INFO:事务ID: 1757983630879
-2025-09-16 08:47:10.880 | LSN:00000270 | SELECT       | TXN:1757983630879 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users WHERE age>25
-2025-09-16 08:47:10.894 | LSN:00000271 | SELECT       | TXN:1757983630879 | users           | SQL执行成功 | DATA:NEW[返回 6 条记录] | INFO:SQL: SELECT * FROM users WHERE age>25
-2025-09-16 08:47:10.895 | LSN:00000272 | TXN_COMMIT   | TXN:1757983630879 |                 | 事务提交 | INFO:事务ID: 1757983630879
-2025-09-16 08:47:15.554 | LSN:00000273 | TXN_START    | TXN:1757983635554 |                 | 事务开始 | INFO:事务ID: 1757983635554
-2025-09-16 08:47:15.554 | LSN:00000274 | SELECT       | TXN:1757983635554 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users WHERE age>25
-2025-09-16 08:47:15.563 | LSN:00000275 | SELECT       | TXN:1757983635554 | users           | SQL执行成功 | DATA:NEW[返回 6 条记录] | INFO:SQL: SELECT * FROM users WHERE age>25
-2025-09-16 08:47:15.563 | LSN:00000276 | TXN_COMMIT   | TXN:1757983635554 |                 | 事务提交 | INFO:事务ID: 1757983635554
-2025-09-16 08:48:19.813 | LSN:00000277 | TXN_START    | TXN:1757983699813 |                 | 事务开始 | INFO:事务ID: 1757983699813
-2025-09-16 08:48:19.814 | LSN:00000278 | SELECT       | TXN:1757983699813 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:48:19.924 | LSN:00000279 | SELECT       | TXN:1757983699813 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:48:19.926 | LSN:00000280 | TXN_COMMIT   | TXN:1757983699813 |                 | 事务提交 | INFO:事务ID: 1757983699813
-2025-09-16 08:50:10.669 | LSN:00000281 | TXN_START    | TXN:1757983810669 |                 | 事务开始 | INFO:事务ID: 1757983810669
-2025-09-16 08:50:10.669 | LSN:00000282 | SELECT       | TXN:1757983810669 | test_table2     | SQL执行开始 | INFO:SQL: SELECT * FROM test_table2
-2025-09-16 08:50:10.777 | LSN:00000283 | SELECT       | TXN:1757983810669 | test_table2     | SQL执行成功 | DATA:NEW[返回 1 条记录] | INFO:SQL: SELECT * FROM test_table2
-2025-09-16 08:50:10.778 | LSN:00000284 | TXN_COMMIT   | TXN:1757983810669 |                 | 事务提交 | INFO:事务ID: 1757983810669
-2025-09-16 08:50:11.948 | LSN:00000285 | TXN_START    | TXN:1757983811948 |                 | 事务开始 | INFO:事务ID: 1757983811948
-2025-09-16 08:50:11.949 | LSN:00000286 | SELECT       | TXN:1757983811948 | newtable        | SQL执行开始 | INFO:SQL: SELECT * FROM newtable
-2025-09-16 08:50:12.065 | LSN:00000287 | SELECT       | TXN:1757983811948 | newtable        | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM newtable
-2025-09-16 08:50:12.066 | LSN:00000288 | TXN_COMMIT   | TXN:1757983811948 |                 | 事务提交 | INFO:事务ID: 1757983811948
-2025-09-16 08:51:57.290 | LSN:00000289 | TXN_START    | TXN:1757983917290 |                 | 事务开始 | INFO:事务ID: 1757983917290
-2025-09-16 08:51:57.292 | LSN:00000290 | SELECT       | TXN:1757983917290 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 08:51:57.412 | LSN:00000291 | SELECT       | TXN:1757983917290 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 08:51:57.413 | LSN:00000292 | TXN_COMMIT   | TXN:1757983917290 |                 | 事务提交 | INFO:事务ID: 1757983917290
-2025-09-16 09:18:40.128 | LSN:00000293 | TXN_START    | TXN:1757985520127 |                 | 事务开始 | INFO:事务ID: 1757985520127
-2025-09-16 09:18:40.129 | LSN:00000294 | SYSTEM       | TXN:1757985520127 |                 | SQL执行开始 | INFO:SQL: DROP SHARD users
-2025-09-16 09:18:40.132 | LSN:00000295 | SYSTEM       | TXN:1757985520127 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD users
-2025-09-16 09:18:40.134 | LSN:00000296 | TXN_COMMIT   | TXN:1757985520127 |                 | 事务提交 | INFO:事务ID: 1757985520127
-2025-09-16 09:19:14.545 | LSN:00000297 | TXN_START    | TXN:1757985554545 |                 | 事务开始 | INFO:事务ID: 1757985554545
-2025-09-16 09:19:14.545 | LSN:00000298 | SYSTEM       | TXN:1757985554545 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD users BY id USING HASH (4)
-2025-09-16 09:19:14.570 | LSN:00000299 | SYSTEM       | TXN:1757985554545 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD users BY id USING HASH (4)
-2025-09-16 09:19:14.570 | LSN:00000300 | TXN_COMMIT   | TXN:1757985554545 |                 | 事务提交 | INFO:事务ID: 1757985554545
-2025-09-16 09:21:52.762 | LSN:00000301 | TXN_START    | TXN:1757985712762 |                 | 事务开始 | INFO:事务ID: 1757985712762
-2025-09-16 09:21:52.764 | LSN:00000302 | INSERT       | TXN:1757985712762 | users           | SQL执行开始 | INFO:SQL: INSERT INTO users VALUES (8, '冯八', 'fengba@email.com', 27, '武汉');
-INSERT INTO users VALUES (9, '陈九', 'chenjiu@email.com', 22, '南京');
-INSERT INTO users VALUES (10, '杨十', 'yangshi@email.com', 29, '西安');
-
-INSERT INTO users VALUES (11, '张华', 'zhanghua@email.com', 24, '北京');
-INSERT INTO users VALUES (12, '李明', 'liming@email.com', 31, '上海');
-INSERT INTO users VALUES (13, '王强', 'wangqiang@email.com', 20, '广州');
-INSERT INTO users VALUES (14, '赵雷', 'zhaolei@email.com', 35, '深圳');
-INSERT INTO users VALUES (15, '吴刚', 'wugang@email.com', 27, '杭州');
-INSERT INTO users VALUES (16, '周超', 'zhouchao@email.com', 23, '成都');
-INSERT INTO users VALUES (17, '郑军', 'zhengjun@email.com', 26, '重庆');
-INSERT INTO users VALUES (18, '冯伟', 'fengwei@email.com', 28, '武汉');
-INSERT INTO users VALUES (19, '陈鹏', 'chenpeng@email.com', 33, '南京');
-INSERT INTO users VALUES (20, '杨晨', 'yangchen@email.com', 22, '西安');
-
-INSERT INTO users VALUES (21, '张宇', 'zhangyu@email.com', 29, '北京');
-INSERT INTO users VALUES (22, '李杰', 'lijie@email.com', 34, '上海');
-INSERT INTO users VALUES (23, '王飞', 'wangfei@email.com', 19, '广州');
-INSERT INTO users VALUES (24, '赵鑫', 'zhaoxin@email.com', 28, '深圳');
-INSERT INTO users VALUES (25, '吴涛', 'wutao@email.com', 21, '杭州');
-INSERT INTO users VALUES (26, '周楠', 'zhounan@email.com', 25, '成都');
-INSERT INTO users VALUES (27, '郑凯', 'zhengkai@email.com', 30, '重庆');
-INSERT INTO users VALUES (28, '冯亮', 'fengliang@email.com', 27, '武汉');
-INSERT INTO users VALUES (29, '陈健', 'chenjian@email.com', 23, '南京');
-INSERT INTO users VALUES (30, '杨帆', 'yangfan@email.com', 32, '西安');
-
-INSERT INTO users VALUES (31, '张龙', 'zhanglong@email.com', 28, '北京');
-INSERT INTO users VALUES (32, '李虎', 'lihu@email.com', 20, '上海');
-INSERT INTO users VALUES (33, '王峰', 'wangfeng@email.com', 24, '广州');
-INSERT INTO users VALUES (34, '赵翔', 'zhaoxiang@email.com', 26, '深圳');
-INSERT INTO users VALUES (35, '吴迪', 'wudi@email.com', 35, '杭州');
-INSERT INTO users VALUES (36, '周琪', 'zhouqi@email.com', 29, '成都');
-INSERT INTO users VALUES (37, '郑辉', 'zhenghui@email.com', 31, '重庆');
-INSERT INTO users VALUES (38, '冯磊', 'fengllei@email.com', 22, '武汉');
-INSERT INTO users VALUES (39, '陈瑞', 'chenrui@email.com', 27, '南京');
-INSERT INTO users VALUES (40, '杨俊', 'yangjun@email.com', 25, '西安');
-
-INSERT INTO users VALUES (41, '张凯', 'zhangkai@email.com', 33, '北京');
-INSERT INTO users VALUES (42, '李佳', 'lijia@email.com', 21, '上海');
-INSERT INTO users VALUES (43, '王芳', 'wangfang@email.com', 23, '广州');
-INSERT INTO users VALUES (44, '赵颖', 'zhaoying@email.com', 28, '深圳');
-INSERT INTO users VALUES (45, '吴慧', 'wuhui@email.com', 26, '杭州');
-INSERT INTO users VALUES (46, '周丽', 'zhouli@email.com', 32, '成都');
-INSERT INTO users VALUES (47, '郑雪', 'zhengxue@email.com', 24, '重庆');
-INSERT INTO users VALUES (48, '冯婷', 'fengtin@email.com', 27, '武汉');
-INSERT INTO users VALUES (49, '陈霞', 'chenxia@email.com', 30, '南京');
-INSERT INTO users VALUES (50, '杨梅', 'yangmei@email.com', 22, '西安');
-2025-09-16 09:21:52.836 | LSN:00000303 | INSERT       | TXN:1757985712762 | users           | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO users VALUES (8, '冯八', 'fengba@email.com', 27, '武汉');
-INSERT INTO users VALUES (9, '陈九', 'chenjiu@email.com', 22, '南京');
-INSERT INTO users VALUES (10, '杨十', 'yangshi@email.com', 29, '西安');
-
-INSERT INTO users VALUES (11, '张华', 'zhanghua@email.com', 24, '北京');
-INSERT INTO users VALUES (12, '李明', 'liming@email.com', 31, '上海');
-INSERT INTO users VALUES (13, '王强', 'wangqiang@email.com', 20, '广州');
-INSERT INTO users VALUES (14, '赵雷', 'zhaolei@email.com', 35, '深圳');
-INSERT INTO users VALUES (15, '吴刚', 'wugang@email.com', 27, '杭州');
-INSERT INTO users VALUES (16, '周超', 'zhouchao@email.com', 23, '成都');
-INSERT INTO users VALUES (17, '郑军', 'zhengjun@email.com', 26, '重庆');
-INSERT INTO users VALUES (18, '冯伟', 'fengwei@email.com', 28, '武汉');
-INSERT INTO users VALUES (19, '陈鹏', 'chenpeng@email.com', 33, '南京');
-INSERT INTO users VALUES (20, '杨晨', 'yangchen@email.com', 22, '西安');
-
-INSERT INTO users VALUES (21, '张宇', 'zhangyu@email.com', 29, '北京');
-INSERT INTO users VALUES (22, '李杰', 'lijie@email.com', 34, '上海');
-INSERT INTO users VALUES (23, '王飞', 'wangfei@email.com', 19, '广州');
-INSERT INTO users VALUES (24, '赵鑫', 'zhaoxin@email.com', 28, '深圳');
-INSERT INTO users VALUES (25, '吴涛', 'wutao@email.com', 21, '杭州');
-INSERT INTO users VALUES (26, '周楠', 'zhounan@email.com', 25, '成都');
-INSERT INTO users VALUES (27, '郑凯', 'zhengkai@email.com', 30, '重庆');
-INSERT INTO users VALUES (28, '冯亮', 'fengliang@email.com', 27, '武汉');
-INSERT INTO users VALUES (29, '陈健', 'chenjian@email.com', 23, '南京');
-INSERT INTO users VALUES (30, '杨帆', 'yangfan@email.com', 32, '西安');
-
-INSERT INTO users VALUES (31, '张龙', 'zhanglong@email.com', 28, '北京');
-INSERT INTO users VALUES (32, '李虎', 'lihu@email.com', 20, '上海');
-INSERT INTO users VALUES (33, '王峰', 'wangfeng@email.com', 24, '广州');
-INSERT INTO users VALUES (34, '赵翔', 'zhaoxiang@email.com', 26, '深圳');
-INSERT INTO users VALUES (35, '吴迪', 'wudi@email.com', 35, '杭州');
-INSERT INTO users VALUES (36, '周琪', 'zhouqi@email.com', 29, '成都');
-INSERT INTO users VALUES (37, '郑辉', 'zhenghui@email.com', 31, '重庆');
-INSERT INTO users VALUES (38, '冯磊', 'fengllei@email.com', 22, '武汉');
-INSERT INTO users VALUES (39, '陈瑞', 'chenrui@email.com', 27, '南京');
-INSERT INTO users VALUES (40, '杨俊', 'yangjun@email.com', 25, '西安');
-
-INSERT INTO users VALUES (41, '张凯', 'zhangkai@email.com', 33, '北京');
-INSERT INTO users VALUES (42, '李佳', 'lijia@email.com', 21, '上海');
-INSERT INTO users VALUES (43, '王芳', 'wangfang@email.com', 23, '广州');
-INSERT INTO users VALUES (44, '赵颖', 'zhaoying@email.com', 28, '深圳');
-INSERT INTO users VALUES (45, '吴慧', 'wuhui@email.com', 26, '杭州');
-INSERT INTO users VALUES (46, '周丽', 'zhouli@email.com', 32, '成都');
-INSERT INTO users VALUES (47, '郑雪', 'zhengxue@email.com', 24, '重庆');
-INSERT INTO users VALUES (48, '冯婷', 'fengtin@email.com', 27, '武汉');
-INSERT INTO users VALUES (49, '陈霞', 'chenxia@email.com', 30, '南京');
-INSERT INTO users VALUES (50, '杨梅', 'yangmei@email.com', 22, '西安');
-2025-09-16 09:21:52.836 | LSN:00000304 | TXN_COMMIT   | TXN:1757985712762 |                 | 事务提交 | INFO:事务ID: 1757985712762
-2025-09-16 09:32:22.255 | LSN:00000305 | TXN_START    | TXN:1757986342254 |                 | 事务开始 | INFO:事务ID: 1757986342254
-2025-09-16 09:32:22.259 | LSN:00000306 | SELECT       | TXN:1757986342254 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 09:32:22.377 | LSN:00000307 | SELECT       | TXN:1757986342254 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 09:32:22.377 | LSN:00000308 | TXN_COMMIT   | TXN:1757986342254 |                 | 事务提交 | INFO:事务ID: 1757986342254
-2025-09-16 09:32:39.335 | LSN:00000309 | TXN_START    | TXN:1757986359335 |                 | 事务开始 | INFO:事务ID: 1757986359335
-2025-09-16 09:32:39.338 | LSN:00000310 | INSERT       | TXN:1757986359335 | users           | SQL执行开始 | INFO:SQL: INSERT INTO users VALUES (8, '冯八', 'fengba@email.com', 27, '武汉');
-INSERT INTO users VALUES (9, '陈九', 'chenjiu@email.com', 22, '南京');
-INSERT INTO users VALUES (10, '杨十', 'yangshi@email.com', 29, '西安');
-
-INSERT INTO users VALUES (11, '张华', 'zhanghua@email.com', 24, '北京');
-INSERT INTO users VALUES (12, '李明', 'liming@email.com', 31, '上海');
-INSERT INTO users VALUES (13, '王强', 'wangqiang@email.com', 20, '广州');
-INSERT INTO users VALUES (14, '赵雷', 'zhaolei@email.com', 35, '深圳');
-INSERT INTO users VALUES (15, '吴刚', 'wugang@email.com', 27, '杭州');
-INSERT INTO users VALUES (16, '周超', 'zhouchao@email.com', 23, '成都');
-INSERT INTO users VALUES (17, '郑军', 'zhengjun@email.com', 26, '重庆');
-INSERT INTO users VALUES (18, '冯伟', 'fengwei@email.com', 28, '武汉');
-INSERT INTO users VALUES (19, '陈鹏', 'chenpeng@email.com', 33, '南京');
-INSERT INTO users VALUES (20, '杨晨', 'yangchen@email.com', 22, '西安');
-
-INSERT INTO users VALUES (21, '张宇', 'zhangyu@email.com', 29, '北京');
-INSERT INTO users VALUES (22, '李杰', 'lijie@email.com', 34, '上海');
-INSERT INTO users VALUES (23, '王飞', 'wangfei@email.com', 19, '广州');
-INSERT INTO users VALUES (24, '赵鑫', 'zhaoxin@email.com', 28, '深圳');
-INSERT INTO users VALUES (25, '吴涛', 'wutao@email.com', 21, '杭州');
-INSERT INTO users VALUES (26, '周楠', 'zhounan@email.com', 25, '成都');
-INSERT INTO users VALUES (27, '郑凯', 'zhengkai@email.com', 30, '重庆');
-INSERT INTO users VALUES (28, '冯亮', 'fengliang@email.com', 27, '武汉');
-INSERT INTO users VALUES (29, '陈健', 'chenjian@email.com', 23, '南京');
-INSERT INTO users VALUES (30, '杨帆', 'yangfan@email.com', 32, '西安');
-
-INSERT INTO users VALUES (31, '张龙', 'zhanglong@email.com', 28, '北京');
-INSERT INTO users VALUES (32, '李虎', 'lihu@email.com', 20, '上海');
-INSERT INTO users VALUES (33, '王峰', 'wangfeng@email.com', 24, '广州');
-INSERT INTO users VALUES (34, '赵翔', 'zhaoxiang@email.com', 26, '深圳');
-INSERT INTO users VALUES (35, '吴迪', 'wudi@email.com', 35, '杭州');
-INSERT INTO users VALUES (36, '周琪', 'zhouqi@email.com', 29, '成都');
-INSERT INTO users VALUES (37, '郑辉', 'zhenghui@email.com', 31, '重庆');
-INSERT INTO users VALUES (38, '冯磊', 'fengllei@email.com', 22, '武汉');
-INSERT INTO users VALUES (39, '陈瑞', 'chenrui@email.com', 27, '南京');
-INSERT INTO users VALUES (40, '杨俊', 'yangjun@email.com', 25, '西安');
-
-INSERT INTO users VALUES (41, '张凯', 'zhangkai@email.com', 33, '北京');
-INSERT INTO users VALUES (42, '李佳', 'lijia@email.com', 21, '上海');
-INSERT INTO users VALUES (43, '王芳', 'wangfang@email.com', 23, '广州');
-INSERT INTO users VALUES (44, '赵颖', 'zhaoying@email.com', 28, '深圳');
-INSERT INTO users VALUES (45, '吴慧', 'wuhui@email.com', 26, '杭州');
-INSERT INTO users VALUES (46, '周丽', 'zhouli@email.com', 32, '成都');
-INSERT INTO users VALUES (47, '郑雪', 'zhengxue@email.com', 24, '重庆');
-INSERT INTO users VALUES (48, '冯婷', 'fengtin@email.com', 27, '武汉');
-INSERT INTO users VALUES (49, '陈霞', 'chenxia@email.com', 30, '南京');
-INSERT INTO users VALUES (50, '杨梅', 'yangmei@email.com', 22, '西安');
-2025-09-16 09:32:39.408 | LSN:00000311 | INSERT       | TXN:1757986359335 | users           | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO users VALUES (8, '冯八', 'fengba@email.com', 27, '武汉');
-INSERT INTO users VALUES (9, '陈九', 'chenjiu@email.com', 22, '南京');
-INSERT INTO users VALUES (10, '杨十', 'yangshi@email.com', 29, '西安');
-
-INSERT INTO users VALUES (11, '张华', 'zhanghua@email.com', 24, '北京');
-INSERT INTO users VALUES (12, '李明', 'liming@email.com', 31, '上海');
-INSERT INTO users VALUES (13, '王强', 'wangqiang@email.com', 20, '广州');
-INSERT INTO users VALUES (14, '赵雷', 'zhaolei@email.com', 35, '深圳');
-INSERT INTO users VALUES (15, '吴刚', 'wugang@email.com', 27, '杭州');
-INSERT INTO users VALUES (16, '周超', 'zhouchao@email.com', 23, '成都');
-INSERT INTO users VALUES (17, '郑军', 'zhengjun@email.com', 26, '重庆');
-INSERT INTO users VALUES (18, '冯伟', 'fengwei@email.com', 28, '武汉');
-INSERT INTO users VALUES (19, '陈鹏', 'chenpeng@email.com', 33, '南京');
-INSERT INTO users VALUES (20, '杨晨', 'yangchen@email.com', 22, '西安');
-
-INSERT INTO users VALUES (21, '张宇', 'zhangyu@email.com', 29, '北京');
-INSERT INTO users VALUES (22, '李杰', 'lijie@email.com', 34, '上海');
-INSERT INTO users VALUES (23, '王飞', 'wangfei@email.com', 19, '广州');
-INSERT INTO users VALUES (24, '赵鑫', 'zhaoxin@email.com', 28, '深圳');
-INSERT INTO users VALUES (25, '吴涛', 'wutao@email.com', 21, '杭州');
-INSERT INTO users VALUES (26, '周楠', 'zhounan@email.com', 25, '成都');
-INSERT INTO users VALUES (27, '郑凯', 'zhengkai@email.com', 30, '重庆');
-INSERT INTO users VALUES (28, '冯亮', 'fengliang@email.com', 27, '武汉');
-INSERT INTO users VALUES (29, '陈健', 'chenjian@email.com', 23, '南京');
-INSERT INTO users VALUES (30, '杨帆', 'yangfan@email.com', 32, '西安');
-
-INSERT INTO users VALUES (31, '张龙', 'zhanglong@email.com', 28, '北京');
-INSERT INTO users VALUES (32, '李虎', 'lihu@email.com', 20, '上海');
-INSERT INTO users VALUES (33, '王峰', 'wangfeng@email.com', 24, '广州');
-INSERT INTO users VALUES (34, '赵翔', 'zhaoxiang@email.com', 26, '深圳');
-INSERT INTO users VALUES (35, '吴迪', 'wudi@email.com', 35, '杭州');
-INSERT INTO users VALUES (36, '周琪', 'zhouqi@email.com', 29, '成都');
-INSERT INTO users VALUES (37, '郑辉', 'zhenghui@email.com', 31, '重庆');
-INSERT INTO users VALUES (38, '冯磊', 'fengllei@email.com', 22, '武汉');
-INSERT INTO users VALUES (39, '陈瑞', 'chenrui@email.com', 27, '南京');
-INSERT INTO users VALUES (40, '杨俊', 'yangjun@email.com', 25, '西安');
-
-INSERT INTO users VALUES (41, '张凯', 'zhangkai@email.com', 33, '北京');
-INSERT INTO users VALUES (42, '李佳', 'lijia@email.com', 21, '上海');
-INSERT INTO users VALUES (43, '王芳', 'wangfang@email.com', 23, '广州');
-INSERT INTO users VALUES (44, '赵颖', 'zhaoying@email.com', 28, '深圳');
-INSERT INTO users VALUES (45, '吴慧', 'wuhui@email.com', 26, '杭州');
-INSERT INTO users VALUES (46, '周丽', 'zhouli@email.com', 32, '成都');
-INSERT INTO users VALUES (47, '郑雪', 'zhengxue@email.com', 24, '重庆');
-INSERT INTO users VALUES (48, '冯婷', 'fengtin@email.com', 27, '武汉');
-INSERT INTO users VALUES (49, '陈霞', 'chenxia@email.com', 30, '南京');
-INSERT INTO users VALUES (50, '杨梅', 'yangmei@email.com', 22, '西安');
-2025-09-16 09:32:39.410 | LSN:00000312 | TXN_COMMIT   | TXN:1757986359335 |                 | 事务提交 | INFO:事务ID: 1757986359335
-2025-09-16 09:32:59.789 | LSN:00000313 | TXN_START    | TXN:1757986379789 |                 | 事务开始 | INFO:事务ID: 1757986379789
-2025-09-16 09:32:59.790 | LSN:00000314 | SELECT       | TXN:1757986379789 | enrollments     | SQL执行开始 | INFO:SQL: SELECT * FROM enrollments
-2025-09-16 09:32:59.921 | LSN:00000315 | SELECT       | TXN:1757986379789 | enrollments     | SQL执行成功 | DATA:NEW[返回 9 条记录] | INFO:SQL: SELECT * FROM enrollments
-2025-09-16 09:32:59.922 | LSN:00000316 | TXN_COMMIT   | TXN:1757986379789 |                 | 事务提交 | INFO:事务ID: 1757986379789
-2025-09-16 09:33:00.399 | LSN:00000317 | TXN_START    | TXN:1757986380399 |                 | 事务开始 | INFO:事务ID: 1757986380399
-2025-09-16 09:33:00.401 | LSN:00000318 | SELECT       | TXN:1757986380399 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 09:33:00.463 | LSN:00000319 | SELECT       | TXN:1757986380399 | users           | SQL执行成功 | DATA:NEW[返回 51 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 09:33:00.464 | LSN:00000320 | TXN_COMMIT   | TXN:1757986380399 |                 | 事务提交 | INFO:事务ID: 1757986380399
-2025-09-16 09:35:18.570 | LSN:00000321 | TXN_START    | TXN:1757986518570 |                 | 事务开始 | INFO:事务ID: 1757986518570
-2025-09-16 09:35:18.570 | LSN:00000322 | SYSTEM       | TXN:1757986518570 |                 | SQL执行开始 | INFO:SQL: CREATE permanent FUNCTION add_numbers(a INT, b INT) RETURNS INT BEGIN RETURN a + b; END
-2025-09-16 09:35:18.575 | LSN:00000323 | SYSTEM       | TXN:1757986518570 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE permanent FUNCTION add_numbers(a INT, b INT) RETURNS INT BEGIN RETURN a + b; END
-2025-09-16 09:35:18.575 | LSN:00000324 | TXN_COMMIT   | TXN:1757986518570 |                 | 事务提交 | INFO:事务ID: 1757986518570
-2025-09-16 09:39:31.652 | LSN:00000325 | TXN_START    | TXN:1757986771652 |                 | 事务开始 | INFO:事务ID: 1757986771652
-2025-09-16 09:39:31.653 | LSN:00000326 | SYSTEM       | TXN:1757986771652 |                 | SQL执行开始 | INFO:SQL: call add_numbers(3,4)
-2025-09-16 09:39:31.656 | LSN:00000327 | SYSTEM       | TXN:1757986771652 |                 | SQL执行成功 | DATA:NEW[返回 1 条记录] | INFO:SQL: call add_numbers(3,4)
-2025-09-16 09:39:31.657 | LSN:00000328 | TXN_COMMIT   | TXN:1757986771652 |                 | 事务提交 | INFO:事务ID: 1757986771652
-2025-09-16 10:00:58.780 | LSN:00000329 | TXN_START    | TXN:1757988058779 |                 | 事务开始 | INFO:事务ID: 1757988058779
-2025-09-16 10:00:58.785 | LSN:00000330 | SYSTEM       | TXN:1757988058779 |                 | SQL执行开始 | INFO:SQL: CREATE PERMANENT FUNCTION add_numbers(a INT, b INT) RETURNS INT 
-BEGIN 
-    RETURN a + b; 
-END
-2025-09-16 10:00:58.795 | LSN:00000331 | SYSTEM       | TXN:1757988058779 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE PERMANENT FUNCTION add_numbers(a INT, b INT) RETURNS INT 
-BEGIN 
-    RETURN a + b; 
-END
-2025-09-16 10:00:58.796 | LSN:00000332 | TXN_COMMIT   | TXN:1757988058779 |                 | 事务提交 | INFO:事务ID: 1757988058779
-2025-09-16 10:11:28.954 | LSN:00000333 | TXN_START    | TXN:1757988688953 |                 | 事务开始 | INFO:事务ID: 1757988688953
-2025-09-16 10:11:28.958 | LSN:00000334 | SYSTEM       | TXN:1757988688953 |                 | SQL执行开始 | INFO:SQL: CREATE permanent FUNCTION multiply(x INT, y INT) RETURNS INT BEGIN RETURN x * y; END
-2025-09-16 10:11:28.965 | LSN:00000335 | SYSTEM       | TXN:1757988688953 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE permanent FUNCTION multiply(x INT, y INT) RETURNS INT BEGIN RETURN x * y; END
-2025-09-16 10:11:28.965 | LSN:00000336 | TXN_COMMIT   | TXN:1757988688953 |                 | 事务提交 | INFO:事务ID: 1757988688953
-2025-09-16 10:11:45.826 | LSN:00000337 | TXN_START    | TXN:1757988705826 |                 | 事务开始 | INFO:事务ID: 1757988705826
-2025-09-16 10:11:45.827 | LSN:00000338 | SYSTEM       | TXN:1757988705826 |                 | SQL执行开始 | INFO:SQL: call multiply(5,7)
-2025-09-16 10:11:45.835 | LSN:00000339 | SYSTEM       | TXN:1757988705826 |                 | SQL执行成功 | DATA:NEW[返回 1 条记录] | INFO:SQL: call multiply(5,7)
-2025-09-16 10:11:45.835 | LSN:00000340 | TXN_COMMIT   | TXN:1757988705826 |                 | 事务提交 | INFO:事务ID: 1757988705826
-2025-09-16 10:20:25.180 | LSN:00000341 | TXN_START    | TXN:1757989225179 |                 | 事务开始 | INFO:事务ID: 1757989225179
-2025-09-16 10:20:25.182 | LSN:00000342 | SYSTEM       | TXN:1757989225179 |                 | SQL执行开始 | INFO:SQL: DROP SHARD users
-2025-09-16 10:20:25.185 | LSN:00000343 | SYSTEM       | TXN:1757989225179 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD users
-2025-09-16 10:20:25.185 | LSN:00000344 | TXN_COMMIT   | TXN:1757989225179 |                 | 事务提交 | INFO:事务ID: 1757989225179
-2025-09-16 10:20:58.840 | LSN:00000345 | TXN_START    | TXN:1757989258840 |                 | 事务开始 | INFO:事务ID: 1757989258840
-2025-09-16 10:20:58.842 | LSN:00000346 | INSERT       | TXN:1757989258840 | users           | SQL执行开始 | INFO:SQL: INSERT INTO users VALUES (8, '冯八', 'fengba@email.com', 27, '武汉');
-INSERT INTO users VALUES (9, '陈九', 'chenjiu@email.com', 22, '南京');
-INSERT INTO users VALUES (10, '杨十', 'yangshi@email.com', 29, '西安');
-
-INSERT INTO users VALUES (11, '张华', 'zhanghua@email.com', 24, '北京');
-INSERT INTO users VALUES (12, '李明', 'liming@email.com', 31, '上海');
-INSERT INTO users VALUES (13, '王强', 'wangqiang@email.com', 20, '广州');
-INSERT INTO users VALUES (14, '赵雷', 'zhaolei@email.com', 35, '深圳');
-INSERT INTO users VALUES (15, '吴刚', 'wugang@email.com', 27, '杭州');
-INSERT INTO users VALUES (16, '周超', 'zhouchao@email.com', 23, '成都');
-INSERT INTO users VALUES (17, '郑军', 'zhengjun@email.com', 26, '重庆');
-INSERT INTO users VALUES (18, '冯伟', 'fengwei@email.com', 28, '武汉');
-INSERT INTO users VALUES (19, '陈鹏', 'chenpeng@email.com', 33, '南京');
-INSERT INTO users VALUES (20, '杨晨', 'yangchen@email.com', 22, '西安');
-
-INSERT INTO users VALUES (21, '张宇', 'zhangyu@email.com', 29, '北京');
-INSERT INTO users VALUES (22, '李杰', 'lijie@email.com', 34, '上海');
-INSERT INTO users VALUES (23, '王飞', 'wangfei@email.com', 19, '广州');
-INSERT INTO users VALUES (24, '赵鑫', 'zhaoxin@email.com', 28, '深圳');
-INSERT INTO users VALUES (25, '吴涛', 'wutao@email.com', 21, '杭州');
-INSERT INTO users VALUES (26, '周楠', 'zhounan@email.com', 25, '成都');
-INSERT INTO users VALUES (27, '郑凯', 'zhengkai@email.com', 30, '重庆');
-INSERT INTO users VALUES (28, '冯亮', 'fengliang@email.com', 27, '武汉');
-INSERT INTO users VALUES (29, '陈健', 'chenjian@email.com', 23, '南京');
-INSERT INTO users VALUES (30, '杨帆', 'yangfan@email.com', 32, '西安');
-
-INSERT INTO users VALUES (31, '张龙', 'zhanglong@email.com', 28, '北京');
-INSERT INTO users VALUES (32, '李虎', 'lihu@email.com', 20, '上海');
-INSERT INTO users VALUES (33, '王峰', 'wangfeng@email.com', 24, '广州');
-INSERT INTO users VALUES (34, '赵翔', 'zhaoxiang@email.com', 26, '深圳');
-INSERT INTO users VALUES (35, '吴迪', 'wudi@email.com', 35, '杭州');
-INSERT INTO users VALUES (36, '周琪', 'zhouqi@email.com', 29, '成都');
-INSERT INTO users VALUES (37, '郑辉', 'zhenghui@email.com', 31, '重庆');
-INSERT INTO users VALUES (38, '冯磊', 'fengllei@email.com', 22, '武汉');
-INSERT INTO users VALUES (39, '陈瑞', 'chenrui@email.com', 27, '南京');
-INSERT INTO users VALUES (40, '杨俊', 'yangjun@email.com', 25, '西安');
-
-INSERT INTO users VALUES (41, '张凯', 'zhangkai@email.com', 33, '北京');
-INSERT INTO users VALUES (42, '李佳', 'lijia@email.com', 21, '上海');
-INSERT INTO users VALUES (43, '王芳', 'wangfang@email.com', 23, '广州');
-INSERT INTO users VALUES (44, '赵颖', 'zhaoying@email.com', 28, '深圳');
-INSERT INTO users VALUES (45, '吴慧', 'wuhui@email.com', 26, '杭州');
-INSERT INTO users VALUES (46, '周丽', 'zhouli@email.com', 32, '成都');
-INSERT INTO users VALUES (47, '郑雪', 'zhengxue@email.com', 24, '重庆');
-INSERT INTO users VALUES (48, '冯婷', 'fengtin@email.com', 27, '武汉');
-INSERT INTO users VALUES (49, '陈霞', 'chenxia@email.com', 30, '南京');
-INSERT INTO users VALUES (50, '杨梅', 'yangmei@email.com', 22, '西安');
-2025-09-16 10:20:58.918 | LSN:00000347 | INSERT       | TXN:1757989258840 | users           | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO users VALUES (8, '冯八', 'fengba@email.com', 27, '武汉');
-INSERT INTO users VALUES (9, '陈九', 'chenjiu@email.com', 22, '南京');
-INSERT INTO users VALUES (10, '杨十', 'yangshi@email.com', 29, '西安');
-
-INSERT INTO users VALUES (11, '张华', 'zhanghua@email.com', 24, '北京');
-INSERT INTO users VALUES (12, '李明', 'liming@email.com', 31, '上海');
-INSERT INTO users VALUES (13, '王强', 'wangqiang@email.com', 20, '广州');
-INSERT INTO users VALUES (14, '赵雷', 'zhaolei@email.com', 35, '深圳');
-INSERT INTO users VALUES (15, '吴刚', 'wugang@email.com', 27, '杭州');
-INSERT INTO users VALUES (16, '周超', 'zhouchao@email.com', 23, '成都');
-INSERT INTO users VALUES (17, '郑军', 'zhengjun@email.com', 26, '重庆');
-INSERT INTO users VALUES (18, '冯伟', 'fengwei@email.com', 28, '武汉');
-INSERT INTO users VALUES (19, '陈鹏', 'chenpeng@email.com', 33, '南京');
-INSERT INTO users VALUES (20, '杨晨', 'yangchen@email.com', 22, '西安');
-
-INSERT INTO users VALUES (21, '张宇', 'zhangyu@email.com', 29, '北京');
-INSERT INTO users VALUES (22, '李杰', 'lijie@email.com', 34, '上海');
-INSERT INTO users VALUES (23, '王飞', 'wangfei@email.com', 19, '广州');
-INSERT INTO users VALUES (24, '赵鑫', 'zhaoxin@email.com', 28, '深圳');
-INSERT INTO users VALUES (25, '吴涛', 'wutao@email.com', 21, '杭州');
-INSERT INTO users VALUES (26, '周楠', 'zhounan@email.com', 25, '成都');
-INSERT INTO users VALUES (27, '郑凯', 'zhengkai@email.com', 30, '重庆');
-INSERT INTO users VALUES (28, '冯亮', 'fengliang@email.com', 27, '武汉');
-INSERT INTO users VALUES (29, '陈健', 'chenjian@email.com', 23, '南京');
-INSERT INTO users VALUES (30, '杨帆', 'yangfan@email.com', 32, '西安');
-
-INSERT INTO users VALUES (31, '张龙', 'zhanglong@email.com', 28, '北京');
-INSERT INTO users VALUES (32, '李虎', 'lihu@email.com', 20, '上海');
-INSERT INTO users VALUES (33, '王峰', 'wangfeng@email.com', 24, '广州');
-INSERT INTO users VALUES (34, '赵翔', 'zhaoxiang@email.com', 26, '深圳');
-INSERT INTO users VALUES (35, '吴迪', 'wudi@email.com', 35, '杭州');
-INSERT INTO users VALUES (36, '周琪', 'zhouqi@email.com', 29, '成都');
-INSERT INTO users VALUES (37, '郑辉', 'zhenghui@email.com', 31, '重庆');
-INSERT INTO users VALUES (38, '冯磊', 'fengllei@email.com', 22, '武汉');
-INSERT INTO users VALUES (39, '陈瑞', 'chenrui@email.com', 27, '南京');
-INSERT INTO users VALUES (40, '杨俊', 'yangjun@email.com', 25, '西安');
-
-INSERT INTO users VALUES (41, '张凯', 'zhangkai@email.com', 33, '北京');
-INSERT INTO users VALUES (42, '李佳', 'lijia@email.com', 21, '上海');
-INSERT INTO users VALUES (43, '王芳', 'wangfang@email.com', 23, '广州');
-INSERT INTO users VALUES (44, '赵颖', 'zhaoying@email.com', 28, '深圳');
-INSERT INTO users VALUES (45, '吴慧', 'wuhui@email.com', 26, '杭州');
-INSERT INTO users VALUES (46, '周丽', 'zhouli@email.com', 32, '成都');
-INSERT INTO users VALUES (47, '郑雪', 'zhengxue@email.com', 24, '重庆');
-INSERT INTO users VALUES (48, '冯婷', 'fengtin@email.com', 27, '武汉');
-INSERT INTO users VALUES (49, '陈霞', 'chenxia@email.com', 30, '南京');
-INSERT INTO users VALUES (50, '杨梅', 'yangmei@email.com', 22, '西安');
-2025-09-16 10:20:58.919 | LSN:00000348 | TXN_COMMIT   | TXN:1757989258840 |                 | 事务提交 | INFO:事务ID: 1757989258840
-2025-09-16 10:22:49.967 | LSN:00000349 | TXN_START    | TXN:1757989369966 |                 | 事务开始 | INFO:事务ID: 1757989369966
-2025-09-16 10:22:49.971 | LSN:00000350 | SELECT       | TXN:1757989369966 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
-2025-09-16 10:22:50.092 | LSN:00000351 | SELECT       | TXN:1757989369966 | users           | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM users
-2025-09-16 10:22:50.093 | LSN:00000352 | TXN_COMMIT   | TXN:1757989369966 |                 | 事务提交 | INFO:事务ID: 1757989369966
-2025-09-16 10:23:15.057 | LSN:00000353 | TXN_START    | TXN:1757989395057 |                 | 事务开始 | INFO:事务ID: 1757989395057
-2025-09-16 10:23:15.059 | LSN:00000354 | INSERT       | TXN:1757989395057 | users           | SQL执行开始 | INFO:SQL: INSERT INTO users VALUES (1, '张一', 'zhangyi@email.com', 23, '北京');
-INSERT INTO users VALUES (2, '李二', 'lier@email.com', 30, '上海');
-INSERT INTO users VALUES (3, '王三', 'wangsan@email.com', 25, '广州');
-INSERT INTO users VALUES (4, '赵四', 'zhaosi@email.com', 28, '深圳');
-INSERT INTO users VALUES (5, '吴五', 'wuwu@email.com', 32, '杭州');
-INSERT INTO users VALUES (6, '周六', 'zhouliu@email.com', 26, '成都');
-INSERT INTO users VALUES (7, '郑七', 'zhengqi@email.com', 21, '重庆');
-INSERT INTO users VALUES (8, '冯八', 'fengba@email.com', 27, '武汉');
-INSERT INTO users VALUES (9, '陈九', 'chenjiu@email.com', 22, '南京');
-INSERT INTO users VALUES (10, '杨十', 'yangshi@email.com', 29, '西安');
-
-INSERT INTO users VALUES (11, '张华', 'zhanghua@email.com', 24, '北京');
-INSERT INTO users VALUES (12, '李明', 'liming@email.com', 31, '上海');
-INSERT INTO users VALUES (13, '王强', 'wangqiang@email.com', 20, '广州');
-INSERT INTO users VALUES (14, '赵雷', 'zhaolei@email.com', 35, '深圳');
-INSERT INTO users VALUES (15, '吴刚', 'wugang@email.com', 27, '杭州');
-INSERT INTO users VALUES (16, '周超', 'zhouchao@email.com', 23, '成都');
-INSERT INTO users VALUES (17, '郑军', 'zhengjun@email.com', 26, '重庆');
-INSERT INTO users VALUES (18, '冯伟', 'fengwei@email.com', 28, '武汉');
-INSERT INTO users VALUES (19, '陈鹏', 'chenpeng@email.com', 33, '南京');
-INSERT INTO users VALUES (20, '杨晨', 'yangchen@email.com', 22, '西安');
-
-INSERT INTO users VALUES (21, '张宇', 'zhangyu@email.com', 29, '北京');
-INSERT INTO users VALUES (22, '李杰', 'lijie@email.com', 34, '上海');
-INSERT INTO users VALUES (23, '王飞', 'wangfei@email.com', 19, '广州');
-INSERT INTO users VALUES (24, '赵鑫', 'zhaoxin@email.com', 28, '深圳');
-INSERT INTO users VALUES (25, '吴涛', 'wutao@email.com', 21, '杭州');
-INSERT INTO users VALUES (26, '周楠', 'zhounan@email.com', 25, '成都');
-INSERT INTO users VALUES (27, '郑凯', 'zhengkai@email.com', 30, '重庆');
-INSERT INTO users VALUES (28, '冯亮', 'fengliang@email.com', 27, '武汉');
-INSERT INTO users VALUES (29, '陈健', 'chenjian@email.com', 23, '南京');
-INSERT INTO users VALUES (30, '杨帆', 'yangfan@email.com', 32, '西安');
-
-INSERT INTO users VALUES (31, '张龙', 'zhanglong@email.com', 28, '北京');
-INSERT INTO users VALUES (32, '李虎', 'lihu@email.com', 20, '上海');
-INSERT INTO users VALUES (33, '王峰', 'wangfeng@email.com', 24, '广州');
-INSERT INTO users VALUES (34, '赵翔', 'zhaoxiang@email.com', 26, '深圳');
-INSERT INTO users VALUES (35, '吴迪', 'wudi@email.com', 35, '杭州');
-INSERT INTO users VALUES (36, '周琪', 'zhouqi@email.com', 29, '成都');
-INSERT INTO users VALUES (37, '郑辉', 'zhenghui@email.com', 31, '重庆');
-INSERT INTO users VALUES (38, '冯磊', 'fenglei@email.com', 22, '武汉');
-INSERT INTO users VALUES (39, '陈瑞', 'chenrui@email.com', 27, '南京');
-INSERT INTO users VALUES (40, '杨俊', 'yangjun@email.com', 25, '西安');
-
-INSERT INTO users VALUES (41, '张凯', 'zhangkai@email.com', 33, '北京');
-INSERT INTO users VALUES (42, '李佳', 'lijia@email.com', 21, '上海');
-INSERT INTO users VALUES (43, '王芳', 'wangfang@email.com', 23, '广州');
-INSERT INTO users VALUES (44, '赵颖', 'zhaoying@email.com', 28, '深圳');
-INSERT INTO users VALUES (45, '吴慧', 'wuhui@email.com', 26, '杭州');
-INSERT INTO users VALUES (46, '周丽', 'zhouli@email.com', 32, '成都');
-INSERT INTO users VALUES (47, '郑雪', 'zhengxue@email.com', 24, '重庆');
-INSERT INTO users VALUES (48, '冯婷', 'fengtin@email.com', 27, '武汉');
-INSERT INTO users VALUES (49, '陈霞', 'chenxia@email.com', 30, '南京');
-INSERT INTO users VALUES (50, '杨梅', 'yangmei@email.com', 22, '西安');
-
-INSERT INTO users VALUES (51, '张浩', 'zhanghao@email.com', 25, '北京');
-INSERT INTO users VALUES (52, '李博', 'libo@email.com', 29, '上海');
-INSERT INTO users VALUES (53, '王凯', 'wangkai@email.com', 34, '广州');
-INSERT INTO users VALUES (54, '赵亮', 'zhaoliang@email.com', 20, '深圳');
-INSERT INTO users VALUES (55, '吴洋', 'wuyang@email.com', 27, '杭州');
-INSERT INTO users VALUES (56, '周航', 'zhouhang@email.com', 22, '成都');
-INSERT INTO users VALUES (57, '郑刚', 'zhenggang@email.com', 30, '重庆');
-INSERT INTO users VALUES (58, '冯晨', 'fengchen@email.com', 26, '武汉');
-INSERT INTO users VALUES (59, '陈超', 'chenchao@email.com', 23, '南京');
-INSERT INTO users VALUES (60, '杨阳', 'yangyang@email.com', 28, '西安');
-
-INSERT INTO users VALUES (61, '张健', 'zhangjian@email.com', 32, '北京');
-INSERT INTO users VALUES (62, '李飞', 'lifei@email.com', 24, '上海');
-INSERT INTO users VALUES (63, '王伟', 'wangwei@email.com', 29, '广州');
-INSERT INTO users VALUES (64, '赵杰', 'zhaojie@email.com', 21, '深圳');
-INSERT INTO users VALUES (65, '吴磊', 'wulei@email.com', 33, '杭州');
-INSERT INTO users VALUES (66, '周峰', 'zhoufeng@email.com', 25, '成都');
-INSERT INTO users VALUES (67, '郑鑫', 'zhengxin@email.com', 27, '重庆');
-INSERT INTO users VALUES (68, '冯宇', 'fengyu@email.com', 22, '武汉');
-INSERT INTO users VALUES (69, '陈涛', 'chentao@email.com', 31, '南京');
-INSERT INTO users VALUES (70, '杨林', 'yanglin@email.com', 26, '西安');
-
-INSERT INTO users VALUES (71, '张雷', 'zhanglei@email.com', 28, '北京');
-INSERT INTO users VALUES (72, '李俊', 'lijun@email.com', 23, '上海');
-INSERT INTO users VALUES (73, '王鹏', 'wangpeng@email.com', 35, '广州');
-INSERT INTO users VALUES (74, '赵浩', 'zhaohao@email.com', 19, '深圳');
-INSERT INTO users VALUES (75, '吴健', 'wujian@email.com', 24, '杭州');
-INSERT INTO users VALUES (76, '周波', 'zhoubo@email.com', 30, '成都');
-INSERT INTO users VALUES (77, '郑明', 'zhengming@email.com', 29, '重庆');
-INSERT INTO users VALUES (78, '冯辉', 'fenghui@email.com', 27, '武汉');
-INSERT INTO users VALUES (79, '陈亮', 'chenliang@email.com', 25, '南京');
-INSERT INTO users VALUES (80, '杨超', 'yangchao@email.com', 20, '西安');
-
-INSERT INTO users VALUES (81, '张伟', 'zhangwei@email.com', 22, '北京');
-INSERT INTO users VALUES (82, '李洋', 'liyang@email.com', 26, '上海');
-INSERT INTO users VALUES (83, '王勇', 'wangyong@email.com', 28, '广州');
-INSERT INTO users VALUES (84, '赵磊', 'zhaolei@email.com', 32, '深圳');
-INSERT INTO users VALUES (85, '吴鑫', 'wuxin@email.com', 30, '杭州');
-INSERT INTO users VALUES (86, '周晨', 'zhouchen@email.com', 24, '成都');
-INSERT INTO users VALUES (87, '郑浩', 'zhenghao@email.com', 33, '重庆');
-INSERT INTO users VALUES (88, '冯峰', 'fengfeng@email.com', 31, '武汉');
-INSERT INTO users VALUES (89, '陈军', 'chenjun@email.com', 29, '南京');
-INSERT INTO users VALUES (90, '杨杰', 'yangjie@email.com', 27, '西安');
-
-INSERT INTO users VALUES (91, '张华', 'zhanghua2@email.com', 21, '北京');
-INSERT INTO users VALUES (92, '李强', 'liqiang@email.com', 25, '上海');
-INSERT INTO users VALUES (93, '王刚', 'wanggang@email.com', 34, '广州');
-INSERT INTO users VALUES (94, '赵云', 'zhaoyun@email.com', 28, '深圳');
-INSERT INTO users VALUES (95, '吴浩', 'wuhao@email.com', 22, '杭州');
-INSERT INTO users VALUES (96, '周伟', 'zhouwei@email.com', 26, '成都');
-INSERT INTO users VALUES (97, '郑飞', 'zhengfei@email.com', 31, '重庆');
-INSERT INTO users VALUES (98, '冯凯', 'fengkai@email.com', 27, '武汉');
-INSERT INTO users VALUES (99, '陈浩', 'chenhao@email.com', 23, '南京');
-INSERT INTO users VALUES (100, '杨勇', 'yangyong@email.com', 30, '西安');
-2025-09-16 10:23:15.240 | LSN:00000355 | INSERT       | TXN:1757989395057 | users           | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO users VALUES (1, '张一', 'zhangyi@email.com', 23, '北京');
-INSERT INTO users VALUES (2, '李二', 'lier@email.com', 30, '上海');
-INSERT INTO users VALUES (3, '王三', 'wangsan@email.com', 25, '广州');
-INSERT INTO users VALUES (4, '赵四', 'zhaosi@email.com', 28, '深圳');
-INSERT INTO users VALUES (5, '吴五', 'wuwu@email.com', 32, '杭州');
-INSERT INTO users VALUES (6, '周六', 'zhouliu@email.com', 26, '成都');
-INSERT INTO users VALUES (7, '郑七', 'zhengqi@email.com', 21, '重庆');
-INSERT INTO users VALUES (8, '冯八', 'fengba@email.com', 27, '武汉');
-INSERT INTO users VALUES (9, '陈九', 'chenjiu@email.com', 22, '南京');
-INSERT INTO users VALUES (10, '杨十', 'yangshi@email.com', 29, '西安');
-
-INSERT INTO users VALUES (11, '张华', 'zhanghua@email.com', 24, '北京');
-INSERT INTO users VALUES (12, '李明', 'liming@email.com', 31, '上海');
-INSERT INTO users VALUES (13, '王强', 'wangqiang@email.com', 20, '广州');
-INSERT INTO users VALUES (14, '赵雷', 'zhaolei@email.com', 35, '深圳');
-INSERT INTO users VALUES (15, '吴刚', 'wugang@email.com', 27, '杭州');
-INSERT INTO users VALUES (16, '周超', 'zhouchao@email.com', 23, '成都');
-INSERT INTO users VALUES (17, '郑军', 'zhengjun@email.com', 26, '重庆');
-INSERT INTO users VALUES (18, '冯伟', 'fengwei@email.com', 28, '武汉');
-INSERT INTO users VALUES (19, '陈鹏', 'chenpeng@email.com', 33, '南京');
-INSERT INTO users VALUES (20, '杨晨', 'yangchen@email.com', 22, '西安');
-
-INSERT INTO users VALUES (21, '张宇', 'zhangyu@email.com', 29, '北京');
-INSERT INTO users VALUES (22, '李杰', 'lijie@email.com', 34, '上海');
-INSERT INTO users VALUES (23, '王飞', 'wangfei@email.com', 19, '广州');
-INSERT INTO users VALUES (24, '赵鑫', 'zhaoxin@email.com', 28, '深圳');
-INSERT INTO users VALUES (25, '吴涛', 'wutao@email.com', 21, '杭州');
-INSERT INTO users VALUES (26, '周楠', 'zhounan@email.com', 25, '成都');
-INSERT INTO users VALUES (27, '郑凯', 'zhengkai@email.com', 30, '重庆');
-INSERT INTO users VALUES (28, '冯亮', 'fengliang@email.com', 27, '武汉');
-INSERT INTO users VALUES (29, '陈健', 'chenjian@email.com', 23, '南京');
-INSERT INTO users VALUES (30, '杨帆', 'yangfan@email.com', 32, '西安');
-
-INSERT INTO users VALUES (31, '张龙', 'zhanglong@email.com', 28, '北京');
-INSERT INTO users VALUES (32, '李虎', 'lihu@email.com', 20, '上海');
-INSERT INTO users VALUES (33, '王峰', 'wangfeng@email.com', 24, '广州');
-INSERT INTO users VALUES (34, '赵翔', 'zhaoxiang@email.com', 26, '深圳');
-INSERT INTO users VALUES (35, '吴迪', 'wudi@email.com', 35, '杭州');
-INSERT INTO users VALUES (36, '周琪', 'zhouqi@email.com', 29, '成都');
-INSERT INTO users VALUES (37, '郑辉', 'zhenghui@email.com', 31, '重庆');
-INSERT INTO users VALUES (38, '冯磊', 'fenglei@email.com', 22, '武汉');
-INSERT INTO users VALUES (39, '陈瑞', 'chenrui@email.com', 27, '南京');
-INSERT INTO users VALUES (40, '杨俊', 'yangjun@email.com', 25, '西安');
-
-INSERT INTO users VALUES (41, '张凯', 'zhangkai@email.com', 33, '北京');
-INSERT INTO users VALUES (42, '李佳', 'lijia@email.com', 21, '上海');
-INSERT INTO users VALUES (43, '王芳', 'wangfang@email.com', 23, '广州');
-INSERT INTO users VALUES (44, '赵颖', 'zhaoying@email.com', 28, '深圳');
-INSERT INTO users VALUES (45, '吴慧', 'wuhui@email.com', 26, '杭州');
-INSERT INTO users VALUES (46, '周丽', 'zhouli@email.com', 32, '成都');
-INSERT INTO users VALUES (47, '郑雪', 'zhengxue@email.com', 24, '重庆');
-INSERT INTO users VALUES (48, '冯婷', 'fengtin@email.com', 27, '武汉');
-INSERT INTO users VALUES (49, '陈霞', 'chenxia@email.com', 30, '南京');
-INSERT INTO users VALUES (50, '杨梅', 'yangmei@email.com', 22, '西安');
-
-INSERT INTO users VALUES (51, '张浩', 'zhanghao@email.com', 25, '北京');
-INSERT INTO users VALUES (52, '李博', 'libo@email.com', 29, '上海');
-INSERT INTO users VALUES (53, '王凯', 'wangkai@email.com', 34, '广州');
-INSERT INTO users VALUES (54, '赵亮', 'zhaoliang@email.com', 20, '深圳');
-INSERT INTO users VALUES (55, '吴洋', 'wuyang@email.com', 27, '杭州');
-INSERT INTO users VALUES (56, '周航', 'zhouhang@email.com', 22, '成都');
-INSERT INTO users VALUES (57, '郑刚', 'zhenggang@email.com', 30, '重庆');
-INSERT INTO users VALUES (58, '冯晨', 'fengchen@email.com', 26, '武汉');
-INSERT INTO users VALUES (59, '陈超', 'chenchao@email.com', 23, '南京');
-INSERT INTO users VALUES (60, '杨阳', 'yangyang@email.com', 28, '西安');
-
-INSERT INTO users VALUES (61, '张健', 'zhangjian@email.com', 32, '北京');
-INSERT INTO users VALUES (62, '李飞', 'lifei@email.com', 24, '上海');
-INSERT INTO users VALUES (63, '王伟', 'wangwei@email.com', 29, '广州');
-INSERT INTO users VALUES (64, '赵杰', 'zhaojie@email.com', 21, '深圳');
-INSERT INTO users VALUES (65, '吴磊', 'wulei@email.com', 33, '杭州');
-INSERT INTO users VALUES (66, '周峰', 'zhoufeng@email.com', 25, '成都');
-INSERT INTO users VALUES (67, '郑鑫', 'zhengxin@email.com', 27, '重庆');
-INSERT INTO users VALUES (68, '冯宇', 'fengyu@email.com', 22, '武汉');
-INSERT INTO users VALUES (69, '陈涛', 'chentao@email.com', 31, '南京');
-INSERT INTO users VALUES (70, '杨林', 'yanglin@email.com', 26, '西安');
-
-INSERT INTO users VALUES (71, '张雷', 'zhanglei@email.com', 28, '北京');
-INSERT INTO users VALUES (72, '李俊', 'lijun@email.com', 23, '上海');
-INSERT INTO users VALUES (73, '王鹏', 'wangpeng@email.com', 35, '广州');
-INSERT INTO users VALUES (74, '赵浩', 'zhaohao@email.com', 19, '深圳');
-INSERT INTO users VALUES (75, '吴健', 'wujian@email.com', 24, '杭州');
-INSERT INTO users VALUES (76, '周波', 'zhoubo@email.com', 30, '成都');
-INSERT INTO users VALUES (77, '郑明', 'zhengming@email.com', 29, '重庆');
-INSERT INTO users VALUES (78, '冯辉', 'fenghui@email.com', 27, '武汉');
-INSERT INTO users VALUES (79, '陈亮', 'chenliang@email.com', 25, '南京');
-INSERT INTO users VALUES (80, '杨超', 'yangchao@email.com', 20, '西安');
-
-INSERT INTO users VALUES (81, '张伟', 'zhangwei@email.com', 22, '北京');
-INSERT INTO users VALUES (82, '李洋', 'liyang@email.com', 26, '上海');
-INSERT INTO users VALUES (83, '王勇', 'wangyong@email.com', 28, '广州');
-INSERT INTO users VALUES (84, '赵磊', 'zhaolei@email.com', 32, '深圳');
-INSERT INTO users VALUES (85, '吴鑫', 'wuxin@email.com', 30, '杭州');
-INSERT INTO users VALUES (86, '周晨', 'zhouchen@email.com', 24, '成都');
-INSERT INTO users VALUES (87, '郑浩', 'zhenghao@email.com', 33, '重庆');
-INSERT INTO users VALUES (88, '冯峰', 'fengfeng@email.com', 31, '武汉');
-INSERT INTO users VALUES (89, '陈军', 'chenjun@email.com', 29, '南京');
-INSERT INTO users VALUES (90, '杨杰', 'yangjie@email.com', 27, '西安');
-
-INSERT INTO users VALUES (91, '张华', 'zhanghua2@email.com', 21, '北京');
-INSERT INTO users VALUES (92, '李强', 'liqiang@email.com', 25, '上海');
-INSERT INTO users VALUES (93, '王刚', 'wanggang@email.com', 34, '广州');
-INSERT INTO users VALUES (94, '赵云', 'zhaoyun@email.com', 28, '深圳');
-INSERT INTO users VALUES (95, '吴浩', 'wuhao@email.com', 22, '杭州');
-INSERT INTO users VALUES (96, '周伟', 'zhouwei@email.com', 26, '成都');
-INSERT INTO users VALUES (97, '郑飞', 'zhengfei@email.com', 31, '重庆');
-INSERT INTO users VALUES (98, '冯凯', 'fengkai@email.com', 27, '武汉');
-INSERT INTO users VALUES (99, '陈浩', 'chenhao@email.com', 23, '南京');
-INSERT INTO users VALUES (100, '杨勇', 'yangyong@email.com', 30, '西安');
-2025-09-16 10:23:15.241 | LSN:00000356 | TXN_COMMIT   | TXN:1757989395057 |                 | 事务提交 | INFO:事务ID: 1757989395057
-2025-09-16 10:25:09.094 | LSN:00000357 | TXN_START    | TXN:1757989509094 |                 | 事务开始 | INFO:事务ID: 1757989509094
-2025-09-16 10:25:09.095 | LSN:00000358 | SYSTEM       | TXN:1757989509094 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD users BY id USING HASH (4)
-2025-09-16 10:25:09.118 | LSN:00000359 | SYSTEM       | TXN:1757989509094 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD users BY id USING HASH (4)
-2025-09-16 10:25:09.118 | LSN:00000360 | TXN_COMMIT   | TXN:1757989509094 |                 | 事务提交 | INFO:事务ID: 1757989509094
-2025-09-16 10:25:28.585 | LSN:00000361 | TXN_START    | TXN:1757989528585 |                 | 事务开始 | INFO:事务ID: 1757989528585
-2025-09-16 10:25:28.585 | LSN:00000362 | INSERT       | TXN:1757989528585 | users           | SQL执行开始 | INFO:SQL: INSERT INTO users VALUES (1, '张一', 'zhangyi@email.com', 23, '北京');
-INSERT INTO users VALUES (2, '李二', 'lier@email.com', 30, '上海');
-INSERT INTO users VALUES (3, '王三', 'wangsan@email.com', 25, '广州');
-INSERT INTO users VALUES (4, '赵四', 'zhaosi@email.com', 28, '深圳');
-INSERT INTO users VALUES (5, '吴五', 'wuwu@email.com', 32, '杭州');
-INSERT INTO users VALUES (6, '周六', 'zhouliu@email.com', 26, '成都');
-INSERT INTO users VALUES (7, '郑七', 'zhengqi@email.com', 21, '重庆');
-INSERT INTO users VALUES (8, '冯八', 'fengba@email.com', 27, '武汉');
-INSERT INTO users VALUES (9, '陈九', 'chenjiu@email.com', 22, '南京');
-INSERT INTO users VALUES (10, '杨十', 'yangshi@email.com', 29, '西安');
-
-INSERT INTO users VALUES (11, '张华', 'zhanghua@email.com', 24, '北京');
-INSERT INTO users VALUES (12, '李明', 'liming@email.com', 31, '上海');
-INSERT INTO users VALUES (13, '王强', 'wangqiang@email.com', 20, '广州');
-INSERT INTO users VALUES (14, '赵雷', 'zhaolei@email.com', 35, '深圳');
-INSERT INTO users VALUES (15, '吴刚', 'wugang@email.com', 27, '杭州');
-INSERT INTO users VALUES (16, '周超', 'zhouchao@email.com', 23, '成都');
-INSERT INTO users VALUES (17, '郑军', 'zhengjun@email.com', 26, '重庆');
-INSERT INTO users VALUES (18, '冯伟', 'fengwei@email.com', 28, '武汉');
-INSERT INTO users VALUES (19, '陈鹏', 'chenpeng@email.com', 33, '南京');
-INSERT INTO users VALUES (20, '杨晨', 'yangchen@email.com', 22, '西安');
-
-INSERT INTO users VALUES (21, '张宇', 'zhangyu@email.com', 29, '北京');
-INSERT INTO users VALUES (22, '李杰', 'lijie@email.com', 34, '上海');
-INSERT INTO users VALUES (23, '王飞', 'wangfei@email.com', 19, '广州');
-INSERT INTO users VALUES (24, '赵鑫', 'zhaoxin@email.com', 28, '深圳');
-INSERT INTO users VALUES (25, '吴涛', 'wutao@email.com', 21, '杭州');
-INSERT INTO users VALUES (26, '周楠', 'zhounan@email.com', 25, '成都');
-INSERT INTO users VALUES (27, '郑凯', 'zhengkai@email.com', 30, '重庆');
-INSERT INTO users VALUES (28, '冯亮', 'fengliang@email.com', 27, '武汉');
-INSERT INTO users VALUES (29, '陈健', 'chenjian@email.com', 23, '南京');
-INSERT INTO users VALUES (30, '杨帆', 'yangfan@email.com', 32, '西安');
-
-INSERT INTO users VALUES (31, '张龙', 'zhanglong@email.com', 28, '北京');
-INSERT INTO users VALUES (32, '李虎', 'lihu@email.com', 20, '上海');
-INSERT INTO users VALUES (33, '王峰', 'wangfeng@email.com', 24, '广州');
-INSERT INTO users VALUES (34, '赵翔', 'zhaoxiang@email.com', 26, '深圳');
-INSERT INTO users VALUES (35, '吴迪', 'wudi@email.com', 35, '杭州');
-INSERT INTO users VALUES (36, '周琪', 'zhouqi@email.com', 29, '成都');
-INSERT INTO users VALUES (37, '郑辉', 'zhenghui@email.com', 31, '重庆');
-INSERT INTO users VALUES (38, '冯磊', 'fenglei@email.com', 22, '武汉');
-INSERT INTO users VALUES (39, '陈瑞', 'chenrui@email.com', 27, '南京');
-INSERT INTO users VALUES (40, '杨俊', 'yangjun@email.com', 25, '西安');
-
-INSERT INTO users VALUES (41, '张凯', 'zhangkai@email.com', 33, '北京');
-INSERT INTO users VALUES (42, '李佳', 'lijia@email.com', 21, '上海');
-INSERT INTO users VALUES (43, '王芳', 'wangfang@email.com', 23, '广州');
-INSERT INTO users VALUES (44, '赵颖', 'zhaoying@email.com', 28, '深圳');
-INSERT INTO users VALUES (45, '吴慧', 'wuhui@email.com', 26, '杭州');
-INSERT INTO users VALUES (46, '周丽', 'zhouli@email.com', 32, '成都');
-INSERT INTO users VALUES (47, '郑雪', 'zhengxue@email.com', 24, '重庆');
-INSERT INTO users VALUES (48, '冯婷', 'fengtin@email.com', 27, '武汉');
-INSERT INTO users VALUES (49, '陈霞', 'chenxia@email.com', 30, '南京');
-INSERT INTO users VALUES (50, '杨梅', 'yangmei@email.com', 22, '西安');
-
-INSERT INTO users VALUES (51, '张浩', 'zhanghao@email.com', 25, '北京');
-INSERT INTO users VALUES (52, '李博', 'libo@email.com', 29, '上海');
-INSERT INTO users VALUES (53, '王凯', 'wangkai@email.com', 34, '广州');
-INSERT INTO users VALUES (54, '赵亮', 'zhaoliang@email.com', 20, '深圳');
-INSERT INTO users VALUES (55, '吴洋', 'wuyang@email.com', 27, '杭州');
-INSERT INTO users VALUES (56, '周航', 'zhouhang@email.com', 22, '成都');
-INSERT INTO users VALUES (57, '郑刚', 'zhenggang@email.com', 30, '重庆');
-INSERT INTO users VALUES (58, '冯晨', 'fengchen@email.com', 26, '武汉');
-INSERT INTO users VALUES (59, '陈超', 'chenchao@email.com', 23, '南京');
-INSERT INTO users VALUES (60, '杨阳', 'yangyang@email.com', 28, '西安');
-
-INSERT INTO users VALUES (61, '张健', 'zhangjian@email.com', 32, '北京');
-INSERT INTO users VALUES (62, '李飞', 'lifei@email.com', 24, '上海');
-INSERT INTO users VALUES (63, '王伟', 'wangwei@email.com', 29, '广州');
-INSERT INTO users VALUES (64, '赵杰', 'zhaojie@email.com', 21, '深圳');
-INSERT INTO users VALUES (65, '吴磊', 'wulei@email.com', 33, '杭州');
-INSERT INTO users VALUES (66, '周峰', 'zhoufeng@email.com', 25, '成都');
-INSERT INTO users VALUES (67, '郑鑫', 'zhengxin@email.com', 27, '重庆');
-INSERT INTO users VALUES (68, '冯宇', 'fengyu@email.com', 22, '武汉');
-INSERT INTO users VALUES (69, '陈涛', 'chentao@email.com', 31, '南京');
-INSERT INTO users VALUES (70, '杨林', 'yanglin@email.com', 26, '西安');
-
-INSERT INTO users VALUES (71, '张雷', 'zhanglei@email.com', 28, '北京');
-INSERT INTO users VALUES (72, '李俊', 'lijun@email.com', 23, '上海');
-INSERT INTO users VALUES (73, '王鹏', 'wangpeng@email.com', 35, '广州');
-INSERT INTO users VALUES (74, '赵浩', 'zhaohao@email.com', 19, '深圳');
-INSERT INTO users VALUES (75, '吴健', 'wujian@email.com', 24, '杭州');
-INSERT INTO users VALUES (76, '周波', 'zhoubo@email.com', 30, '成都');
-INSERT INTO users VALUES (77, '郑明', 'zhengming@email.com', 29, '重庆');
-INSERT INTO users VALUES (78, '冯辉', 'fenghui@email.com', 27, '武汉');
-INSERT INTO users VALUES (79, '陈亮', 'chenliang@email.com', 25, '南京');
-INSERT INTO users VALUES (80, '杨超', 'yangchao@email.com', 20, '西安');
-
-INSERT INTO users VALUES (81, '张伟', 'zhangwei@email.com', 22, '北京');
-INSERT INTO users VALUES (82, '李洋', 'liyang@email.com', 26, '上海');
-INSERT INTO users VALUES (83, '王勇', 'wangyong@email.com', 28, '广州');
-INSERT INTO users VALUES (84, '赵磊', 'zhaolei@email.com', 32, '深圳');
-INSERT INTO users VALUES (85, '吴鑫', 'wuxin@email.com', 30, '杭州');
-INSERT INTO users VALUES (86, '周晨', 'zhouchen@email.com', 24, '成都');
-INSERT INTO users VALUES (87, '郑浩', 'zhenghao@email.com', 33, '重庆');
-INSERT INTO users VALUES (88, '冯峰', 'fengfeng@email.com', 31, '武汉');
-INSERT INTO users VALUES (89, '陈军', 'chenjun@email.com', 29, '南京');
-INSERT INTO users VALUES (90, '杨杰', 'yangjie@email.com', 27, '西安');
-
-INSERT INTO users VALUES (91, '张华', 'zhanghua2@email.com', 21, '北京');
-INSERT INTO users VALUES (92, '李强', 'liqiang@email.com', 25, '上海');
-INSERT INTO users VALUES (93, '王刚', 'wanggang@email.com', 34, '广州');
-INSERT INTO users VALUES (94, '赵云', 'zhaoyun@email.com', 28, '深圳');
-INSERT INTO users VALUES (95, '吴浩', 'wuhao@email.com', 22, '杭州');
-INSERT INTO users VALUES (96, '周伟', 'zhouwei@email.com', 26, '成都');
-INSERT INTO users VALUES (97, '郑飞', 'zhengfei@email.com', 31, '重庆');
-INSERT INTO users VALUES (98, '冯凯', 'fengkai@email.com', 27, '武汉');
-INSERT INTO users VALUES (99, '陈浩', 'chenhao@email.com', 23, '南京');
-INSERT INTO users VALUES (100, '杨勇', 'yangyong@email.com', 30, '西安');
-2025-09-16 10:25:28.705 | LSN:00000363 | INSERT       | TXN:1757989528585 | users           | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO users VALUES (1, '张一', 'zhangyi@email.com', 23, '北京');
-INSERT INTO users VALUES (2, '李二', 'lier@email.com', 30, '上海');
-INSERT INTO users VALUES (3, '王三', 'wangsan@email.com', 25, '广州');
-INSERT INTO users VALUES (4, '赵四', 'zhaosi@email.com', 28, '深圳');
-INSERT INTO users VALUES (5, '吴五', 'wuwu@email.com', 32, '杭州');
-INSERT INTO users VALUES (6, '周六', 'zhouliu@email.com', 26, '成都');
-INSERT INTO users VALUES (7, '郑七', 'zhengqi@email.com', 21, '重庆');
-INSERT INTO users VALUES (8, '冯八', 'fengba@email.com', 27, '武汉');
-INSERT INTO users VALUES (9, '陈九', 'chenjiu@email.com', 22, '南京');
-INSERT INTO users VALUES (10, '杨十', 'yangshi@email.com', 29, '西安');
-
-INSERT INTO users VALUES (11, '张华', 'zhanghua@email.com', 24, '北京');
-INSERT INTO users VALUES (12, '李明', 'liming@email.com', 31, '上海');
-INSERT INTO users VALUES (13, '王强', 'wangqiang@email.com', 20, '广州');
-INSERT INTO users VALUES (14, '赵雷', 'zhaolei@email.com', 35, '深圳');
-INSERT INTO users VALUES (15, '吴刚', 'wugang@email.com', 27, '杭州');
-INSERT INTO users VALUES (16, '周超', 'zhouchao@email.com', 23, '成都');
-INSERT INTO users VALUES (17, '郑军', 'zhengjun@email.com', 26, '重庆');
-INSERT INTO users VALUES (18, '冯伟', 'fengwei@email.com', 28, '武汉');
-INSERT INTO users VALUES (19, '陈鹏', 'chenpeng@email.com', 33, '南京');
-INSERT INTO users VALUES (20, '杨晨', 'yangchen@email.com', 22, '西安');
-
-INSERT INTO users VALUES (21, '张宇', 'zhangyu@email.com', 29, '北京');
-INSERT INTO users VALUES (22, '李杰', 'lijie@email.com', 34, '上海');
-INSERT INTO users VALUES (23, '王飞', 'wangfei@email.com', 19, '广州');
-INSERT INTO users VALUES (24, '赵鑫', 'zhaoxin@email.com', 28, '深圳');
-INSERT INTO users VALUES (25, '吴涛', 'wutao@email.com', 21, '杭州');
-INSERT INTO users VALUES (26, '周楠', 'zhounan@email.com', 25, '成都');
-INSERT INTO users VALUES (27, '郑凯', 'zhengkai@email.com', 30, '重庆');
-INSERT INTO users VALUES (28, '冯亮', 'fengliang@email.com', 27, '武汉');
-INSERT INTO users VALUES (29, '陈健', 'chenjian@email.com', 23, '南京');
-INSERT INTO users VALUES (30, '杨帆', 'yangfan@email.com', 32, '西安');
-
-INSERT INTO users VALUES (31, '张龙', 'zhanglong@email.com', 28, '北京');
-INSERT INTO users VALUES (32, '李虎', 'lihu@email.com', 20, '上海');
-INSERT INTO users VALUES (33, '王峰', 'wangfeng@email.com', 24, '广州');
-INSERT INTO users VALUES (34, '赵翔', 'zhaoxiang@email.com', 26, '深圳');
-INSERT INTO users VALUES (35, '吴迪', 'wudi@email.com', 35, '杭州');
-INSERT INTO users VALUES (36, '周琪', 'zhouqi@email.com', 29, '成都');
-INSERT INTO users VALUES (37, '郑辉', 'zhenghui@email.com', 31, '重庆');
-INSERT INTO users VALUES (38, '冯磊', 'fenglei@email.com', 22, '武汉');
-INSERT INTO users VALUES (39, '陈瑞', 'chenrui@email.com', 27, '南京');
-INSERT INTO users VALUES (40, '杨俊', 'yangjun@email.com', 25, '西安');
-
-INSERT INTO users VALUES (41, '张凯', 'zhangkai@email.com', 33, '北京');
-INSERT INTO users VALUES (42, '李佳', 'lijia@email.com', 21, '上海');
-INSERT INTO users VALUES (43, '王芳', 'wangfang@email.com', 23, '广州');
-INSERT INTO users VALUES (44, '赵颖', 'zhaoying@email.com', 28, '深圳');
-INSERT INTO users VALUES (45, '吴慧', 'wuhui@email.com', 26, '杭州');
-INSERT INTO users VALUES (46, '周丽', 'zhouli@email.com', 32, '成都');
-INSERT INTO users VALUES (47, '郑雪', 'zhengxue@email.com', 24, '重庆');
-INSERT INTO users VALUES (48, '冯婷', 'fengtin@email.com', 27, '武汉');
-INSERT INTO users VALUES (49, '陈霞', 'chenxia@email.com', 30, '南京');
-INSERT INTO users VALUES (50, '杨梅', 'yangmei@email.com', 22, '西安');
-
-INSERT INTO users VALUES (51, '张浩', 'zhanghao@email.com', 25, '北京');
-INSERT INTO users VALUES (52, '李博', 'libo@email.com', 29, '上海');
-INSERT INTO users VALUES (53, '王凯', 'wangkai@email.com', 34, '广州');
-INSERT INTO users VALUES (54, '赵亮', 'zhaoliang@email.com', 20, '深圳');
-INSERT INTO users VALUES (55, '吴洋', 'wuyang@email.com', 27, '杭州');
-INSERT INTO users VALUES (56, '周航', 'zhouhang@email.com', 22, '成都');
-INSERT INTO users VALUES (57, '郑刚', 'zhenggang@email.com', 30, '重庆');
-INSERT INTO users VALUES (58, '冯晨', 'fengchen@email.com', 26, '武汉');
-INSERT INTO users VALUES (59, '陈超', 'chenchao@email.com', 23, '南京');
-INSERT INTO users VALUES (60, '杨阳', 'yangyang@email.com', 28, '西安');
-
-INSERT INTO users VALUES (61, '张健', 'zhangjian@email.com', 32, '北京');
-INSERT INTO users VALUES (62, '李飞', 'lifei@email.com', 24, '上海');
-INSERT INTO users VALUES (63, '王伟', 'wangwei@email.com', 29, '广州');
-INSERT INTO users VALUES (64, '赵杰', 'zhaojie@email.com', 21, '深圳');
-INSERT INTO users VALUES (65, '吴磊', 'wulei@email.com', 33, '杭州');
-INSERT INTO users VALUES (66, '周峰', 'zhoufeng@email.com', 25, '成都');
-INSERT INTO users VALUES (67, '郑鑫', 'zhengxin@email.com', 27, '重庆');
-INSERT INTO users VALUES (68, '冯宇', 'fengyu@email.com', 22, '武汉');
-INSERT INTO users VALUES (69, '陈涛', 'chentao@email.com', 31, '南京');
-INSERT INTO users VALUES (70, '杨林', 'yanglin@email.com', 26, '西安');
-
-INSERT INTO users VALUES (71, '张雷', 'zhanglei@email.com', 28, '北京');
-INSERT INTO users VALUES (72, '李俊', 'lijun@email.com', 23, '上海');
-INSERT INTO users VALUES (73, '王鹏', 'wangpeng@email.com', 35, '广州');
-INSERT INTO users VALUES (74, '赵浩', 'zhaohao@email.com', 19, '深圳');
-INSERT INTO users VALUES (75, '吴健', 'wujian@email.com', 24, '杭州');
-INSERT INTO users VALUES (76, '周波', 'zhoubo@email.com', 30, '成都');
-INSERT INTO users VALUES (77, '郑明', 'zhengming@email.com', 29, '重庆');
-INSERT INTO users VALUES (78, '冯辉', 'fenghui@email.com', 27, '武汉');
-INSERT INTO users VALUES (79, '陈亮', 'chenliang@email.com', 25, '南京');
-INSERT INTO users VALUES (80, '杨超', 'yangchao@email.com', 20, '西安');
-
-INSERT INTO users VALUES (81, '张伟', 'zhangwei@email.com', 22, '北京');
-INSERT INTO users VALUES (82, '李洋', 'liyang@email.com', 26, '上海');
-INSERT INTO users VALUES (83, '王勇', 'wangyong@email.com', 28, '广州');
-INSERT INTO users VALUES (84, '赵磊', 'zhaolei@email.com', 32, '深圳');
-INSERT INTO users VALUES (85, '吴鑫', 'wuxin@email.com', 30, '杭州');
-INSERT INTO users VALUES (86, '周晨', 'zhouchen@email.com', 24, '成都');
-INSERT INTO users VALUES (87, '郑浩', 'zhenghao@email.com', 33, '重庆');
-INSERT INTO users VALUES (88, '冯峰', 'fengfeng@email.com', 31, '武汉');
-INSERT INTO users VALUES (89, '陈军', 'chenjun@email.com', 29, '南京');
-INSERT INTO users VALUES (90, '杨杰', 'yangjie@email.com', 27, '西安');
-
-INSERT INTO users VALUES (91, '张华', 'zhanghua2@email.com', 21, '北京');
-INSERT INTO users VALUES (92, '李强', 'liqiang@email.com', 25, '上海');
-INSERT INTO users VALUES (93, '王刚', 'wanggang@email.com', 34, '广州');
-INSERT INTO users VALUES (94, '赵云', 'zhaoyun@email.com', 28, '深圳');
-INSERT INTO users VALUES (95, '吴浩', 'wuhao@email.com', 22, '杭州');
-INSERT INTO users VALUES (96, '周伟', 'zhouwei@email.com', 26, '成都');
-INSERT INTO users VALUES (97, '郑飞', 'zhengfei@email.com', 31, '重庆');
-INSERT INTO users VALUES (98, '冯凯', 'fengkai@email.com', 27, '武汉');
-INSERT INTO users VALUES (99, '陈浩', 'chenhao@email.com', 23, '南京');
-INSERT INTO users VALUES (100, '杨勇', 'yangyong@email.com', 30, '西安');
-2025-09-16 10:25:28.706 | LSN:00000364 | TXN_COMMIT   | TXN:1757989528585 |                 | 事务提交 | INFO:事务ID: 1757989528585
-2025-09-16 10:27:17.441 | LSN:00000365 | TXN_START    | TXN:1757989637441 |                 | 事务开始 | INFO:事务ID: 1757989637441
-2025-09-16 10:27:17.441 | LSN:00000366 | SELECT       | TXN:1757989637441 | users           | SQL执行开始 | INFO:SQL: select * from users
-2025-09-16 10:27:17.478 | LSN:00000367 | SELECT       | TXN:1757989637441 | users           | SQL执行成功 | DATA:NEW[返回 100 条记录] | INFO:SQL: select * from users
-2025-09-16 10:27:17.479 | LSN:00000368 | TXN_COMMIT   | TXN:1757989637441 |                 | 事务提交 | INFO:事务ID: 1757989637441
-2025-09-16 10:27:37.895 | LSN:00000369 | TXN_START    | TXN:1757989657895 |                 | 事务开始 | INFO:事务ID: 1757989657895
-2025-09-16 10:27:37.896 | LSN:00000370 | SELECT       | TXN:1757989657895 | users           | SQL执行开始 | INFO:SQL: select * from users ORDER BY city
-2025-09-16 10:27:37.938 | LSN:00000371 | SELECT       | TXN:1757989657895 | users           | SQL执行成功 | DATA:NEW[返回 100 条记录] | INFO:SQL: select * from users ORDER BY city
-2025-09-16 10:27:37.938 | LSN:00000372 | TXN_COMMIT   | TXN:1757989657895 |                 | 事务提交 | INFO:事务ID: 1757989657895
-2025-09-16 10:29:25.861 | LSN:00000373 | TXN_START    | TXN:1757989765861 |                 | 事务开始 | INFO:事务ID: 1757989765861
-2025-09-16 10:29:25.862 | LSN:00000374 | SELECT       | TXN:1757989765861 | employees       | SQL执行开始 | INFO:SQL: SELECT * FROM employees
-2025-09-16 10:29:25.978 | LSN:00000375 | SELECT       | TXN:1757989765861 | employees       | SQL执行成功 | DATA:NEW[返回 4 条记录] | INFO:SQL: SELECT * FROM employees
-2025-09-16 10:29:25.979 | LSN:00000376 | TXN_COMMIT   | TXN:1757989765861 |                 | 事务提交 | INFO:事务ID: 1757989765861
-2025-09-16 10:34:13.128 | LSN:00000377 | TXN_START    | TXN:1757990053128 |                 | 事务开始 | INFO:事务ID: 1757990053128
-2025-09-16 10:34:13.129 | LSN:00000378 | DROP_TABLE   | TXN:1757990053128 | if              | SQL执行开始 | INFO:SQL: DROP TABLE IF EXISTS employee;
-DROP TABLE IF EXISTS department;
-DROP TABLE IF EXISTS project;
-2025-09-16 10:34:13.131 | LSN:00000379 | DROP_TABLE   | TXN:1757990053128 | if              | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP TABLE IF EXISTS employee;
-DROP TABLE IF EXISTS department;
-DROP TABLE IF EXISTS project;
-2025-09-16 10:34:13.132 | LSN:00000380 | TXN_COMMIT   | TXN:1757990053128 |                 | 事务提交 | INFO:事务ID: 1757990053128
-2025-09-16 10:34:19.858 | LSN:00000381 | TXN_START    | TXN:1757990059858 |                 | 事务开始 | INFO:事务ID: 1757990059858
-2025-09-16 10:34:19.859 | LSN:00000382 | CREATE_TABLE | TXN:1757990059858 | department      | SQL执行开始 | INFO:SQL: CREATE TABLE department (
-    dept_id INT PRIMARY KEY,
-    dept_name VARCHAR(50) NOT NULL UNIQUE
-);
-2025-09-16 10:34:19.874 | LSN:00000383 | CREATE_TABLE | TXN:1757990059858 | department      | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE TABLE department (
-    dept_id INT PRIMARY KEY,
-    dept_name VARCHAR(50) NOT NULL UNIQUE
-);
-2025-09-16 10:34:19.874 | LSN:00000384 | TXN_COMMIT   | TXN:1757990059858 |                 | 事务提交 | INFO:事务ID: 1757990059858
-2025-09-16 10:38:47.335 | LSN:00000385 | TXN_START    | TXN:1757990327332 |                 | 事务开始 | INFO:事务ID: 1757990327332
-2025-09-16 10:38:47.339 | LSN:00000386 | DROP_TABLE   | TXN:1757990327332 | if              | SQL执行开始 | INFO:SQL: DROP TABLE IF EXISTS employee;
-DROP TABLE IF EXISTS department;
-DROP TABLE IF EXISTS project;
-2025-09-16 10:38:47.345 | LSN:00000387 | DROP_TABLE   | TXN:1757990327332 | if              | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP TABLE IF EXISTS employee;
-DROP TABLE IF EXISTS department;
-DROP TABLE IF EXISTS project;
-2025-09-16 10:38:47.346 | LSN:00000388 | TXN_COMMIT   | TXN:1757990327332 |                 | 事务提交 | INFO:事务ID: 1757990327332
-2025-09-16 10:38:55.027 | LSN:00000389 | TXN_START    | TXN:1757990335027 |                 | 事务开始 | INFO:事务ID: 1757990335027
-2025-09-16 10:38:55.028 | LSN:00000390 | CREATE_TABLE | TXN:1757990335027 | department      | SQL执行开始 | INFO:SQL: CREATE TABLE department (
-    dept_id INT PRIMARY KEY,
-    dept_name VARCHAR(50) NOT NULL UNIQUE
-);
-2025-09-16 10:38:55.043 | LSN:00000391 | CREATE_TABLE | TXN:1757990335027 | department      | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE TABLE department (
-    dept_id INT PRIMARY KEY,
-    dept_name VARCHAR(50) NOT NULL UNIQUE
-);
-2025-09-16 10:38:55.044 | LSN:00000392 | TXN_COMMIT   | TXN:1757990335027 |                 | 事务提交 | INFO:事务ID: 1757990335027
-2025-09-16 10:39:29.173 | LSN:00000393 | TXN_START    | TXN:1757990369173 |                 | 事务开始 | INFO:事务ID: 1757990369173
-2025-09-16 10:39:29.176 | LSN:00000394 | SELECT       | TXN:1757990369173 | department      | SQL执行开始 | INFO:SQL: SELECT * FROM department
-2025-09-16 10:39:29.285 | LSN:00000395 | SELECT       | TXN:1757990369173 | department      | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM department
-2025-09-16 10:39:29.286 | LSN:00000396 | TXN_COMMIT   | TXN:1757990369173 |                 | 事务提交 | INFO:事务ID: 1757990369173
-2025-09-16 10:40:13.205 | LSN:00000397 | TXN_START    | TXN:1757990413205 |                 | 事务开始 | INFO:事务ID: 1757990413205
-2025-09-16 10:40:13.206 | LSN:00000398 | SELECT       | TXN:1757990413205 | department      | SQL执行开始 | INFO:SQL: SELECT department.dept_id FROM department
-2025-09-16 10:40:13.324 | LSN:00000399 | SELECT       | TXN:1757990413205 | department      | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT department.dept_id FROM department
-2025-09-16 10:40:13.325 | LSN:00000400 | TXN_COMMIT   | TXN:1757990413205 |                 | 事务提交 | INFO:事务ID: 1757990413205
-2025-09-16 10:40:20.000 | LSN:00000401 | TXN_START    | TXN:1757990420000 |                 | 事务开始 | INFO:事务ID: 1757990420000
-2025-09-16 10:40:20.001 | LSN:00000402 | SELECT       | TXN:1757990420000 | department      | SQL执行开始 | INFO:SQL: SELECT dept_id FROM department
-2025-09-16 10:40:20.104 | LSN:00000403 | SELECT       | TXN:1757990420000 | department      | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT dept_id FROM department
-2025-09-16 10:40:20.104 | LSN:00000404 | TXN_COMMIT   | TXN:1757990420000 |                 | 事务提交 | INFO:事务ID: 1757990420000
-2025-09-16 10:40:23.859 | LSN:00000405 | TXN_START    | TXN:1757990423859 |                 | 事务开始 | INFO:事务ID: 1757990423859
-2025-09-16 10:40:23.860 | LSN:00000406 | SELECT       | TXN:1757990423859 | department      | SQL执行开始 | INFO:SQL: SELECT dept_id FROM department
-2025-09-16 10:40:23.972 | LSN:00000407 | SELECT       | TXN:1757990423859 | department      | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT dept_id FROM department
-2025-09-16 10:40:23.973 | LSN:00000408 | TXN_COMMIT   | TXN:1757990423859 |                 | 事务提交 | INFO:事务ID: 1757990423859
-2025-09-16 10:40:50.338 | LSN:00000409 | TXN_START    | TXN:1757990450338 |                 | 事务开始 | INFO:事务ID: 1757990450338
-2025-09-16 10:40:50.339 | LSN:00000410 | INSERT       | TXN:1757990450338 | department      | SQL执行开始 | INFO:SQL: INSERT INTO department VALUES (1, '研发部'), (2, '市场部'), (3, '人事部');
-2025-09-16 10:40:50.346 | LSN:00000411 | INSERT       | TXN:1757990450338 | department      | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO department VALUES (1, '研发部'), (2, '市场部'), (3, '人事部');
-2025-09-16 10:40:50.346 | LSN:00000412 | TXN_COMMIT   | TXN:1757990450338 |                 | 事务提交 | INFO:事务ID: 1757990450338
-2025-09-16 10:40:55.006 | LSN:00000413 | TXN_START    | TXN:1757990455006 |                 | 事务开始 | INFO:事务ID: 1757990455006
-2025-09-16 10:40:55.008 | LSN:00000414 | SELECT       | TXN:1757990455006 | departments     | SQL执行开始 | INFO:SQL: SELECT * FROM departments
-2025-09-16 10:40:55.141 | LSN:00000415 | SELECT       | TXN:1757990455006 | departments     | SQL执行成功 | DATA:NEW[返回 3 条记录] | INFO:SQL: SELECT * FROM departments
-2025-09-16 10:40:55.142 | LSN:00000416 | TXN_COMMIT   | TXN:1757990455006 |                 | 事务提交 | INFO:事务ID: 1757990455006
-2025-09-16 10:40:55.545 | LSN:00000417 | TXN_START    | TXN:1757990455545 |                 | 事务开始 | INFO:事务ID: 1757990455545
-2025-09-16 10:40:55.546 | LSN:00000418 | SELECT       | TXN:1757990455545 | department      | SQL执行开始 | INFO:SQL: SELECT * FROM department
-2025-09-16 10:40:55.666 | LSN:00000419 | SELECT       | TXN:1757990455545 | department      | SQL执行成功 | DATA:NEW[返回 3 条记录] | INFO:SQL: SELECT * FROM department
-2025-09-16 10:40:55.667 | LSN:00000420 | TXN_COMMIT   | TXN:1757990455545 |                 | 事务提交 | INFO:事务ID: 1757990455545
-2025-09-16 10:41:13.821 | LSN:00000421 | TXN_START    | TXN:1757990473820 |                 | 事务开始 | INFO:事务ID: 1757990473820
-2025-09-16 10:41:13.825 | LSN:00000422 | SELECT       | TXN:1757990473820 | department      | SQL执行开始 | INFO:SQL: SELECT * FROM department
-2025-09-16 10:41:13.954 | LSN:00000423 | SELECT       | TXN:1757990473820 | department      | SQL执行成功 | DATA:NEW[返回 3 条记录] | INFO:SQL: SELECT * FROM department
-2025-09-16 10:41:13.955 | LSN:00000424 | TXN_COMMIT   | TXN:1757990473820 |                 | 事务提交 | INFO:事务ID: 1757990473820
-2025-09-16 10:41:32.377 | LSN:00000425 | TXN_START    | TXN:1757990492377 |                 | 事务开始 | INFO:事务ID: 1757990492377
-2025-09-16 10:41:32.378 | LSN:00000426 | SELECT       | TXN:1757990492377 | department      | SQL执行开始 | INFO:SQL: SELECT dept_id FROM department
-2025-09-16 10:41:32.487 | LSN:00000427 | SELECT       | TXN:1757990492377 | department      | SQL执行成功 | DATA:NEW[返回 3 条记录] | INFO:SQL: SELECT dept_id FROM department
-2025-09-16 10:41:32.488 | LSN:00000428 | TXN_COMMIT   | TXN:1757990492377 |                 | 事务提交 | INFO:事务ID: 1757990492377
-2025-09-16 10:41:50.872 | LSN:00000429 | TXN_START    | TXN:1757990510871 |                 | 事务开始 | INFO:事务ID: 1757990510871
-2025-09-16 10:41:50.877 | LSN:00000430 | SELECT       | TXN:1757990510871 | department      | SQL执行开始 | INFO:SQL: SELECT dept_id FROM department
-2025-09-16 10:41:50.998 | LSN:00000431 | SELECT       | TXN:1757990510871 | department      | SQL执行成功 | DATA:NEW[返回 3 条记录] | INFO:SQL: SELECT dept_id FROM department
-2025-09-16 10:41:50.998 | LSN:00000432 | TXN_COMMIT   | TXN:1757990510871 |                 | 事务提交 | INFO:事务ID: 1757990510871
-2025-09-16 11:16:37.122 | LSN:00000433 | TXN_START    | TXN:1757992597118 |                 | 事务开始 | INFO:事务ID: 1757992597118
-2025-09-16 11:16:37.124 | LSN:00000434 | SELECT       | TXN:1757992597118 | customers       | SQL执行开始 | INFO:SQL: SELECT * FROM customers
-2025-09-16 11:16:37.250 | LSN:00000435 | SELECT       | TXN:1757992597118 | customers       | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM customers
-2025-09-16 11:16:37.250 | LSN:00000436 | TXN_COMMIT   | TXN:1757992597118 |                 | 事务提交 | INFO:事务ID: 1757992597118
-2025-09-16 11:16:39.435 | LSN:00000437 | TXN_START    | TXN:1757992599435 |                 | 事务开始 | INFO:事务ID: 1757992599435
-2025-09-16 11:16:39.436 | LSN:00000438 | SELECT       | TXN:1757992599435 | orders          | SQL执行开始 | INFO:SQL: SELECT * FROM orders
-2025-09-16 11:16:39.594 | LSN:00000439 | SELECT       | TXN:1757992599435 | orders          | SQL执行成功 | DATA:NEW[返回 7 条记录] | INFO:SQL: SELECT * FROM orders
-2025-09-16 11:16:39.596 | LSN:00000440 | TXN_COMMIT   | TXN:1757992599435 |                 | 事务提交 | INFO:事务ID: 1757992599435
-2025-09-16 11:16:40.537 | LSN:00000441 | TXN_START    | TXN:1757992600537 |                 | 事务开始 | INFO:事务ID: 1757992600537
-2025-09-16 11:16:40.538 | LSN:00000442 | SELECT       | TXN:1757992600537 | customers       | SQL执行开始 | INFO:SQL: SELECT * FROM customers
-2025-09-16 11:16:40.648 | LSN:00000443 | SELECT       | TXN:1757992600537 | customers       | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM customers
-2025-09-16 11:16:40.649 | LSN:00000444 | TXN_COMMIT   | TXN:1757992600537 |                 | 事务提交 | INFO:事务ID: 1757992600537
-2025-09-16 11:16:43.435 | LSN:00000445 | TXN_START    | TXN:1757992603435 |                 | 事务开始 | INFO:事务ID: 1757992603435
-2025-09-16 11:16:43.436 | LSN:00000446 | SELECT       | TXN:1757992603435 | department      | SQL执行开始 | INFO:SQL: SELECT * FROM department
-2025-09-16 11:16:43.565 | LSN:00000447 | SELECT       | TXN:1757992603435 | department      | SQL执行成功 | DATA:NEW[返回 3 条记录] | INFO:SQL: SELECT * FROM department
-2025-09-16 11:16:43.566 | LSN:00000448 | TXN_COMMIT   | TXN:1757992603435 |                 | 事务提交 | INFO:事务ID: 1757992603435
-2025-09-16 11:16:45.901 | LSN:00000449 | TXN_START    | TXN:1757992605901 |                 | 事务开始 | INFO:事务ID: 1757992605901
-2025-09-16 11:16:45.902 | LSN:00000450 | SELECT       | TXN:1757992605901 | dog             | SQL执行开始 | INFO:SQL: SELECT * FROM dog
-2025-09-16 11:16:45.937 | LSN:00000451 | SELECT       | TXN:1757992605901 | dog             | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM dog
-2025-09-16 11:16:45.938 | LSN:00000452 | TXN_COMMIT   | TXN:1757992605901 |                 | 事务提交 | INFO:事务ID: 1757992605901
-2025-09-16 11:17:04.622 | LSN:00000453 | TXN_START    | TXN:1757992624622 |                 | 事务开始 | INFO:事务ID: 1757992624622
-2025-09-16 11:17:04.623 | LSN:00000454 | SELECT       | TXN:1757992624622 | dog             | SQL执行开始 | INFO:SQL: SELECT * FROM dog
-2025-09-16 11:17:04.645 | LSN:00000455 | SELECT       | TXN:1757992624622 | dog             | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM dog
-2025-09-16 11:17:04.645 | LSN:00000456 | TXN_COMMIT   | TXN:1757992624622 |                 | 事务提交 | INFO:事务ID: 1757992624622
-2025-09-16 11:18:03.748 | LSN:00000457 | TXN_START    | TXN:1757992683748 |                 | 事务开始 | INFO:事务ID: 1757992683748
-2025-09-16 11:18:03.749 | LSN:00000458 | INSERT       | TXN:1757992683748 | dog             | SQL执行开始 | INFO:SQL: INSERT INTO dog VALUES(1,1)
-2025-09-16 11:18:03.753 | LSN:00000459 | INSERT       | TXN:1757992683748 | dog             | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO dog VALUES(1,1)
-2025-09-16 11:18:03.753 | LSN:00000460 | TXN_COMMIT   | TXN:1757992683748 |                 | 事务提交 | INFO:事务ID: 1757992683748
-2025-09-16 11:18:07.030 | LSN:00000461 | TXN_START    | TXN:1757992687030 |                 | 事务开始 | INFO:事务ID: 1757992687030
-2025-09-16 11:18:07.031 | LSN:00000462 | SELECT       | TXN:1757992687030 | dog             | SQL执行开始 | INFO:SQL: SELECT * FROM dog
-2025-09-16 11:18:07.059 | LSN:00000463 | SELECT       | TXN:1757992687030 | dog             | SQL执行成功 | DATA:NEW[返回 1 条记录] | INFO:SQL: SELECT * FROM dog
-2025-09-16 11:18:07.060 | LSN:00000464 | TXN_COMMIT   | TXN:1757992687030 |                 | 事务提交 | INFO:事务ID: 1757992687030
-2025-09-16 11:18:08.239 | LSN:00000465 | TXN_START    | TXN:1757992688239 |                 | 事务开始 | INFO:事务ID: 1757992688239
-2025-09-16 11:18:08.239 | LSN:00000466 | SELECT       | TXN:1757992688239 | department      | SQL执行开始 | INFO:SQL: SELECT * FROM department
-2025-09-16 11:18:08.358 | LSN:00000467 | SELECT       | TXN:1757992688239 | department      | SQL执行成功 | DATA:NEW[返回 3 条记录] | INFO:SQL: SELECT * FROM department
-2025-09-16 11:18:08.359 | LSN:00000468 | TXN_COMMIT   | TXN:1757992688239 |                 | 事务提交 | INFO:事务ID: 1757992688239
-2025-09-16 11:18:08.739 | LSN:00000469 | TXN_START    | TXN:1757992688739 |                 | 事务开始 | INFO:事务ID: 1757992688739
-2025-09-16 11:18:08.739 | LSN:00000470 | SELECT       | TXN:1757992688739 | dog             | SQL执行开始 | INFO:SQL: SELECT * FROM dog
-2025-09-16 11:18:08.759 | LSN:00000471 | SELECT       | TXN:1757992688739 | dog             | SQL执行成功 | DATA:NEW[返回 1 条记录] | INFO:SQL: SELECT * FROM dog
-2025-09-16 11:18:08.761 | LSN:00000472 | TXN_COMMIT   | TXN:1757992688739 |                 | 事务提交 | INFO:事务ID: 1757992688739
-2025-09-16 11:19:07.624 | LSN:00000473 | TXN_START    | TXN:1757992747624 |                 | 事务开始 | INFO:事务ID: 1757992747624
-2025-09-16 11:19:07.625 | LSN:00000474 | INSERT       | TXN:1757992747624 | dog             | SQL执行开始 | INFO:SQL: INSERT INTO dog VALUES(1,1)
-2025-09-16 11:19:07.630 | LSN:00000475 | INSERT       | TXN:1757992747624 | dog             | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO dog VALUES(1,1)
-2025-09-16 11:19:07.631 | LSN:00000476 | TXN_COMMIT   | TXN:1757992747624 |                 | 事务提交 | INFO:事务ID: 1757992747624
-2025-09-16 11:19:28.742 | LSN:00000477 | TXN_START    | TXN:1757992768742 |                 | 事务开始 | INFO:事务ID: 1757992768742
-2025-09-16 11:19:28.742 | LSN:00000478 | SELECT       | TXN:1757992768742 | customer_order_summary | SQL执行开始 | INFO:SQL: SELECT * FROM customer_order_summary
-2025-09-16 11:19:28.746 | LSN:00000479 | TXN_START    | TXN:1757992768746 |                 | 事务开始 | INFO:事务ID: 1757992768746
-2025-09-16 11:19:28.747 | LSN:00000480 | SELECT       | TXN:1757992768746 | customers       | SQL执行开始 | INFO:SQL: SELECT com.sqlcompiler.ast.DotExpression@6826df00, com.sqlcompiler.ast.DotExpression@2b75a2b1, com.sqlcompiler.ast.DotExpression@684109eb, com.sqlcompiler.ast.DotExpression@9541f39, com.sqlcompiler.ast.DotExpression@57540fcc, com.sqlcompiler.ast.AliasExpression@51324fbd, com.sqlcompiler.ast.AliasExpression@31dc1a21, com.sqlcompiler.ast.AliasExpression@185876f4, com.sqlcompiler.ast.AliasExpression@6f85205c FROM customers WHERE com.sqlcompiler.ast.DotExpression@7d55cf04 != 'cancelled' OR com.sqlcompiler.ast.IsNullExpression@26e1e98c com.sqlcompiler.ast.GroupByClause@6020bacc
-2025-09-16 11:19:28.872 | LSN:00000481 | SELECT       | TXN:1757992768746 | customers       | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT com.sqlcompiler.ast.DotExpression@6826df00, com.sqlcompiler.ast.DotExpression@2b75a2b1, com.sqlcompiler.ast.DotExpression@684109eb, com.sqlcompiler.ast.DotExpression@9541f39, com.sqlcompiler.ast.DotExpression@57540fcc, com.sqlcompiler.ast.AliasExpression@51324fbd, com.sqlcompiler.ast.AliasExpression@31dc1a21, com.sqlcompiler.ast.AliasExpression@185876f4, com.sqlcompiler.ast.AliasExpression@6f85205c FROM customers WHERE com.sqlcompiler.ast.DotExpression@7d55cf04 != 'cancelled' OR com.sqlcompiler.ast.IsNullExpression@26e1e98c com.sqlcompiler.ast.GroupByClause@6020bacc
-2025-09-16 11:19:28.873 | LSN:00000482 | TXN_COMMIT   | TXN:1757992768746 |                 | 事务提交 | INFO:事务ID: 1757992768746
-2025-09-16 11:19:28.873 | LSN:00000483 | SELECT       | TXN:1757992768742 | customer_order_summary | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM customer_order_summary
-2025-09-16 11:19:28.874 | LSN:00000484 | TXN_COMMIT   | TXN:1757992768742 |                 | 事务提交 | INFO:事务ID: 1757992768742
-2025-09-16 11:19:30.621 | LSN:00000485 | TXN_START    | TXN:1757992770621 |                 | 事务开始 | INFO:事务ID: 1757992770621
-2025-09-16 11:19:30.623 | LSN:00000486 | SELECT       | TXN:1757992770621 | department      | SQL执行开始 | INFO:SQL: SELECT * FROM department
-2025-09-16 11:19:30.748 | LSN:00000487 | SELECT       | TXN:1757992770621 | department      | SQL执行成功 | DATA:NEW[返回 3 条记录] | INFO:SQL: SELECT * FROM department
-2025-09-16 11:19:30.748 | LSN:00000488 | TXN_COMMIT   | TXN:1757992770621 |                 | 事务提交 | INFO:事务ID: 1757992770621
-2025-09-16 11:19:31.118 | LSN:00000489 | TXN_START    | TXN:1757992771118 |                 | 事务开始 | INFO:事务ID: 1757992771118
-2025-09-16 11:19:31.119 | LSN:00000490 | SELECT       | TXN:1757992771118 | customers       | SQL执行开始 | INFO:SQL: SELECT * FROM customers
-2025-09-16 11:19:31.236 | LSN:00000491 | SELECT       | TXN:1757992771118 | customers       | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM customers
-2025-09-16 11:19:31.237 | LSN:00000492 | TXN_COMMIT   | TXN:1757992771118 |                 | 事务提交 | INFO:事务ID: 1757992771118
-2025-09-16 11:19:35.592 | LSN:00000493 | TXN_START    | TXN:1757992775592 |                 | 事务开始 | INFO:事务ID: 1757992775592
-2025-09-16 11:19:35.592 | LSN:00000494 | SELECT       | TXN:1757992775592 | teachers        | SQL执行开始 | INFO:SQL: SELECT * FROM teachers
-2025-09-16 11:19:35.732 | LSN:00000495 | SELECT       | TXN:1757992775592 | teachers        | SQL执行成功 | DATA:NEW[返回 5 条记录] | INFO:SQL: SELECT * FROM teachers
-2025-09-16 11:19:35.733 | LSN:00000496 | TXN_COMMIT   | TXN:1757992775592 |                 | 事务提交 | INFO:事务ID: 1757992775592
-2025-09-16 11:19:49.242 | LSN:00000497 | TXN_START    | TXN:1757992789242 |                 | 事务开始 | INFO:事务ID: 1757992789242
-2025-09-16 11:19:49.244 | LSN:00000498 | SELECT       | TXN:1757992789242 | enrollments     | SQL执行开始 | INFO:SQL: SELECT * FROM enrollments
-2025-09-16 11:19:49.374 | LSN:00000499 | SELECT       | TXN:1757992789242 | enrollments     | SQL执行成功 | DATA:NEW[返回 9 条记录] | INFO:SQL: SELECT * FROM enrollments
-2025-09-16 11:19:49.375 | LSN:00000500 | TXN_COMMIT   | TXN:1757992789242 |                 | 事务提交 | INFO:事务ID: 1757992789242
-2025-09-16 11:19:50.281 | LSN:00000501 | TXN_START    | TXN:1757992790281 |                 | 事务开始 | INFO:事务ID: 1757992790281
-2025-09-16 11:19:50.282 | LSN:00000502 | SELECT       | TXN:1757992790281 | test_view       | SQL执行开始 | INFO:SQL: SELECT * FROM test_view
-2025-09-16 11:19:50.291 | LSN:00000503 | TXN_START    | TXN:1757992790290 |                 | 事务开始 | INFO:事务ID: 1757992790290
-2025-09-16 11:19:50.292 | LSN:00000504 | SELECT       | TXN:1757992790290 | students        | SQL执行开始 | INFO:SQL: SELECT * FROM students WHERE ID > 0
-2025-09-16 11:19:50.300 | LSN:00000505 | SELECT       | TXN:1757992790290 | students        | SQL解析失败 | INFO:SQL: SELECT * FROM students WHERE ID > 0
-2025-09-16 11:19:50.362 | LSN:00000506 | TXN_ABORT    | TXN:1757992790290 |                 | 事务回滚 | INFO:事务ID: 1757992790290
-2025-09-16 11:19:50.364 | LSN:00000507 | SELECT       | TXN:1757992790281 | test_view       | SQL执行失败 | DATA:NEW[SQL解析失败] | INFO:SQL: SELECT * FROM test_view
-2025-09-16 11:19:50.387 | LSN:00000508 | TXN_ABORT    | TXN:1757992790281 |                 | 事务回滚 | INFO:事务ID: 1757992790281
-2025-09-16 11:19:50.968 | LSN:00000509 | TXN_START    | TXN:1757992790968 |                 | 事务开始 | INFO:事务ID: 1757992790968
-2025-09-16 11:19:50.969 | LSN:00000510 | SELECT       | TXN:1757992790968 | high_salary_employees | SQL执行开始 | INFO:SQL: SELECT * FROM high_salary_employees
-2025-09-16 11:19:50.973 | LSN:00000511 | TXN_START    | TXN:1757992790973 |                 | 事务开始 | INFO:事务ID: 1757992790973
-2025-09-16 11:19:50.973 | LSN:00000512 | SELECT       | TXN:1757992790973 | employees       | SQL执行开始 | INFO:SQL: SELECT * FROM employees WHERE ID > 1
-2025-09-16 11:19:50.976 | LSN:00000513 | SELECT       | TXN:1757992790973 | employees       | SQL解析失败 | INFO:SQL: SELECT * FROM employees WHERE ID > 1
-2025-09-16 11:19:51.018 | LSN:00000514 | TXN_ABORT    | TXN:1757992790973 |                 | 事务回滚 | INFO:事务ID: 1757992790973
-2025-09-16 11:19:51.019 | LSN:00000515 | SELECT       | TXN:1757992790968 | high_salary_employees | SQL执行失败 | DATA:NEW[SQL解析失败] | INFO:SQL: SELECT * FROM high_salary_employees
-2025-09-16 11:19:51.041 | LSN:00000516 | TXN_ABORT    | TXN:1757992790968 |                 | 事务回滚 | INFO:事务ID: 1757992790968
-2025-09-16 11:19:57.522 | LSN:00000517 | TXN_START    | TXN:1757992797522 |                 | 事务开始 | INFO:事务ID: 1757992797522
-2025-09-16 11:19:57.522 | LSN:00000518 | SELECT       | TXN:1757992797522 | customer_order_summary | SQL执行开始 | INFO:SQL: SELECT * FROM customer_order_summary
-2025-09-16 11:19:57.525 | LSN:00000519 | TXN_START    | TXN:1757992797525 |                 | 事务开始 | INFO:事务ID: 1757992797525
-2025-09-16 11:19:57.526 | LSN:00000520 | SELECT       | TXN:1757992797525 | customers       | SQL执行开始 | INFO:SQL: SELECT com.sqlcompiler.ast.DotExpression@6826df00, com.sqlcompiler.ast.DotExpression@2b75a2b1, com.sqlcompiler.ast.DotExpression@684109eb, com.sqlcompiler.ast.DotExpression@9541f39, com.sqlcompiler.ast.DotExpression@57540fcc, com.sqlcompiler.ast.AliasExpression@51324fbd, com.sqlcompiler.ast.AliasExpression@31dc1a21, com.sqlcompiler.ast.AliasExpression@185876f4, com.sqlcompiler.ast.AliasExpression@6f85205c FROM customers WHERE com.sqlcompiler.ast.DotExpression@7d55cf04 != 'cancelled' OR com.sqlcompiler.ast.IsNullExpression@26e1e98c com.sqlcompiler.ast.GroupByClause@6020bacc
-2025-09-16 11:19:57.642 | LSN:00000521 | SELECT       | TXN:1757992797525 | customers       | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT com.sqlcompiler.ast.DotExpression@6826df00, com.sqlcompiler.ast.DotExpression@2b75a2b1, com.sqlcompiler.ast.DotExpression@684109eb, com.sqlcompiler.ast.DotExpression@9541f39, com.sqlcompiler.ast.DotExpression@57540fcc, com.sqlcompiler.ast.AliasExpression@51324fbd, com.sqlcompiler.ast.AliasExpression@31dc1a21, com.sqlcompiler.ast.AliasExpression@185876f4, com.sqlcompiler.ast.AliasExpression@6f85205c FROM customers WHERE com.sqlcompiler.ast.DotExpression@7d55cf04 != 'cancelled' OR com.sqlcompiler.ast.IsNullExpression@26e1e98c com.sqlcompiler.ast.GroupByClause@6020bacc
-2025-09-16 11:19:57.642 | LSN:00000522 | TXN_COMMIT   | TXN:1757992797525 |                 | 事务提交 | INFO:事务ID: 1757992797525
-2025-09-16 11:19:57.643 | LSN:00000523 | SELECT       | TXN:1757992797522 | customer_order_summary | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM customer_order_summary
-2025-09-16 11:19:57.643 | LSN:00000524 | TXN_COMMIT   | TXN:1757992797522 |                 | 事务提交 | INFO:事务ID: 1757992797522
-2025-09-16 15:43:39.409 | LSN:00000525 | TXN_START    | TXN:1758008619406 |                 | 事务开始 | INFO:事务ID: 1758008619406
-2025-09-16 15:43:39.418 | LSN:00000526 | SELECT       | TXN:1758008619406 | orders          | SQL执行开始 | INFO:SQL: SELECT * FROM orders
-2025-09-16 15:43:39.545 | LSN:00000527 | SELECT       | TXN:1758008619406 | orders          | SQL执行成功 | DATA:NEW[返回 7 条记录] | INFO:SQL: SELECT * FROM orders
-2025-09-16 15:43:39.546 | LSN:00000528 | TXN_COMMIT   | TXN:1758008619406 |                 | 事务提交 | INFO:事务ID: 1758008619406
-2025-09-16 15:43:42.418 | LSN:00000529 | TXN_START    | TXN:1758008622418 |                 | 事务开始 | INFO:事务ID: 1758008622418
-2025-09-16 15:43:42.420 | LSN:00000530 | SELECT       | TXN:1758008622418 | customers       | SQL执行开始 | INFO:SQL: SELECT * FROM customers
-2025-09-16 15:43:42.537 | LSN:00000531 | SELECT       | TXN:1758008622418 | customers       | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM customers
-2025-09-16 15:43:42.539 | LSN:00000532 | TXN_COMMIT   | TXN:1758008622418 |                 | 事务提交 | INFO:事务ID: 1758008622418
+2025-09-16 08:48:31.804 | LSN:00000181 | TXN_START    | TXN:1757983711802 |                 | 事务开始 | INFO:事务ID: 1757983711802
+2025-09-16 08:48:31.811 | LSN:00000182 | SELECT       | TXN:1757983711802 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 08:48:31.924 | LSN:00000183 | SELECT       | TXN:1757983711802 | student         | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 08:48:31.925 | LSN:00000184 | TXN_COMMIT   | TXN:1757983711802 |                 | 事务提交 | INFO:事务ID: 1757983711802
+2025-09-16 10:04:53.845 | LSN:00000185 | TXN_START    | TXN:1757988293844 |                 | 事务开始 | INFO:事务ID: 1757988293844
+2025-09-16 10:04:53.851 | LSN:00000186 | SELECT       | TXN:1757988293844 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 10:04:53.968 | LSN:00000187 | SELECT       | TXN:1757988293844 | student         | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 10:04:53.969 | LSN:00000188 | TXN_COMMIT   | TXN:1757988293844 |                 | 事务提交 | INFO:事务ID: 1757988293844
+2025-09-16 10:07:37.809 | LSN:00000189 | TXN_START    | TXN:1757988457809 |                 | 事务开始 | INFO:事务ID: 1757988457809
+2025-09-16 10:07:37.810 | LSN:00000190 | SELECT       | TXN:1757988457809 | test_table      | SQL执行开始 | INFO:SQL: SELECT * FROM test_table
+2025-09-16 10:07:37.914 | LSN:00000191 | SELECT       | TXN:1757988457809 | test_table      | SQL执行成功 | DATA:NEW[返回 1 条记录] | INFO:SQL: SELECT * FROM test_table
+2025-09-16 10:07:37.915 | LSN:00000192 | TXN_COMMIT   | TXN:1757988457809 |                 | 事务提交 | INFO:事务ID: 1757988457809
+2025-09-16 10:13:04.473 | LSN:00000193 | TXN_START    | TXN:1757988784471 |                 | 事务开始 | INFO:事务ID: 1757988784471
+2025-09-16 10:13:04.479 | LSN:00000194 | SELECT       | TXN:1757988784471 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 10:13:04.598 | LSN:00000195 | SELECT       | TXN:1757988784471 | student         | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 10:13:04.599 | LSN:00000196 | TXN_COMMIT   | TXN:1757988784471 |                 | 事务提交 | INFO:事务ID: 1757988784471
+2025-09-16 17:00:11.783 | LSN:00000197 | TXN_START    | TXN:1758013211780 |                 | 事务开始 | INFO:事务ID: 1758013211780
+2025-09-16 17:00:11.790 | LSN:00000198 | SELECT       | TXN:1758013211780 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 17:00:11.909 | LSN:00000199 | SELECT       | TXN:1758013211780 | student         | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 17:00:11.911 | LSN:00000200 | TXN_COMMIT   | TXN:1758013211780 |                 | 事务提交 | INFO:事务ID: 1758013211780
+2025-09-16 17:00:13.369 | LSN:00000201 | TXN_START    | TXN:1758013213369 |                 | 事务开始 | INFO:事务ID: 1758013213369
+2025-09-16 17:00:13.370 | LSN:00000202 | SELECT       | TXN:1758013213369 | test_integration | SQL执行开始 | INFO:SQL: SELECT * FROM test_integration
+2025-09-16 17:00:13.483 | LSN:00000203 | SELECT       | TXN:1758013213369 | test_integration | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM test_integration
+2025-09-16 17:00:13.483 | LSN:00000204 | TXN_COMMIT   | TXN:1758013213369 |                 | 事务提交 | INFO:事务ID: 1758013213369
+2025-09-16 17:00:14.376 | LSN:00000205 | TXN_START    | TXN:1758013214376 |                 | 事务开始 | INFO:事务ID: 1758013214376
+2025-09-16 17:00:14.377 | LSN:00000206 | SELECT       | TXN:1758013214376 | test_unified    | SQL执行开始 | INFO:SQL: SELECT * FROM test_unified
+2025-09-16 17:00:14.491 | LSN:00000207 | SELECT       | TXN:1758013214376 | test_unified    | SQL执行成功 | DATA:NEW[返回 1 条记录] | INFO:SQL: SELECT * FROM test_unified
+2025-09-16 17:00:14.494 | LSN:00000208 | TXN_COMMIT   | TXN:1758013214376 |                 | 事务提交 | INFO:事务ID: 1758013214376
+2025-09-16 17:00:15.378 | LSN:00000209 | TXN_START    | TXN:1758013215378 |                 | 事务开始 | INFO:事务ID: 1758013215378
+2025-09-16 17:00:15.380 | LSN:00000210 | SELECT       | TXN:1758013215378 | test_logging    | SQL执行开始 | INFO:SQL: SELECT * FROM test_logging
+2025-09-16 17:00:15.488 | LSN:00000211 | SELECT       | TXN:1758013215378 | test_logging    | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM test_logging
+2025-09-16 17:00:15.489 | LSN:00000212 | TXN_COMMIT   | TXN:1758013215378 |                 | 事务提交 | INFO:事务ID: 1758013215378
+2025-09-16 17:02:26.154 | LSN:00000213 | TXN_START    | TXN:1758013346153 |                 | 事务开始 | INFO:事务ID: 1758013346153
+2025-09-16 17:02:26.159 | LSN:00000214 | SELECT       | TXN:1758013346153 | customer_order_summary | SQL执行开始 | INFO:SQL: SELECT * FROM customer_order_summary
+2025-09-16 17:02:26.163 | LSN:00000215 | TXN_START    | TXN:1758013346163 |                 | 事务开始 | INFO:事务ID: 1758013346163
+2025-09-16 17:02:26.163 | LSN:00000216 | SELECT       | TXN:1758013346163 | customers       | SQL执行开始 | INFO:SQL: SELECT com.sqlcompiler.ast.DotExpression@6826df00, com.sqlcompiler.ast.DotExpression@2b75a2b1, com.sqlcompiler.ast.DotExpression@684109eb, com.sqlcompiler.ast.DotExpression@9541f39, com.sqlcompiler.ast.DotExpression@57540fcc, com.sqlcompiler.ast.AliasExpression@51324fbd, com.sqlcompiler.ast.AliasExpression@31dc1a21, com.sqlcompiler.ast.AliasExpression@185876f4, com.sqlcompiler.ast.AliasExpression@6f85205c FROM customers WHERE com.sqlcompiler.ast.DotExpression@7d55cf04 != 'cancelled' OR com.sqlcompiler.ast.IsNullExpression@26e1e98c com.sqlcompiler.ast.GroupByClause@6020bacc
+2025-09-16 17:02:26.279 | LSN:00000217 | SELECT       | TXN:1758013346163 | customers       | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT com.sqlcompiler.ast.DotExpression@6826df00, com.sqlcompiler.ast.DotExpression@2b75a2b1, com.sqlcompiler.ast.DotExpression@684109eb, com.sqlcompiler.ast.DotExpression@9541f39, com.sqlcompiler.ast.DotExpression@57540fcc, com.sqlcompiler.ast.AliasExpression@51324fbd, com.sqlcompiler.ast.AliasExpression@31dc1a21, com.sqlcompiler.ast.AliasExpression@185876f4, com.sqlcompiler.ast.AliasExpression@6f85205c FROM customers WHERE com.sqlcompiler.ast.DotExpression@7d55cf04 != 'cancelled' OR com.sqlcompiler.ast.IsNullExpression@26e1e98c com.sqlcompiler.ast.GroupByClause@6020bacc
+2025-09-16 17:02:26.281 | LSN:00000218 | TXN_COMMIT   | TXN:1758013346163 |                 | 事务提交 | INFO:事务ID: 1758013346163
+2025-09-16 17:02:26.282 | LSN:00000219 | SELECT       | TXN:1758013346153 | customer_order_summary | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM customer_order_summary
+2025-09-16 17:02:26.282 | LSN:00000220 | TXN_COMMIT   | TXN:1758013346153 |                 | 事务提交 | INFO:事务ID: 1758013346153
+2025-09-16 17:47:20.940 | LSN:00000221 | TXN_START    | TXN:1758016040940 |                 | 事务开始 | INFO:事务ID: 1758016040940
+2025-09-16 17:47:20.942 | LSN:00000222 | SELECT       | TXN:1758016040940 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 17:47:20.998 | LSN:00000223 | SELECT       | TXN:1758016040940 | student         | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 17:47:20.999 | LSN:00000224 | TXN_COMMIT   | TXN:1758016040940 |                 | 事务提交 | INFO:事务ID: 1758016040940
+2025-09-16 17:47:33.755 | LSN:00000225 | TXN_START    | TXN:1758016053755 |                 | 事务开始 | INFO:事务ID: 1758016053755
+2025-09-16 17:47:33.757 | LSN:00000226 | SELECT       | TXN:1758016053755 | student;        | SQL执行开始 | INFO:SQL: SELECT COUNT(*) as total_products FROM student;
+2025-09-16 17:47:33.816 | LSN:00000227 | SELECT       | TXN:1758016053755 | student;        | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT COUNT(*) as total_products FROM student;
+2025-09-16 17:47:33.816 | LSN:00000228 | TXN_COMMIT   | TXN:1758016053755 |                 | 事务提交 | INFO:事务ID: 1758016053755
+2025-09-16 19:39:01.099 | LSN:00000229 | TXN_START    | TXN:1758022741098 |                 | 事务开始 | INFO:事务ID: 1758022741098
+2025-09-16 19:39:01.115 | LSN:00000230 | SELECT       | TXN:1758022741098 | products        | SQL执行开始 | INFO:SQL: SELECT * FROM products LIMIT 3
+2025-09-16 19:39:01.241 | LSN:00000231 | SELECT       | TXN:1758022741098 | products        | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM products LIMIT 3
+2025-09-16 19:39:01.242 | LSN:00000232 | TXN_COMMIT   | TXN:1758022741098 |                 | 事务提交 | INFO:事务ID: 1758022741098
+2025-09-16 19:39:01.246 | LSN:00000233 | TXN_START    | TXN:1758022741246 |                 | 事务开始 | INFO:事务ID: 1758022741246
+2025-09-16 19:39:01.247 | LSN:00000234 | UPDATE       | TXN:1758022741246 | products        | SQL执行开始 | INFO:SQL: UPDATE products SET stock_quantity = 99 WHERE product_id = 101
+2025-09-16 19:39:01.254 | LSN:00000235 | UPDATE       | TXN:1758022741246 | products        | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: UPDATE products SET stock_quantity = 99 WHERE product_id = 101
+2025-09-16 19:39:01.255 | LSN:00000236 | TXN_COMMIT   | TXN:1758022741246 |                 | 事务提交 | INFO:事务ID: 1758022741246
+2025-09-16 19:39:01.257 | LSN:00000237 | TXN_START    | TXN:1758022741257 |                 | 事务开始 | INFO:事务ID: 1758022741257
+2025-09-16 19:39:01.259 | LSN:00000238 | SELECT       | TXN:1758022741257 | products        | SQL执行开始 | INFO:SQL: SELECT * FROM products WHERE product_id = 101
+2025-09-16 19:39:01.288 | LSN:00000239 | SELECT       | TXN:1758022741257 | products        | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM products WHERE product_id = 101
+2025-09-16 19:39:01.290 | LSN:00000240 | TXN_COMMIT   | TXN:1758022741257 |                 | 事务提交 | INFO:事务ID: 1758022741257
+2025-09-16 19:39:28.229 | LSN:00000241 | TXN_START    | TXN:1758022768227 |                 | 事务开始 | INFO:事务ID: 1758022768227
+2025-09-16 19:39:28.244 | LSN:00000242 | SELECT       | TXN:1758022768227 | products        | SQL执行开始 | INFO:SQL: SELECT COUNT(*) FROM products
+2025-09-16 19:39:28.367 | LSN:00000243 | SELECT       | TXN:1758022768227 | products        | SQL执行成功 | DATA:NEW[返回 1 条记录] | INFO:SQL: SELECT COUNT(*) FROM products
+2025-09-16 19:39:28.368 | LSN:00000244 | TXN_COMMIT   | TXN:1758022768227 |                 | 事务提交 | INFO:事务ID: 1758022768227
+2025-09-16 19:39:28.371 | LSN:00000245 | TXN_START    | TXN:1758022768371 |                 | 事务开始 | INFO:事务ID: 1758022768371
+2025-09-16 19:39:28.372 | LSN:00000246 | INSERT       | TXN:1758022768371 | products        | SQL执行开始 | INFO:SQL: INSERT INTO products VALUES (999, 'Test Product', 'Test Category', 9.99, 1, 'Test Supplier', '2025-01-01')
+2025-09-16 19:39:28.386 | LSN:00000247 | INSERT       | TXN:1758022768371 | products        | SQL执行失败 | DATA:NEW[插入记录失败] | INFO:SQL: INSERT INTO products VALUES (999, 'Test Product', 'Test Category', 9.99, 1, 'Test Supplier', '2025-01-01')
+2025-09-16 19:39:28.424 | LSN:00000248 | TXN_ABORT    | TXN:1758022768371 |                 | 事务回滚 | INFO:事务ID: 1758022768371
+2025-09-16 19:39:28.425 | LSN:00000249 | TXN_START    | TXN:1758022768425 |                 | 事务开始 | INFO:事务ID: 1758022768425
+2025-09-16 19:39:28.426 | LSN:00000250 | SELECT       | TXN:1758022768425 | products        | SQL执行开始 | INFO:SQL: SELECT * FROM products WHERE product_id = 999
+2025-09-16 19:39:28.440 | LSN:00000251 | SELECT       | TXN:1758022768425 | products        | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM products WHERE product_id = 999
+2025-09-16 19:39:28.441 | LSN:00000252 | TXN_COMMIT   | TXN:1758022768425 |                 | 事务提交 | INFO:事务ID: 1758022768425
+2025-09-16 19:39:28.441 | LSN:00000253 | TXN_START    | TXN:1758022768441 |                 | 事务开始 | INFO:事务ID: 1758022768441
+2025-09-16 19:39:28.443 | LSN:00000254 | UPDATE       | TXN:1758022768441 | products        | SQL执行开始 | INFO:SQL: UPDATE products SET stock_quantity = 999 WHERE product_id = 999
+2025-09-16 19:39:28.449 | LSN:00000255 | UPDATE       | TXN:1758022768441 | products        | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: UPDATE products SET stock_quantity = 999 WHERE product_id = 999
+2025-09-16 19:39:28.449 | LSN:00000256 | TXN_COMMIT   | TXN:1758022768441 |                 | 事务提交 | INFO:事务ID: 1758022768441
+2025-09-16 19:39:28.450 | LSN:00000257 | TXN_START    | TXN:1758022768450 |                 | 事务开始 | INFO:事务ID: 1758022768450
+2025-09-16 19:39:28.451 | LSN:00000258 | SELECT       | TXN:1758022768450 | products        | SQL执行开始 | INFO:SQL: SELECT * FROM products WHERE product_id = 999
+2025-09-16 19:39:28.459 | LSN:00000259 | SELECT       | TXN:1758022768450 | products        | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM products WHERE product_id = 999
+2025-09-16 19:39:28.460 | LSN:00000260 | TXN_COMMIT   | TXN:1758022768450 |                 | 事务提交 | INFO:事务ID: 1758022768450
+2025-09-16 19:42:30.754 | LSN:00000261 | TXN_START    | TXN:1758022950751 |                 | 事务开始 | INFO:事务ID: 1758022950751
+2025-09-16 19:42:30.763 | LSN:00000262 | SELECT       | TXN:1758022950751 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
+2025-09-16 19:42:30.885 | LSN:00000263 | SELECT       | TXN:1758022950751 | users           | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM users
+2025-09-16 19:42:30.886 | LSN:00000264 | TXN_COMMIT   | TXN:1758022950751 |                 | 事务提交 | INFO:事务ID: 1758022950751
+2025-09-16 19:42:32.540 | LSN:00000265 | TXN_START    | TXN:1758022952540 |                 | 事务开始 | INFO:事务ID: 1758022952540
+2025-09-16 19:42:32.542 | LSN:00000266 | SELECT       | TXN:1758022952540 | products        | SQL执行开始 | INFO:SQL: SELECT * FROM products
+2025-09-16 19:42:32.645 | LSN:00000267 | SELECT       | TXN:1758022952540 | products        | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM products
+2025-09-16 19:42:32.646 | LSN:00000268 | TXN_COMMIT   | TXN:1758022952540 |                 | 事务提交 | INFO:事务ID: 1758022952540
+2025-09-16 19:42:33.844 | LSN:00000269 | TXN_START    | TXN:1758022953844 |                 | 事务开始 | INFO:事务ID: 1758022953844
+2025-09-16 19:42:33.846 | LSN:00000270 | SELECT       | TXN:1758022953844 | teachers        | SQL执行开始 | INFO:SQL: SELECT * FROM teachers
+2025-09-16 19:42:33.957 | LSN:00000271 | SELECT       | TXN:1758022953844 | teachers        | SQL执行成功 | DATA:NEW[返回 5 条记录] | INFO:SQL: SELECT * FROM teachers
+2025-09-16 19:42:33.959 | LSN:00000272 | TXN_COMMIT   | TXN:1758022953844 |                 | 事务提交 | INFO:事务ID: 1758022953844
+2025-09-16 19:43:29.692 | LSN:00000273 | TXN_START    | TXN:1758023009692 |                 | 事务开始 | INFO:事务ID: 1758023009692
+2025-09-16 19:43:29.693 | LSN:00000274 | UPDATE       | TXN:1758023009692 | teachers        | SQL执行开始 | INFO:SQL: UPDATE teachers
+SET teacher_name = 'Wilson'
+WHERE teacher_id = 2;
+2025-09-16 19:43:29.697 | LSN:00000275 | UPDATE       | TXN:1758023009692 | teachers        | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: UPDATE teachers
+SET teacher_name = 'Wilson'
+WHERE teacher_id = 2;
+2025-09-16 19:43:29.697 | LSN:00000276 | TXN_COMMIT   | TXN:1758023009692 |                 | 事务提交 | INFO:事务ID: 1758023009692
+2025-09-16 19:43:37.307 | LSN:00000277 | TXN_START    | TXN:1758023017307 |                 | 事务开始 | INFO:事务ID: 1758023017307
+2025-09-16 19:43:37.308 | LSN:00000278 | SELECT       | TXN:1758023017307 | products        | SQL执行开始 | INFO:SQL: SELECT * FROM products
+2025-09-16 19:43:37.412 | LSN:00000279 | SELECT       | TXN:1758023017307 | products        | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM products
+2025-09-16 19:43:37.413 | LSN:00000280 | TXN_COMMIT   | TXN:1758023017307 |                 | 事务提交 | INFO:事务ID: 1758023017307
+2025-09-16 19:43:38.213 | LSN:00000281 | TXN_START    | TXN:1758023018213 |                 | 事务开始 | INFO:事务ID: 1758023018213
+2025-09-16 19:43:38.216 | LSN:00000282 | SELECT       | TXN:1758023018213 | teachers        | SQL执行开始 | INFO:SQL: SELECT * FROM teachers
+2025-09-16 19:43:38.319 | LSN:00000283 | SELECT       | TXN:1758023018213 | teachers        | SQL执行成功 | DATA:NEW[返回 5 条记录] | INFO:SQL: SELECT * FROM teachers
+2025-09-16 19:43:38.320 | LSN:00000284 | TXN_COMMIT   | TXN:1758023018213 |                 | 事务提交 | INFO:事务ID: 1758023018213
+2025-09-16 19:43:50.750 | LSN:00000285 | TXN_START    | TXN:1758023030750 |                 | 事务开始 | INFO:事务ID: 1758023030750
+2025-09-16 19:43:50.751 | LSN:00000286 | UPDATE       | TXN:1758023030750 | teachers        | SQL执行开始 | INFO:SQL: UPDATE teachers
+SET teacher_name = 'Wilson'
+WHERE teacher_id = 1001;
+2025-09-16 19:43:50.754 | LSN:00000287 | UPDATE       | TXN:1758023030750 | teachers        | SQL执行失败 | DATA:NEW[更新记录失败] | INFO:SQL: UPDATE teachers
+SET teacher_name = 'Wilson'
+WHERE teacher_id = 1001;
+2025-09-16 19:43:50.784 | LSN:00000288 | TXN_ABORT    | TXN:1758023030750 |                 | 事务回滚 | INFO:事务ID: 1758023030750
+2025-09-16 19:43:56.811 | LSN:00000289 | TXN_START    | TXN:1758023036811 |                 | 事务开始 | INFO:事务ID: 1758023036811
+2025-09-16 19:43:56.812 | LSN:00000290 | SELECT       | TXN:1758023036811 | products        | SQL执行开始 | INFO:SQL: SELECT * FROM products
+2025-09-16 19:43:56.914 | LSN:00000291 | SELECT       | TXN:1758023036811 | products        | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM products
+2025-09-16 19:43:56.914 | LSN:00000292 | TXN_COMMIT   | TXN:1758023036811 |                 | 事务提交 | INFO:事务ID: 1758023036811
+2025-09-16 19:43:57.459 | LSN:00000293 | TXN_START    | TXN:1758023037459 |                 | 事务开始 | INFO:事务ID: 1758023037459
+2025-09-16 19:43:57.463 | LSN:00000294 | SELECT       | TXN:1758023037459 | teachers        | SQL执行开始 | INFO:SQL: SELECT * FROM teachers
+2025-09-16 19:43:57.566 | LSN:00000295 | SELECT       | TXN:1758023037459 | teachers        | SQL执行成功 | DATA:NEW[返回 5 条记录] | INFO:SQL: SELECT * FROM teachers
+2025-09-16 19:43:57.567 | LSN:00000296 | TXN_COMMIT   | TXN:1758023037459 |                 | 事务提交 | INFO:事务ID: 1758023037459
+2025-09-16 19:44:16.805 | LSN:00000297 | TXN_START    | TXN:1758023056805 |                 | 事务开始 | INFO:事务ID: 1758023056805
+2025-09-16 19:44:16.806 | LSN:00000298 | UPDATE       | TXN:1758023056805 | teachers        | SQL执行开始 | INFO:SQL: UPDATE teachers
+SET teacher_name = 'Wilson'
+WHERE dept_id = 2;
+2025-09-16 19:44:16.808 | LSN:00000299 | UPDATE       | TXN:1758023056805 | teachers        | SQL执行失败 | DATA:NEW[更新记录失败] | INFO:SQL: UPDATE teachers
+SET teacher_name = 'Wilson'
+WHERE dept_id = 2;
+2025-09-16 19:44:16.819 | LSN:00000300 | TXN_ABORT    | TXN:1758023056805 |                 | 事务回滚 | INFO:事务ID: 1758023056805

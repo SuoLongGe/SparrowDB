@@ -1,0 +1,16 @@
+# Column Metadata
+COLUMN_NAME=product_id
+DATA_TYPE=INT
+LENGTH=0
+NOT_NULL=false
+PRIMARY_KEY=true
+UNIQUE=false
+DEFAULT_VALUE=
+AUTO_INCREMENT=false
+# End Metadata
+# Data starts below
+Supplier A
+Supplier B
+Supplier C
+Supplier A
+Supplier D

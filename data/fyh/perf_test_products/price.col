@@ -1,0 +1,16 @@
+# Column Metadata
+COLUMN_NAME=price
+DATA_TYPE=DECIMAL
+LENGTH=10
+NOT_NULL=false
+PRIMARY_KEY=false
+UNIQUE=false
+DEFAULT_VALUE=
+AUTO_INCREMENT=false
+# End Metadata
+# Data starts below
+10
+20
+5
+15
+8

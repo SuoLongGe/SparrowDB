@@ -1,0 +1,19 @@
+# Column Metadata
+COLUMN_NAME=product_id
+DATA_TYPE=INT
+LENGTH=0
+NOT_NULL=false
+PRIMARY_KEY=true
+UNIQUE=false
+DEFAULT_VALUE=
+AUTO_INCREMENT=false
+# End Metadata
+# Data starts below
+1
+2
+3
+4
+5
+6
+7
+8

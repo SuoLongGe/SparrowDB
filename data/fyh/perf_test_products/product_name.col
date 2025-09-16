@@ -1,0 +1,16 @@
+# Column Metadata
+COLUMN_NAME=product_name
+DATA_TYPE=VARCHAR
+LENGTH=100
+NOT_NULL=false
+PRIMARY_KEY=false
+UNIQUE=false
+DEFAULT_VALUE=
+AUTO_INCREMENT=false
+# End Metadata
+# Data starts below
+Description 1
+Description 2
+Description 3
+Description 4
+Description 5

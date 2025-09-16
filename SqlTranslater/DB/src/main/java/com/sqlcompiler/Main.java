@@ -1,6 +1,10 @@
 package com.sqlcompiler;
 
 import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
 
 /**
  * SQL编译器主程序
@@ -8,6 +12,14 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         SQLCompiler compiler = new SQLCompiler();
+        
+        // 如果有文件参数，读取文件执行
+        if (args.length > 0) {
+            executeFromFile(compiler, args[0]);
+            return;
+        }
+        
+        // 交互模式
         Scanner scanner = new Scanner(System.in);
         
         System.out.println("=== SQL编译器 ===");
@@ -86,5 +98,58 @@ public class Main {
         }
         
         scanner.close();
+    }
+    
+    /**
+     * 从文件执行SQL语句
+     */
+    private static void executeFromFile(SQLCompiler compiler, String filename) {
+        try {
+            File file = new File(filename);
+            String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+            
+            System.out.println("=== 执行SQL文件: " + filename + " ===");
+            
+            // 按分号分割SQL语句
+            String[] statements = content.split(";");
+            
+            for (String statement : statements) {
+                String sql = statement.trim();
+                if (sql.isEmpty()) {
+                    continue;
+                }
+                
+                // 添加分号
+                if (!sql.endsWith(";")) {
+                    sql += ";";
+                }
+                
+                System.out.println("\n执行: " + sql);
+                
+                try {
+                    SQLCompiler.CompilationResult result = compiler.compile(sql);
+                    
+                    if (result.isSuccess()) {
+                        System.out.println("✓ 执行成功");
+                    } else {
+                        System.out.println("✗ 执行失败");
+                        if (result.getErrors() != null) {
+                            for (String error : result.getErrors()) {
+                                System.out.println("错误: " + error);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("执行错误: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+            
+            System.out.println("\n=== 文件执行完成 ===");
+            
+        } catch (Exception e) {
+            System.err.println("读取文件失败: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

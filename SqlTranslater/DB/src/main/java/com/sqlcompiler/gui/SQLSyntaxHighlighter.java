@@ -40,7 +40,6 @@ public class SQLSyntaxHighlighter {
     
     // SQL关键字
     private static final Set<String> SQL_KEYWORDS = new HashSet<>(Arrays.asList(
-        // 基本SQL关键字
         "SELECT", "FROM", "WHERE", "INSERT", "INTO", "VALUES", "UPDATE", "SET", "DELETE",
         "CREATE", "TABLE", "DROP", "ALTER", "INDEX", "VIEW", "DATABASE", "SCHEMA",
         "AND", "OR", "NOT", "IN", "EXISTS", "BETWEEN", "LIKE", "IS", "NULL",
@@ -49,31 +48,7 @@ public class SQLSyntaxHighlighter {
         "PRIMARY", "KEY", "FOREIGN", "REFERENCES", "UNIQUE", "DEFAULT", "AUTO_INCREMENT",
         "INT", "INTEGER", "VARCHAR", "CHAR", "TEXT", "DECIMAL", "FLOAT", "DOUBLE", "BOOLEAN",
         "DATE", "TIME", "TIMESTAMP", "DATETIME",
-        "TRUE", "FALSE", "ASC", "DESC", "COUNT", "SUM", "AVG", "MAX", "MIN",
-        
-        // 视图和函数相关
-        "FUNCTION", "PROCEDURE", "CALL", "BEGIN", "END", "RETURN", "RETURNS", "DECLARE",
-        "PERMANENT",
-        
-        // 控制流关键字
-        "IF", "ELSE", "ELSEIF", "ENDIF", "WHILE", "LOOP", "ENDLOOP", "REPEAT", "UNTIL",
-        "CASE", "WHEN", "THEN",
-        
-        // 分片相关关键字
-        "SHOW", "SHARD", "SHARDS", "STATS", "USING", "HASH", "RANGE",
-        
-        // 存储格式关键字
-        "STORAGE", "ROW", "COLUMN", "ROW_STORAGE", "COLUMN_STORAGE",
-        
-        // 数学函数
-        "ABS", "CEIL", "FLOOR", "ROUND", "SQRT", "POWER", "MOD", "RAND",
-        
-        // 字符串函数
-        "UPPER", "LOWER", "LENGTH", "SUBSTRING", "CONCAT", "TRIM", "LTRIM", "RTRIM", "REPLACE",
-        
-        // 日期函数
-        "NOW", "CURRENT_DATE", "CURRENT_TIME", "CURRENT_TIMESTAMP", "YEAR", "MONTH", "DAY",
-        "HOUR", "MINUTE", "SECOND", "DATE_ADD", "DATE_SUB", "DATEDIFF"
+        "TRUE", "FALSE", "ASC", "DESC", "COUNT", "SUM", "AVG", "MAX", "MIN"
     ));
     
     // SQL函数

@@ -1,0 +1,19 @@
+# Column Metadata
+COLUMN_NAME=sales_amount
+DATA_TYPE=DECIMAL
+LENGTH=10
+NOT_NULL=false
+PRIMARY_KEY=false
+UNIQUE=false
+DEFAULT_VALUE=
+AUTO_INCREMENT=false
+# End Metadata
+# Data starts below
+15000.00
+8500.00
+18200.00
+9100.00
+22000.00
+7800.00
+19500.00
+9800.00

@@ -58,5 +58,6 @@ create_time=1757990081712|constraint_count=0|column_count=5|table_name=users
 create_time=1757990081780|constraint_count=0|column_count=2|table_name=dog
 create_time=1757992706330|constraint_count=0|column_count=6|table_name=employee
 create_time=1757992706345|constraint_count=0|column_count=4|table_name=project
+create_time=1758011674821|constraint_count=0|column_count=7|table_name=products
 
 PAGE:2

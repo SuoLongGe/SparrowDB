@@ -1243,17 +1243,23 @@ public class Executor {
                     projectedRow.put(outputColumnName, value);
                 }
             } else if (expr instanceof FunctionCallExpressionPlan) {
-                // 处理聚合函数
+                // 处理聚合函数 - 在投影阶段，聚合函数应该已经计算过了
                 FunctionCallExpressionPlan funcExpr = (FunctionCallExpressionPlan) expr;
                 String functionName = funcExpr.getFunctionName();
                 List<ExpressionPlan> arguments = funcExpr.getArguments();
                 
-                // 计算聚合函数值
-                Object result = evaluateAggregateFunction(row, functionName, arguments, tableInfo);
-                
                 // 生成列名
                 String columnName = generateAggregateColumnName(functionName, arguments);
-                projectedRow.put(columnName, result);
+                
+                // 检查行中是否已经有聚合结果
+                if (row.containsKey(columnName)) {
+                    projectedRow.put(columnName, row.get(columnName));
+                } else {
+                    // 如果没有预计算的聚合结果，这里不应该处理聚合函数
+                    // 这表明查询路径有问题，聚合函数应该在聚合阶段处理
+                    System.err.println("警告：在投影阶段遇到未处理的聚合函数: " + columnName);
+                    projectedRow.put(columnName, "NULL");
+                }
             } else if (expr instanceof AliasExpressionPlan) {
                 // 处理别名表达式
                 AliasExpressionPlan aliasExpr = (AliasExpressionPlan) expr;
@@ -1274,20 +1280,99 @@ public class Executor {
     }
     
     private void sortResults(List<Map<String, Object>> results, List<OrderByItem> orderByClause, TableInfo tableInfo) {
-        // 简化的排序实现
+        // 基于数据类型的正确排序实现
         results.sort((a, b) -> {
             for (OrderByItem item : orderByClause) {
                 String columnName = getColumnNameFromExpression(item.getExpression());
-                String valueA = (String) a.getOrDefault(columnName, "");
-                String valueB = (String) b.getOrDefault(columnName, "");
+                Object valueA = a.getOrDefault(columnName, null);
+                Object valueB = b.getOrDefault(columnName, null);
                 
-                int comparison = valueA.compareTo(valueB);
+                // 处理null值
+                if (valueA == null && valueB == null) {
+                    continue;
+                }
+                if (valueA == null) {
+                    return item.getOrder() == OrderByItem.SortOrder.ASC ? -1 : 1;
+                }
+                if (valueB == null) {
+                    return item.getOrder() == OrderByItem.SortOrder.ASC ? 1 : -1;
+                }
+                
+                // 获取列的数据类型
+                ColumnInfo columnInfo = tableInfo.getColumn(columnName);
+                String dataType = columnInfo != null ? columnInfo.getDataType() : "VARCHAR";
+                
+                // 根据数据类型进行比较
+                int comparison = compareValuesByType(valueA, valueB, dataType);
                 if (comparison != 0) {
                     return item.getOrder() == OrderByItem.SortOrder.ASC ? comparison : -comparison;
                 }
             }
             return 0;
         });
+    }
+    
+    /**
+     * 根据数据类型比较两个值
+     */
+    private int compareValuesByType(Object valueA, Object valueB, String dataType) {
+        try {
+            switch (dataType.toUpperCase()) {
+                case "INT":
+                case "INTEGER":
+                    Integer intA = convertToInteger(valueA);
+                    Integer intB = convertToInteger(valueB);
+                    return intA.compareTo(intB);
+                    
+                case "DECIMAL":
+                case "FLOAT":
+                case "DOUBLE":
+                    Double doubleA = convertToDouble(valueA);
+                    Double doubleB = convertToDouble(valueB);
+                    return doubleA.compareTo(doubleB);
+                    
+                case "DATE":
+                case "DATETIME":
+                case "TIMESTAMP":
+                    // 对于日期类型，先尝试解析为日期对象，失败则按字符串比较
+                    String strA = valueA.toString();
+                    String strB = valueB.toString();
+                    return strA.compareTo(strB);
+                    
+                default:
+                    // VARCHAR, TEXT等文本类型按字符串比较
+                    return valueA.toString().compareTo(valueB.toString());
+            }
+        } catch (Exception e) {
+            // 如果类型转换失败，回退到字符串比较
+            return valueA.toString().compareTo(valueB.toString());
+        }
+    }
+    
+    /**
+     * 转换为整数
+     */
+    private Integer convertToInteger(Object value) {
+        if (value instanceof Integer) {
+            return (Integer) value;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        return Integer.parseInt(value.toString());
+    }
+    
+    /**
+     * 转换为双精度浮点数
+     */
+    private Double convertToDouble(Object value) {
+        if (value instanceof Double) {
+            return (Double) value;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).doubleValue();
+        }
+        return Double.parseDouble(value.toString());
     }
     
     private String getColumnNameFromExpression(ExpressionPlan expr) {
@@ -1457,6 +1542,12 @@ public class Executor {
         for (ExpressionPlan expr : selectList) {
             if (expr instanceof FunctionCallExpressionPlan) {
                 return true;
+            } else if (expr instanceof AliasExpressionPlan) {
+                // 检查别名表达式内部是否包含聚合函数
+                AliasExpressionPlan aliasExpr = (AliasExpressionPlan) expr;
+                if (hasAggregateFunctions(Arrays.asList(aliasExpr.getExpression()))) {
+                    return true;
+                }
             }
         }
         return false;
@@ -1852,6 +1943,12 @@ public class Executor {
             String functionName = function.getFunctionName();
             List<ExpressionPlan> arguments = function.getArguments();
             
+            // 对于聚合函数，在单行评估时返回适当的值
+            if (isAggregateFunction(functionName)) {
+                // 聚合函数在单行评估时的处理
+                return evaluateAggregateFunctionForRow(functionName, arguments, row);
+            }
+            
             // 评估参数
             List<Object> evaluatedArgs = new ArrayList<>();
             for (ExpressionPlan arg : arguments) {
@@ -1863,6 +1960,65 @@ public class Executor {
         }
         
         throw new RuntimeException("不支持的表达式类型: " + expr.getClass().getSimpleName());
+    }
+    
+    /**
+     * 检查是否为聚合函数
+     */
+    private boolean isAggregateFunction(String functionName) {
+        return functionName.equalsIgnoreCase("COUNT") ||
+               functionName.equalsIgnoreCase("SUM") ||
+               functionName.equalsIgnoreCase("AVG") ||
+               functionName.equalsIgnoreCase("MAX") ||
+               functionName.equalsIgnoreCase("MIN");
+    }
+    
+    /**
+     * 在单行评估时处理聚合函数
+     */
+    private Object evaluateAggregateFunctionForRow(String functionName, List<ExpressionPlan> arguments, Map<String, Object> row) {
+        if (arguments.isEmpty()) {
+            return null;
+        }
+        
+        ExpressionPlan arg = arguments.get(0);
+        Object value = null;
+        
+        if (arg instanceof IdentifierExpressionPlan) {
+            String columnName = ((IdentifierExpressionPlan) arg).getName();
+            if (columnName.equals("*")) {
+                // COUNT(*) - 返回1
+                if (functionName.equalsIgnoreCase("COUNT")) {
+                    return 1;
+                }
+                return null;
+            } else {
+                value = row.getOrDefault(columnName, null);
+            }
+        } else if (arg instanceof LiteralExpressionPlan) {
+            value = ((LiteralExpressionPlan) arg).getValue();
+        }
+        
+        // 根据函数类型返回适当的值
+        switch (functionName.toUpperCase()) {
+            case "COUNT":
+                return value != null ? 1 : 0;
+            case "SUM":
+            case "AVG":
+                if (value != null) {
+                    try {
+                        return Double.parseDouble(value.toString());
+                    } catch (NumberFormatException e) {
+                        return 0.0;
+                    }
+                }
+                return 0.0;
+            case "MAX":
+            case "MIN":
+                return value;
+            default:
+                return null;
+        }
     }
 
     /**

@@ -1,6 +1,0 @@
-CREATE FUNCTION test_add(a INT, b INT) RETURNS INT BEGIN RETURN a + b; END
-CALL test_add(5, 10)
-CALL test_add(20, 30)
-DROP FUNCTION test_add
-quit
-
