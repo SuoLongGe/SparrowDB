@@ -1,0 +1,12 @@
+# Table Metadata
+TABLE_NAME=departments
+COLUMN_COUNT=4
+COLUMN=dept_id:INT:0
+COLUMN=dept_name:VARCHAR:100
+COLUMN=location:VARCHAR:100
+COLUMN=budget:DECIMAL:12
+# End Metadata
+
+RECORD:dept_name=计算机科学与技术学院|location=主楼A区|dept_id=1|budget=5000000.00
+RECORD:dept_name=软件学院|location=主楼B区|dept_id=2|budget=3000000.00
+RECORD:dept_name=信息安全学院|location=主楼C区|dept_id=3|budget=2500000.00

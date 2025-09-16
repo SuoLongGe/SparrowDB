@@ -666,15 +666,31 @@ public class StorageAdapter implements RollbackCallback {
                         continue;
                     }
                     
-                    if (inDataSection && line.startsWith("RECORD:")) {
-                        String recordData = line.substring(7); // 移除"RECORD:"前缀
-                        System.out.println("🔍 找到记录，行号: " + lineNum + ", 数据: " + recordData);
-                        Map<String, Object> record = deserializeRecord(recordData);
-                        if (record != null) {
-                            records.add(record);
-                            System.out.println("🔍 成功解析记录: " + record);
-                        } else {
-                            System.out.println("🔍 记录解析失败");
+                    if (inDataSection) {
+                        if (line.startsWith("RECORD:")) {
+                            // 处理RECORD:格式
+                            String recordData = line.substring(7); // 移除"RECORD:"前缀
+                            System.out.println("🔍 找到RECORD记录，行号: " + lineNum + ", 数据: " + recordData);
+                            Map<String, Object> record = deserializeRecord(recordData);
+                            if (record != null) {
+                                records.add(record);
+                                System.out.println("🔍 成功解析RECORD记录: " + record);
+                            } else {
+                                System.out.println("🔍 RECORD记录解析失败");
+                            }
+                        } else if (line.startsWith("PAGE:")) {
+                            // 跳过PAGE:行
+                            System.out.println("🔍 跳过PAGE行: " + line);
+                        } else if (!line.isEmpty() && !line.startsWith("#")) {
+                            // 处理PAGE:后面的数据行
+                            System.out.println("🔍 找到PAGE数据记录，行号: " + lineNum + ", 数据: " + line);
+                            Map<String, Object> record = deserializeRecord(line);
+                            if (record != null) {
+                                records.add(record);
+                                System.out.println("🔍 成功解析PAGE记录: " + record);
+                            } else {
+                                System.out.println("🔍 PAGE记录解析失败");
+                            }
                         }
                     }
                 }

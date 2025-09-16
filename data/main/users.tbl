@@ -1,0 +1,18 @@
+# Table Metadata
+TABLE_NAME=users
+COLUMN_COUNT=5
+COLUMN=id:INT:0
+COLUMN=name:VARCHAR:50
+COLUMN=email:VARCHAR:100
+COLUMN=age:INT:0
+COLUMN=city:VARCHAR:50
+# End Metadata
+
+RECORD:city=北京|name=张三|id=1|email=zhangsan@email.com|age=25
+RECORD:city=上海|name=李四|id=2|email=lisi@email.com|age=30
+RECORD:city=广州|name=王五|id=3|email=wangwu@email.com|age=28
+RECORD:city=深圳|name=赵六|id=4|email=zhaoliu@email.com|age=35
+RECORD:city=杭州|name=钱七|id=5|email=qianqi@email.com|age=22
+RECORD:city=南京|name=孙八|id=6|email=sunba@email.com|age=29
+RECORD:city=武汉|name=周九|id=7|email=zhoujiu@email.com|age=31
+RECORD:city=成都|name=吴十|id=8|email=wushi@email.com|age=27

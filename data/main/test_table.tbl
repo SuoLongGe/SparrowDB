@@ -1,0 +1,9 @@
+# Table Metadata
+TABLE_NAME=test_table
+COLUMN_COUNT=3
+COLUMN=id:INT:4
+COLUMN=name:VARCHAR:50
+COLUMN=age:INT:4
+# End Metadata
+
+RECORD:name=Test User|id=1|age=25

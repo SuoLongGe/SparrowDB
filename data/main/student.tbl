@@ -1,0 +1,18 @@
+# Table Metadata
+TABLE_NAME=student
+COLUMN_COUNT=5
+COLUMN=id:INT:0
+COLUMN=name:VARCHAR:50
+COLUMN=age:INT:0
+COLUMN=grade:VARCHAR:20
+COLUMN=email:VARCHAR:100
+# End Metadata
+
+RECORD:grade=大三|name=张三|id=1|age=20|email=zhangsan@example.com
+RECORD:grade=大四|name=王五|id=3|age=21|email=wangwu@example.com
+RECORD:grade=大一|name=赵六|id=4|age=18|email=zhaoliu@example.com
+RECORD:grade=研一|name=钱七|id=5|age=22|email=qianqi@example.com
+RECORD:name=李四|id=2|age=19|email=lisi@example.com|grade=null
+RECORD:grade=大三|name=孙八|id=6|age=20|email=sunba@example.com
+RECORD:grade=大二|name=周九|id=7|age=19|email=zhoujiu@example.com
+RECORD:grade=大三|name=吴十|id=8|age=21|email=wushi@example.com

@@ -1,0 +1,10 @@
+# Table Metadata
+TABLE_NAME=test_table2
+COLUMN_COUNT=4
+COLUMN=id:INT:4
+COLUMN=name:VARCHAR:50
+COLUMN=age:INT:4
+COLUMN=score:DECIMAL:10
+# End Metadata
+
+RECORD:score=88.0|name=User3|id=3|age=22
