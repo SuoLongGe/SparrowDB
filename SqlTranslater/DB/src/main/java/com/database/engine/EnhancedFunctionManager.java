@@ -677,7 +677,7 @@ public class EnhancedFunctionManager extends FunctionManager {
     }
     
     /**
-     * 重写父类方法：获取所有函数名
+
      */
     @Override
     public Set<String> getAllFunctionNames() {
@@ -685,6 +685,7 @@ public class EnhancedFunctionManager extends FunctionManager {
     }
     
     /**
+
      * 重写父类方法：获取函数定义
      */
     @Override
@@ -696,6 +697,13 @@ public class EnhancedFunctionManager extends FunctionManager {
             return overloads.get(0);
         }
         return null;
+
+     * 检查函数是否存在 - 重写父类方法
+     */
+    @Override
+    public boolean functionExists(String functionName) {
+        return functionOverloads.containsKey(functionName.toLowerCase());
+
     }
     
     /**

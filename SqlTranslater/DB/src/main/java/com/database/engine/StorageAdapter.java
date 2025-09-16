@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import com.sqlcompiler.catalog.*;
 import com.database.logging.RollbackCallback;
+import com.database.engine.sharding.*;
 
 /**
  * 存储系统适配器 - 整合Java存储系统与数据库引擎
@@ -22,6 +23,9 @@ public class StorageAdapter implements RollbackCallback {
     
     // 列式存储引擎
     private final ColumnarStorageEngine columnarStorageEngine;
+    
+    // 分片管理器
+    private ShardManager shardManager;
 
     // 存储系统配置
     private static final int BUFFER_POOL_SIZE = 50;
@@ -167,6 +171,11 @@ public class StorageAdapter implements RollbackCallback {
      * 扫描表记录
      */
     public List<Map<String, Object>> scanTable(String tableName) {
+        // 检查是否为分片表，如果是则使用分片查询
+        if (isShardedTable(tableName)) {
+            return queryShardedTable(tableName, null);
+        }
+        
         List<Map<String, Object>> records = new ArrayList<>();
         
         try {
@@ -1018,5 +1027,198 @@ public class StorageAdapter implements RollbackCallback {
         deleteRecordByKey(tableName, record);
         insertRecord(tableName, record);
         System.out.println("成功更新记录: " + record);
+    }
+    
+    /**
+     * 设置分片管理器
+     */
+    public void setShardManager(ShardManager shardManager) {
+        this.shardManager = shardManager;
+    }
+    
+    /**
+     * 获取分片管理器
+     */
+    public ShardManager getShardManager() {
+        return shardManager;
+    }
+    
+    /**
+     * 检查表是否为分片表
+     */
+    public boolean isShardedTable(String tableName) {
+        return shardManager != null && shardManager.hasShards(tableName);
+    }
+    
+    /**
+     * 分片表插入记录 - 根据分片键路由到对应分片
+     */
+    public boolean insertRecordToShard(String tableName, Map<String, Object> record) {
+        if (shardManager == null || !shardManager.hasShards(tableName)) {
+            // 非分片表，使用普通插入
+            return insertRecord(tableName, record);
+        }
+        
+        try {
+            // 获取分片元数据
+            ShardMetadata metadata = shardManager.getShardMetadata(tableName);
+            if (metadata == null) {
+                System.err.println("无法获取表 " + tableName + " 的分片元数据");
+                return false;
+            }
+            
+            // 获取分片键值
+            String shardKeyColumn = metadata.getShardKeyColumn();
+            Object shardKeyValue = record.get(shardKeyColumn);
+            if (shardKeyValue == null) {
+                System.err.println("记录缺少分片键 " + shardKeyColumn + ": " + record);
+                return false;
+            }
+            
+            // 路由到目标分片
+            ShardInfo targetShard = shardManager.routeToShard(tableName, shardKeyColumn, shardKeyValue);
+            if (targetShard == null) {
+                System.err.println("无法为记录找到合适的分片: " + record);
+                return false;
+            }
+            
+            // 插入到分片文件
+            return insertRecordToShardFile(targetShard, record);
+            
+        } catch (Exception e) {
+            System.err.println("分片表插入记录失败: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * 插入记录到分片文件
+     */
+    private boolean insertRecordToShardFile(ShardInfo shard, Map<String, Object> record) {
+        try {
+            String shardFilePath = dataDirectory + File.separator + shard.getShardId() + ".tbl";
+            File shardFile = new File(shardFilePath);
+            
+            if (!shardFile.exists()) {
+                System.err.println("分片文件不存在: " + shardFilePath);
+                return false;
+            }
+            
+            // 追加记录到分片文件
+            try (PrintWriter writer = new PrintWriter(new FileWriter(shardFile, StandardCharsets.UTF_8, true))) {
+                String serializedRecord = serializeRecord(record);
+                writer.println(serializedRecord);
+            }
+            
+            // 更新分片记录计数
+            shard.setRecordCount(shard.getRecordCount() + 1);
+            shard.setLastUpdated(System.currentTimeMillis());
+            
+            System.out.println("记录已插入到分片 " + shard.getShardId() + ": " + record);
+            return true;
+            
+        } catch (IOException e) {
+            System.err.println("插入记录到分片文件失败: " + shard.getShardId() + " - " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 分片表查询记录 - 根据WHERE条件查询相关分片
+     */
+    public List<Map<String, Object>> queryShardedTable(String tableName, Map<String, Object> whereConditions) {
+        if (shardManager == null || !shardManager.hasShards(tableName)) {
+            // 非分片表，使用普通查询
+            return scanTable(tableName);
+        }
+        
+        try {
+            List<Map<String, Object>> allResults = new ArrayList<>();
+            
+            // 获取所有分片
+            List<ShardInfo> shards = shardManager.getTableShards(tableName);
+            
+            for (ShardInfo shard : shards) {
+                if (!shard.isActive()) {
+                    continue; // 跳过非活跃分片
+                }
+                
+                // 查询分片文件
+                List<Map<String, Object>> shardResults = queryShardFile(shard, whereConditions);
+                allResults.addAll(shardResults);
+            }
+            
+            System.out.println("分片表查询完成，共找到 " + allResults.size() + " 条记录");
+            return allResults;
+            
+        } catch (Exception e) {
+            System.err.println("分片表查询失败: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * 查询分片文件
+     */
+    private List<Map<String, Object>> queryShardFile(ShardInfo shard, Map<String, Object> whereConditions) {
+        List<Map<String, Object>> results = new ArrayList<>();
+        
+        try {
+            String shardFilePath = dataDirectory + File.separator + shard.getShardId() + ".tbl";
+            File shardFile = new File(shardFilePath);
+            
+            if (!shardFile.exists()) {
+                return results;
+            }
+            
+            // 读取分片文件
+            try (BufferedReader reader = new BufferedReader(new FileReader(shardFile, StandardCharsets.UTF_8))) {
+                String line;
+                boolean inDataSection = false;
+                
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("# End Metadata")) {
+                        inDataSection = true;
+                        continue;
+                    }
+                    
+                    if (inDataSection && !line.isEmpty() && !line.startsWith("#") && !line.startsWith("PAGE:")) {
+                        // 解析记录
+                        Map<String, Object> record = deserializeRecord(line);
+                        if (record != null && matchesConditions(record, whereConditions)) {
+                            results.add(record);
+                        }
+                    }
+                }
+            }
+            
+        } catch (IOException e) {
+            System.err.println("查询分片文件失败: " + shard.getShardId() + " - " + e.getMessage());
+        }
+        
+        return results;
+    }
+    
+    /**
+     * 检查记录是否匹配WHERE条件
+     */
+    private boolean matchesConditions(Map<String, Object> record, Map<String, Object> whereConditions) {
+        if (whereConditions == null || whereConditions.isEmpty()) {
+            return true; // 无条件，返回所有记录
+        }
+        
+        for (Map.Entry<String, Object> condition : whereConditions.entrySet()) {
+            String columnName = condition.getKey();
+            Object expectedValue = condition.getValue();
+            Object actualValue = record.get(columnName);
+            
+            if (!Objects.equals(expectedValue, actualValue)) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 }

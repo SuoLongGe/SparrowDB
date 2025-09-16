@@ -88,6 +88,9 @@ public class DatabaseEngine {
         // 初始化分片管理器
         this.shardManager = new ShardManager(dataDirectory, currentNodeId, storageAdapter, catalogManager);
         
+        // 将分片管理器设置到StorageAdapter中
+        storageAdapter.setShardManager(shardManager);
+        
         // 初始化数据库引擎
         if (!initialize()) {
             throw new RuntimeException("数据库引擎初始化失败");

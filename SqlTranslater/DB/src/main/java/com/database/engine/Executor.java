@@ -436,7 +436,16 @@ public class Executor {
                 
                 // 构建记录Map并插入
                 Map<String, Object> record = buildRecordMap(valueList, insertColumns, tableInfo);
-                if (!storageAdapter.insertRecord(tableName, record)) {
+                
+                // 检查是否为分片表，如果是则使用分片插入
+                boolean insertSuccess;
+                if (storageAdapter.isShardedTable(tableName)) {
+                    insertSuccess = storageAdapter.insertRecordToShard(tableName, record);
+                } else {
+                    insertSuccess = storageAdapter.insertRecord(tableName, record);
+                }
+                
+                if (!insertSuccess) {
                     return new ExecutionResult(false, "插入记录失败", null);
                 }
                 

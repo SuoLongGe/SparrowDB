@@ -1705,16 +1705,153 @@ public class DatabaseGUI extends JFrame {
     }
     
     /**
+     * 内部执行SQL查询（不修改输入区域，不重置AST可视化）
+     */
+    private void executeSQLInternal(String sql) {
+        if (sql == null || sql.trim().isEmpty()) {
+            statusLabel.setText("SQL语句为空");
+            statusLabel.setForeground(Color.ORANGE);
+            return;
+        }
+        
+        statusLabel.setText("正在执行...");
+        statusLabel.setForeground(Color.BLUE);
+        
+        // 不清空显示区域，保持用户当前的AST可视化
+        // tokenArea.setText("");
+        // astArea.setText("");
+        // astVisualizer.setAST(null);
+        
+        try {
+            // 检查是否是批量SQL语句
+            boolean isMultiStatement = sql.contains(";") && sql.split(";").length > 1;
+            
+            // 使用增强版SQL编译器进行编译
+            EnhancedSQLCompiler.CompilationResult result;
+            if (isMultiStatement) {
+                result = compiler.compileBatch(sql);
+            } else {
+                result = compiler.compile(sql);
+            }
+            
+            // 不显示Token信息，保持用户当前的显示
+            // displayTokens(result);
+            
+            // 不显示AST信息，保持用户当前的显示
+            // displayAST(result);
+            
+            // 不显示AST可视化，保持用户当前的显示
+            // displayASTVisualization(result);
+            
+            // 显示执行结果
+            if (result.isSuccess()) {
+                // 尝试执行SQL（如果数据库引擎支持）
+                try {
+                    // 获取选择的索引类型
+                    String selectedIndexType = (String) indexTypeComboBox.getSelectedItem();
+                    
+                    // 获取选择的存储格式
+                    String selectedStorageFormat = (String) storageFormatComboBox.getSelectedItem();
+                    
+                    // 获取表实际的存储格式
+                    String actualStorageFormat = getActualStorageFormat(sql);
+                    if (actualStorageFormat != null) {
+                        resultTabbedPane.showMessage("表存储格式: " + actualStorageFormat);
+                    }
+                    
+                    // 设置数据库引擎的索引类型
+                    databaseEngine.setIndexType(selectedIndexType);
+                    
+                    // 设置数据库引擎的存储格式
+                    databaseEngine.setStorageFormat(selectedStorageFormat);
+                    
+                    // 测量执行时间
+                    long startTime = System.nanoTime();
+                    ExecutionResult execResult = databaseEngine.executeSQL(sql);
+                    long endTime = System.nanoTime();
+                    
+                    // 计算执行时间（毫秒）
+                    double executionTimeMs = (endTime - startTime) / 1_000_000.0;
+                    
+                    // 更新性能指标显示
+                    updatePerformanceMetrics(executionTimeMs, execResult, predicatePushdownCheckBox.isSelected());
+                    
+                    // 更新子查询改写信息显示
+                    updateSubqueryRewriteInfo(execResult);
+                    
+                    // 判断是否为查询类指令
+                    boolean isQuery = isQueryStatement(sql);
+                    
+                    if (execResult.isSuccess()) {
+                        // 检查是否是批量执行结果
+                        if (execResult.getBatchResults() != null && !execResult.getBatchResults().isEmpty()) {
+                            // 批量执行结果
+                            resultTabbedPane.showQueryMessage(sql, true, true, executionTimeMs, selectedIndexType, execResult);
+                            resultTabbedPane.showQueryResult(execResult); // 这会调用showBatchResults
+                        } else if (isQuery && execResult.getData() != null && !execResult.getData().isEmpty()) {
+                            // 单个查询类指令且有数据，显示查询消息和结果
+                            resultTabbedPane.showQueryMessage(sql, true, true, executionTimeMs, selectedIndexType, execResult);
+                            resultTabbedPane.showQueryResult(execResult);
+                        } else {
+                            // 非查询类指令或查询无数据，显示详细消息
+                            String message = isQuery ? "查询成功，但无数据返回" : execResult.getMessage();
+                            resultTabbedPane.showMessage(message);
+                        }
+                    } else {
+                        // 执行失败
+                        resultTabbedPane.showQueryMessage(sql, true, false, executionTimeMs, selectedIndexType, execResult);
+                        resultTabbedPane.showError(execResult.getMessage());
+                    }
+                } catch (Exception e) {
+                    resultTabbedPane.showQueryMessage(sql, true, false, 0, "");
+                    resultTabbedPane.showError("执行失败: " + e.getMessage() + "\n注意: 数据库引擎功能尚未完全实现");
+                }
+                
+                statusLabel.setText("执行成功");
+                statusLabel.setForeground(Color.GREEN);
+            } else {
+                // 编译失败，显示错误信息
+                resultTabbedPane.showCompileError(sql, result.getErrors());
+                statusLabel.setText("编译失败");
+                statusLabel.setForeground(Color.RED);
+            }
+            
+        } catch (Exception e) {
+            resultTabbedPane.showError("程序错误: " + e.getMessage());
+            statusLabel.setText("程序错误");
+            statusLabel.setForeground(Color.RED);
+        }
+    }
+    
+    /**
      * 判断是否为查询类指令
      */
     private boolean isQueryStatement(String sql) {
-        String trimmedSql = sql.trim().toLowerCase();
-        return trimmedSql.startsWith("select") || 
-               trimmedSql.startsWith("show") || 
-               trimmedSql.startsWith("describe") || 
-               trimmedSql.startsWith("desc") ||
-               trimmedSql.startsWith("explain") ||
-               trimmedSql.startsWith("call");
+        String[] lines = sql.split("\n");
+        for (String line : lines) {
+            String trimmedLine = line.trim();
+            // 跳过注释行
+            if (trimmedLine.startsWith("--")) {
+                continue;
+            }
+            // 跳过空行
+            if (trimmedLine.isEmpty()) {
+                continue;
+            }
+            // 检查是否为查询语句
+            String lowerLine = trimmedLine.toLowerCase();
+            if (lowerLine.startsWith("select") || 
+                lowerLine.startsWith("show") || 
+                lowerLine.startsWith("describe") || 
+                lowerLine.startsWith("desc") ||
+                lowerLine.startsWith("explain") ||
+                lowerLine.startsWith("call")) {
+                return true;
+            }
+            // 如果遇到非注释非空行但不是查询语句，则不是查询
+            break;
+        }
+        return false;
     }
     
     /**
@@ -2856,12 +2993,11 @@ public class DatabaseGUI extends JFrame {
      */
     private void showTableData(String tableName) {
         try {
-            // 执行SELECT * FROM tableName查询
+            // 执行SELECT * FROM tableName查询，但不修改用户输入区域
             String sql = "SELECT * FROM " + tableName;
-            sqlInputArea.setText(sql);
             
-            // 自动执行查询
-            executeSQL();
+            // 直接执行查询而不修改输入区域
+            executeSQLInternal(sql);
             
             statusLabel.setText("正在显示表 " + tableName + " 的数据");
             statusLabel.setForeground(Color.BLUE);

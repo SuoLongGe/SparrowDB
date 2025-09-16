@@ -60,7 +60,7 @@ public class SQLSyntaxHighlighter {
     // 正则表达式模式
     private static final Pattern STRING_PATTERN = Pattern.compile("'([^'\\\\]|\\\\.)*'|\"([^\"\\\\]|\\\\.)*\"");
     private static final Pattern NUMBER_PATTERN = Pattern.compile("\\b\\d+\\.?\\d*\\b");
-    private static final Pattern COMMENT_PATTERN = Pattern.compile("--.*$|/\\*.*?\\*/", Pattern.MULTILINE | Pattern.DOTALL);
+    private static final Pattern COMMENT_PATTERN = Pattern.compile("--.*?(?=\\n|$)|/\\*.*?\\*/", Pattern.MULTILINE | Pattern.DOTALL);
     private static final Pattern OPERATOR_PATTERN = Pattern.compile("[=<>!]+|[+\\-*/%]|\\b(AND|OR|NOT)\\b");
     
     private final JTextPane textPane;
