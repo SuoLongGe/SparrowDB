@@ -19,7 +19,15 @@ auto_increment=false|not_null=false|unique=false|column_name=age|data_type=INT|l
 auto_increment=false|not_null=false|unique=false|column_name=city|data_type=VARCHAR|length=50|default_value=null|table_name=users|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|length=0|default_value=false|table_name=dog|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=50|default_value=false|table_name=dog|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=emp_id|data_type=INT|length=0|default_value=null|table_name=employee|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=emp_name|data_type=VARCHAR|length=50|default_value=null|table_name=employee|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=age|data_type=INT|length=0|default_value=null|table_name=employee|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=dept_id|data_type=INT|length=0|default_value=null|table_name=employee|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=join_date|data_type=DATE|length=0|default_value=null|table_name=employee|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=salary|data_type=DECIMAL|length=10|default_value=null|table_name=employee|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=proj_id|data_type=INT|length=0|default_value=null|table_name=project|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=proj_name|data_type=VARCHAR|length=100|default_value=null|table_name=project|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=dept_id|data_type=INT|length=0|default_value=null|table_name=project|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=budget|data_type=DECIMAL|length=12|default_value=null|table_name=project|primary_key=false
 
 PAGE:2
-
-
