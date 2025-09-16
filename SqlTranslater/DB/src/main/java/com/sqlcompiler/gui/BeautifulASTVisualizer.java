@@ -24,6 +24,7 @@ public class BeautifulASTVisualizer extends JPanel {
     private Point lastMousePos;
     private boolean isDragging = false;
     private ASTNode selectedNode = null;
+    private boolean forceMinScaleOnce = false; // 首次展示时使用最小缩放
     
     // 颜色配置
     private static final Color STATEMENT_COLOR = new Color(52, 152, 219);      // 蓝色
@@ -158,6 +159,8 @@ public class BeautifulASTVisualizer extends JPanel {
             layoutTreeNodes();
             // 自动适应窗口大小并居中
             SwingUtilities.invokeLater(() -> {
+                // 首次展示强制最小缩放，以便尽量展示更多节点
+                forceMinScaleOnce = true;
                 fitToWindow();
             });
         } else {
@@ -322,9 +325,17 @@ public class BeautifulASTVisualizer extends JPanel {
                     children.add(clause.getOffset());
                 }
             } else if (node instanceof TableReference) {
-                // 表引用通常没有子节点
+                // 表引用包含JOIN子句
+                TableReference tableRef = (TableReference) node;
+                if (tableRef.getJoins() != null && !tableRef.getJoins().isEmpty()) {
+                    children.addAll(tableRef.getJoins());
+                }
             } else if (node instanceof JoinClause) {
                 JoinClause join = (JoinClause) node;
+                if (join.isSubquery()) {
+                    // 如果是子查询JOIN，添加子查询
+                    children.add(join.getSubquery());
+                }
                 if (join.getCondition() != null) {
                     children.add(join.getCondition());
                 }
@@ -387,11 +398,22 @@ public class BeautifulASTVisualizer extends JPanel {
         } else if (node instanceof LimitClause) {
             return "LIMIT";
         } else if (node instanceof TableReference) {
-            String name = ((TableReference) node).getTableName();
-            return "TABLE\n" + (name.length() > 10 ? name.substring(0, 10) + "..." : name);
+            TableReference tableRef = (TableReference) node;
+            String name = tableRef.getTableName();
+            String alias = tableRef.getAlias();
+            String displayName = alias != null ? alias : name;
+            return "TABLE\n" + (displayName.length() > 10 ? displayName.substring(0, 10) + "..." : displayName);
         } else if (node instanceof JoinClause) {
-            String name = ((JoinClause) node).getTableName();
-            return "JOIN\n" + (name.length() > 10 ? name.substring(0, 10) + "..." : name);
+            JoinClause join = (JoinClause) node;
+            String joinType = join.getJoinType().name();
+            if (join.isSubquery()) {
+                return joinType + " JOIN\n(SUBQUERY)";
+            } else {
+                String name = join.getTableName();
+                String alias = join.getAlias();
+                String displayName = alias != null ? alias : name;
+                return joinType + " JOIN\n" + (displayName.length() > 10 ? displayName.substring(0, 10) + "..." : displayName);
+            }
         } else if (node instanceof ColumnDefinition) {
             String name = ((ColumnDefinition) node).getColumnName();
             return "COLUMN\n" + (name.length() > 10 ? name.substring(0, 10) + "..." : name);
@@ -421,6 +443,10 @@ public class BeautifulASTVisualizer extends JPanel {
                    node instanceof GroupByClause || node instanceof HavingClause || 
                    node instanceof LimitClause) {
             return CLAUSE_COLOR;
+        } else if (node instanceof TableReference) {
+            return INTERMEDIATE_COLOR; // 表引用使用青色
+        } else if (node instanceof JoinClause) {
+            return CLAUSE_COLOR; // JOIN子句使用橙色
         } else {
             return EXPRESSION_COLOR;
         }
@@ -472,7 +498,8 @@ public class BeautifulASTVisualizer extends JPanel {
         // 2. 从根节点开始，递归布局每个节点
         NodeInfo rootInfo = nodeInfoMap.get(rootNode);
         if (rootInfo != null) {
-            rootInfo.x = getWidth() / 2 - NODE_WIDTH / 2;  // 根节点居中
+            // 初始无需依赖组件宽度，先放置在原点，后续通过fitToWindow进行统一缩放与居中
+            rootInfo.x = 0;
             rootInfo.y = 50;
             rootInfo.level = 0;
             
@@ -653,15 +680,59 @@ public class BeautifulASTVisualizer extends JPanel {
             double scaleY = (double) availableHeight / (maxY - minY);
             scale = Math.min(scaleX, scaleY);
             scale = Math.max(0.1, Math.min(1.0, scale)); // 限制缩放范围
+            if (forceMinScaleOnce) {
+                scale = 0.1; // 首次展示使用最小缩放
+            }
         } else {
             scale = 1.0;
         }
         
-        // 计算偏移量以居中显示
-        int contentWidth = (int) ((maxX - minX) * scale);
-        int contentHeight = (int) ((maxY - minY) * scale);
-        offsetX = (getWidth() - contentWidth) / 2 - (int) (minX * scale);
-        offsetY = (getHeight() - contentHeight) / 2 - (int) (minY * scale);
+        // 优先以根节点为居中基准
+        NodeInfo rootInfo = nodeInfoMap.get(rootNode);
+        if (rootInfo != null) {
+            double rootCenterX = (rootInfo.x + NODE_WIDTH / 2.0) * scale;
+            double rootCenterY = (rootInfo.y + NODE_HEIGHT / 2.0) * scale;
+            offsetX = (int) (getWidth() / 2.0 - rootCenterX);
+            offsetY = (int) (getHeight() / 2.0 - rootCenterY);
+        } else {
+            // 回退：内容整体居中
+            int contentWidth = (int) ((maxX - minX) * scale);
+            int contentHeight = (int) ((maxY - minY) * scale);
+            offsetX = (getWidth() - contentWidth) / 2 - (int) (minX * scale);
+            offsetY = (getHeight() - contentHeight) / 2 - (int) (minY * scale);
+        }
+
+        // 夹紧偏移，确保整体仍在视窗内且留边距
+        int scaledMinX = (int) (minX * scale);
+        int scaledMaxX = (int) (maxX * scale);
+        int scaledMinY = (int) (minY * scale);
+        int scaledMaxY = (int) (maxY * scale);
+
+        // 左边界
+        int left = scaledMinX + offsetX;
+        if (left < margin) {
+            offsetX += (margin - left);
+        }
+        // 右边界
+        int right = scaledMaxX + offsetX;
+        if (right > getWidth() - margin) {
+            offsetX -= (right - (getWidth() - margin));
+        }
+        // 上边界
+        int top = scaledMinY + offsetY;
+        if (top < margin) {
+            offsetY += (margin - top);
+        }
+        // 下边界
+        int bottom = scaledMaxY + offsetY;
+        if (bottom > getHeight() - margin) {
+            offsetY -= (bottom - (getHeight() - margin));
+        }
+        
+        // 首次fit完成后清除一次性标记
+        if (forceMinScaleOnce) {
+            forceMinScaleOnce = false;
+        }
         
         repaint();
     }
