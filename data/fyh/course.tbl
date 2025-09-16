@@ -1,9 +1,0 @@
-# Table Metadata
-TABLE_NAME=course
-COLUMN_COUNT=4
-COLUMN=course_id:INT:0
-COLUMN=course_name:VARCHAR:100
-COLUMN=credits:INT:0
-COLUMN=instructor:VARCHAR:50
-# End Metadata
-

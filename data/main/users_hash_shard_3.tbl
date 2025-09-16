@@ -1,0 +1,35 @@
+# Table Metadata
+TABLE_NAME=users
+COLUMN_COUNT=5
+COLUMN=id:INT:0
+COLUMN=name:VARCHAR:50
+COLUMN=email:VARCHAR:100
+COLUMN=age:INT:0
+COLUMN=city:VARCHAR:50
+# End Metadata
+PAGE:1
+city=广州|name=王三|id=3|email=wangsan@email.com|age=25
+city=重庆|name=郑七|id=7|email=zhengqi@email.com|age=21
+city=西安|name=杨十|id=10|email=yangshi@email.com|age=29
+city=深圳|name=赵雷|id=14|email=zhaolei@email.com|age=35
+city=武汉|name=冯伟|id=18|email=fengwei@email.com|age=28
+city=北京|name=张宇|id=21|email=zhangyu@email.com|age=29
+city=杭州|name=吴涛|id=25|email=wutao@email.com|age=21
+city=南京|name=陈健|id=29|email=chenjian@email.com|age=23
+city=上海|name=李虎|id=32|email=lihu@email.com|age=20
+city=成都|name=周琪|id=36|email=zhouqi@email.com|age=29
+city=广州|name=王芳|id=43|email=wangfang@email.com|age=23
+city=重庆|name=郑雪|id=47|email=zhengxue@email.com|age=24
+city=西安|name=杨梅|id=50|email=yangmei@email.com|age=22
+city=深圳|name=赵亮|id=54|email=zhaoliang@email.com|age=20
+city=武汉|name=冯晨|id=58|email=fengchen@email.com|age=26
+city=北京|name=张健|id=61|email=zhangjian@email.com|age=32
+city=杭州|name=吴磊|id=65|email=wulei@email.com|age=33
+city=南京|name=陈涛|id=69|email=chentao@email.com|age=31
+city=上海|name=李俊|id=72|email=lijun@email.com|age=23
+city=成都|name=周波|id=76|email=zhoubo@email.com|age=30
+city=广州|name=王勇|id=83|email=wangyong@email.com|age=28
+city=重庆|name=郑浩|id=87|email=zhenghao@email.com|age=33
+city=西安|name=杨杰|id=90|email=yangjie@email.com|age=27
+city=深圳|name=赵云|id=94|email=zhaoyun@email.com|age=28
+city=武汉|name=冯凯|id=98|email=fengkai@email.com|age=27

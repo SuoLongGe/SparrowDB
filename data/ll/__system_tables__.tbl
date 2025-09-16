@@ -1,9 +1,0 @@
-# Table Metadata
-TABLE_NAME=__system_tables__
-COLUMN_COUNT=4
-COLUMN=table_name:VARCHAR:255
-COLUMN=create_time:BIGINT:8
-COLUMN=column_count:INT:4
-COLUMN=constraint_count:INT:4
-# End Metadata
-
