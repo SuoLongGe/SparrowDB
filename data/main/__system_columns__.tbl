@@ -1,3 +1,4 @@
+
 # Table Metadata
 TABLE_NAME=__system_columns__
 COLUMN_COUNT=9
@@ -12,13 +13,30 @@ COLUMN=default_value:VARCHAR:255
 COLUMN=auto_increment:BOOLEAN:1
 # End Metadata
 PAGE:1
+auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|length=0|default_value=null|table_name=users|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=50|default_value=null|table_name=users|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=email|data_type=VARCHAR|length=100|default_value=null|table_name=users|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=age|data_type=INT|length=0|default_value=null|table_name=users|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=city|data_type=VARCHAR|length=50|default_value=null|table_name=users|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|length=0|default_value=false|table_name=dog|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=50|default_value=false|table_name=dog|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|length=0|default_value=false|table_name=sales_column|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=product_name|data_type=VARCHAR|length=100|default_value=false|table_name=sales_column|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=price|data_type=DECIMAL|length=10|default_value=false|table_name=sales_column|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=quantity|data_type=INT|length=0|default_value=false|table_name=sales_column|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=category|data_type=VARCHAR|length=50|default_value=false|table_name=sales_column|primary_key=false
-auto_increment=false|not_null=false|unique=false|column_name=region|data_type=VARCHAR|length=50|default_value=false|table_name=sales_column|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=emp_id|data_type=INT|length=0|default_value=null|table_name=employee|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=emp_name|data_type=VARCHAR|length=50|default_value=null|table_name=employee|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=age|data_type=INT|length=0|default_value=null|table_name=employee|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=dept_id|data_type=INT|length=0|default_value=null|table_name=employee|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=join_date|data_type=DATE|length=0|default_value=null|table_name=employee|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=salary|data_type=DECIMAL|length=10|default_value=null|table_name=employee|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=proj_id|data_type=INT|length=0|default_value=null|table_name=project|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=proj_name|data_type=VARCHAR|length=100|default_value=null|table_name=project|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=dept_id|data_type=INT|length=0|default_value=null|table_name=project|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=budget|data_type=DECIMAL|length=12|default_value=null|table_name=project|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=product_id|data_type=INT|length=0|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=product_name|data_type=VARCHAR|length=100|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=category|data_type=VARCHAR|length=50|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=price|data_type=DECIMAL|length=8|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=stock_quantity|data_type=INT|length=0|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=supplier|data_type=VARCHAR|length=50|default_value=null|table_name=products|primary_key=false
+auto_increment=false|not_null=false|unique=false|column_name=created_date|data_type=DATE|length=0|default_value=null|table_name=products|primary_key=false
 
 PAGE:2
+

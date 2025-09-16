@@ -3257,11 +3257,12 @@ public class DatabaseGUI extends JFrame {
      */
     private void showViewData(String viewName) {
         try {
-            // 执行SELECT * FROM viewName查询，但不修改用户输入区域
+            // 执行SELECT * FROM viewName查询
             String sql = "SELECT * FROM " + viewName;
+            sqlInputArea.setText(sql);
             
-            // 直接执行查询而不修改输入区域
-            executeSQLInternal(sql);
+            // 自动执行查询
+            executeSQL();
             
             statusLabel.setText("正在显示视图 " + viewName + " 的数据");
             statusLabel.setForeground(Color.BLUE);

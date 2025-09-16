@@ -29,7 +29,6 @@ public class SQLAutoComplete {
     
     // SQL关键字列表
     private static final Set<String> SQL_KEYWORDS = new HashSet<>(Arrays.asList(
-        // 基本SQL关键字
         "CREATE", "TABLE", "INSERT", "INTO", "VALUES", "SELECT", "FROM", "WHERE",
         "DELETE", "DROP", "ALTER", "UPDATE", "SET", "AND", "OR", "NOT", "AS",
         "DISTINCT", "ORDER", "BY", "GROUP", "HAVING", "LIMIT", "OFFSET",
@@ -38,31 +37,7 @@ public class SQLAutoComplete {
         "PRIMARY", "KEY", "FOREIGN", "REFERENCES", "UNIQUE", "DEFAULT",
         "AUTO_INCREMENT", "CHECK", "COUNT", "SUM", "AVG", "MAX", "MIN",
         "INT", "INTEGER", "VARCHAR", "CHAR", "TEXT", "DECIMAL", "FLOAT",
-        "DOUBLE", "BOOLEAN", "DATE", "TIME", "TIMESTAMP",
-        
-        // 视图和函数相关
-        "VIEW", "FUNCTION", "PROCEDURE", "CALL", "BEGIN", "END", "RETURN", "RETURNS", "DECLARE",
-        "PERMANENT",
-        
-        // 控制流关键字
-        "IF", "ELSE", "ELSEIF", "ENDIF", "WHILE", "LOOP", "ENDLOOP", "REPEAT", "UNTIL",
-        "CASE", "WHEN", "THEN", "EXISTS",
-        
-        // 分片相关关键字
-        "SHOW", "SHARD", "SHARDS", "STATS", "USING", "HASH", "RANGE",
-        
-        // 存储格式关键字
-        "STORAGE", "ROW", "COLUMN", "ROW_STORAGE", "COLUMN_STORAGE",
-        
-        // 数学函数
-        "ABS", "CEIL", "FLOOR", "ROUND", "SQRT", "POWER", "MOD", "RAND",
-        
-        // 字符串函数
-        "UPPER", "LOWER", "LENGTH", "SUBSTRING", "CONCAT", "TRIM", "LTRIM", "RTRIM", "REPLACE",
-        
-        // 日期函数
-        "NOW", "CURRENT_DATE", "CURRENT_TIME", "CURRENT_TIMESTAMP", "YEAR", "MONTH", "DAY",
-        "HOUR", "MINUTE", "SECOND", "DATE_ADD", "DATE_SUB", "DATEDIFF"
+        "DOUBLE", "BOOLEAN", "DATE", "TIME", "TIMESTAMP"
     ));
     
     public SQLAutoComplete(JTextComponent textArea, Catalog catalog) {

@@ -146,6 +146,48 @@ public class SyntaxAnalyzer {
     }
 
     /**
+     * 解析CREATE SHARD语句
+     * 格式: CREATE SHARD table_name BY column USING strategy (count)
+     */
+    private CreateShardStatement parseCreateShardStatement() throws SyntaxException {
+        Position pos = currentToken().getPosition();
+        
+        // SHARD
+        expect(TokenType.SHARD);
+        
+        // 表名
+        String tableName = expectIdentifier();
+        
+        // BY
+        expect(TokenType.BY);
+        
+        // 分片键列名
+        String shardKeyColumn = expectIdentifier();
+        
+        // USING
+        expect(TokenType.USING);
+        
+        // 策略 (RANGE, HASH 等)
+        String strategy = expectIdentifier();
+        
+        // (count)
+        expect(TokenType.LEFT_PAREN);
+        if (currentToken().getType() != TokenType.NUMBER_LITERAL) {
+            throw new SyntaxException("期望数字", currentToken().getPosition());
+        }
+        int shardCount = Integer.parseInt(currentToken().getValue());
+        nextToken();
+        expect(TokenType.RIGHT_PAREN);
+        
+        // 可选的分号
+        if (currentToken().getType() == TokenType.SEMICOLON) {
+            nextToken();
+        }
+        
+        return new CreateShardStatement(tableName, shardKeyColumn, strategy, shardCount, pos);
+    }
+
+    /**
      * 解析DROP语句 (TABLE, VIEW, FUNCTION)
      */
     private Statement parseDropStatement() throws SyntaxException {
@@ -1279,11 +1321,13 @@ public class SyntaxAnalyzer {
             case LTRIM:
             case RTRIM:
             case REPLACE:
+                return parseFunctionCallExpression();
             // 日期函数
             case NOW:
             case CURRENT_DATE:
             case CURRENT_TIME:
             case CURRENT_TIMESTAMP:
+                return parseCurrentTimeFunctions();
             case YEAR:
             case MONTH:
             case DAY:
@@ -1293,11 +1337,34 @@ public class SyntaxAnalyzer {
             case DATE_ADD:
             case DATE_SUB:
             case DATEDIFF:
-                return parseFunctionCallExpression();
+                // 检查是否跟着左括号，如果是则当作函数，否则当作标识符
+                if (peekToken().getType() == TokenType.LEFT_PAREN) {
+                    return parseFunctionCallExpression();
+                } else {
+                    return parseIdentifierExpression();
+                }
             default:
                 throw new SyntaxException("意外的token: " + token.getValue(), 
                                         token.getPosition(), "标识符、字面量、'('或聚合函数");
         }
+    }
+    
+    /**
+     * 解析当前时间函数（CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP, NOW）
+     * 这些函数可以不带括号
+     */
+    private Expression parseCurrentTimeFunctions() throws SyntaxException {
+        Position pos = currentToken().getPosition();
+        String functionName = currentToken().getValue();
+        nextToken(); // 消费函数名
+        
+        // 检查是否有括号
+        if (currentToken().getType() == TokenType.LEFT_PAREN) {
+            nextToken(); // 消费左括号
+            expect(TokenType.RIGHT_PAREN); // 期望右括号
+        }
+        
+        return new FunctionCallExpression(functionName, new ArrayList<>(), pos);
     }
     
     /**
@@ -1342,10 +1409,19 @@ public class SyntaxAnalyzer {
             List<Expression> arguments = new ArrayList<>();
             
             if (currentToken().getType() != TokenType.RIGHT_PAREN) {
-                arguments.add(parseExpression());
-                while (currentToken().getType() == TokenType.COMMA) {
+                // 特殊处理COUNT(*)和其他聚合函数的*参数
+                if (currentToken().getType() == TokenType.MULTIPLY && 
+                    (name.equalsIgnoreCase("COUNT") || name.equalsIgnoreCase("SUM") || 
+                     name.equalsIgnoreCase("AVG") || name.equalsIgnoreCase("MAX") || 
+                     name.equalsIgnoreCase("MIN"))) {
+                    arguments.add(new IdentifierExpression("*", currentToken().getPosition()));
                     nextToken();
+                } else {
                     arguments.add(parseExpression());
+                    while (currentToken().getType() == TokenType.COMMA) {
+                        nextToken();
+                        arguments.add(parseExpression());
+                    }
                 }
             }
             
@@ -1400,6 +1476,17 @@ public class SyntaxAnalyzer {
             return new Token(TokenType.EOF, "", new Position(1, 1));
         }
         return tokens.get(currentTokenIndex);
+    }
+    
+    /**
+     * 预览下一个token而不消费它
+     */
+    private Token peekToken() {
+        int nextIndex = currentTokenIndex + 1;
+        if (nextIndex >= tokens.size()) {
+            return new Token(TokenType.EOF, "", new Position(1, 1));
+        }
+        return tokens.get(nextIndex);
     }
     
     /**
@@ -1464,7 +1551,9 @@ public class SyntaxAnalyzer {
                type == TokenType.DAY || type == TokenType.HOUR ||
                type == TokenType.MINUTE || type == TokenType.SECOND ||
                type == TokenType.DATE_ADD || type == TokenType.DATE_SUB ||
-               type == TokenType.DATEDIFF;
+               type == TokenType.DATEDIFF ||
+               // 分片策略关键字
+               type == TokenType.RANGE || type == TokenType.HASH;
     }
     
     /**

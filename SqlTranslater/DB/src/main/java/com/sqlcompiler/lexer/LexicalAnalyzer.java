@@ -192,8 +192,11 @@ public class LexicalAnalyzer {
             if (Character.isWhitespace(currentChar)) {
                 skipWhitespace();
             } else if (currentChar == '-' && currentPos + 1 < source.length() && source.charAt(currentPos + 1) == '-') {
-                // 处理SQL注释 (--)
-                skipComment();
+                // 处理SQL单行注释 (--)
+                skipSingleLineComment();
+            } else if (currentChar == '/' && currentPos + 1 < source.length() && source.charAt(currentPos + 1) == '*') {
+                // 处理SQL多行注释 (/* */)
+                skipMultiLineComment();
             } else if (Character.isLetter(currentChar) || currentChar == '_') {
                 readIdentifierOrKeyword();
             } else if (Character.isDigit(currentChar)) {
@@ -229,9 +232,9 @@ public class LexicalAnalyzer {
     }
     
     /**
-     * 跳过SQL注释 (--)
+     * 跳过SQL单行注释 (--)
      */
-    private void skipComment() {
+    private void skipSingleLineComment() {
         // 跳过 "--"
         currentPos += 2;
         currentColumn += 2;
@@ -248,6 +251,37 @@ public class LexicalAnalyzer {
             currentColumn = 1;
             currentPos++;
         }
+    }
+    
+    /**
+     * 跳过SQL多行注释 (斜杠星号 星号斜杠)
+     */
+    private void skipMultiLineComment() {
+        // 跳过 "/*"
+        currentPos += 2;
+        currentColumn += 2;
+        
+        // 寻找注释结束标记 "*/"
+        while (currentPos + 1 < source.length()) {
+            if (source.charAt(currentPos) == '*' && source.charAt(currentPos + 1) == '/') {
+                // 找到注释结束，跳过 "*/"
+                currentPos += 2;
+                currentColumn += 2;
+                return;
+            } else if (source.charAt(currentPos) == '\n') {
+                // 遇到换行符，更新行号和列号
+                currentLine++;
+                currentColumn = 1;
+                currentPos++;
+            } else {
+                currentPos++;
+                currentColumn++;
+            }
+        }
+        
+        // 如果到达文件末尾仍未找到注释结束，这是一个错误，但我们容忍它
+        // 简单地移动到文件末尾
+        currentPos = source.length();
     }
     
     /**
