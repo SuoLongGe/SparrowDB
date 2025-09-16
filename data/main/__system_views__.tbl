@@ -1,0 +1,6 @@
+VIEW:test_view|QUERY:SELECT * FROM students WHERE ID > 0|CREATE_TIME:1757902940484
+VIEW:electronics|QUERY:SELECT id, name, price FROM products WHERE category = 'Electronics'|CREATE_TIME:1757903599544
+VIEW:expensive_products|QUERY:SELECT id, name, price, category FROM products WHERE price > 100|CREATE_TIME:1757903642457
+VIEW:student_course_view|QUERY:SELECT com.sqlcompiler.ast.AliasExpression@7e2f4294, com.sqlcompiler.ast.DotExpression@28045541, com.sqlcompiler.ast.DotExpression@591e9ec9 FROM student|CREATE_TIME:1757924791328
+VIEW:customer_order_summary|QUERY:SELECT com.sqlcompiler.ast.DotExpression@6826df00, com.sqlcompiler.ast.DotExpression@2b75a2b1, com.sqlcompiler.ast.DotExpression@684109eb, com.sqlcompiler.ast.DotExpression@9541f39, com.sqlcompiler.ast.DotExpression@57540fcc, com.sqlcompiler.ast.AliasExpression@51324fbd, com.sqlcompiler.ast.AliasExpression@31dc1a21, com.sqlcompiler.ast.AliasExpression@185876f4, com.sqlcompiler.ast.AliasExpression@6f85205c FROM customers WHERE com.sqlcompiler.ast.DotExpression@7d55cf04 != 'cancelled' OR com.sqlcompiler.ast.IsNullExpression@26e1e98c com.sqlcompiler.ast.GroupByClause@6020bacc|CREATE_TIME:1757931285587
+VIEW:high_salary_employees|QUERY:SELECT * FROM employees WHERE ID > 1|CREATE_TIME:1757984597507

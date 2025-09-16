@@ -45,7 +45,16 @@ public class LexicalAnalyzer {
         keywordMap.put("DROP", TokenType.DROP);
         keywordMap.put("ALTER", TokenType.ALTER);
         keywordMap.put("UPDATE", TokenType.UPDATE);
+        keywordMap.put("VIEW", TokenType.VIEW);
         keywordMap.put("SET", TokenType.SET);
+        keywordMap.put("FUNCTION", TokenType.FUNCTION);
+        keywordMap.put("PROCEDURE", TokenType.PROCEDURE);
+        keywordMap.put("CALL", TokenType.CALL);
+        keywordMap.put("BEGIN", TokenType.BEGIN);
+        keywordMap.put("END", TokenType.END);
+        keywordMap.put("RETURN", TokenType.RETURN);
+        keywordMap.put("RETURNS", TokenType.RETURNS);
+        keywordMap.put("DECLARE", TokenType.DECLARE);
         keywordMap.put("AND", TokenType.AND);
         keywordMap.put("OR", TokenType.OR);
         keywordMap.put("NOT", TokenType.NOT);
@@ -67,7 +76,19 @@ public class LexicalAnalyzer {
         keywordMap.put("NULL", TokenType.NULL);
         keywordMap.put("TRUE", TokenType.TRUE);
         keywordMap.put("FALSE", TokenType.FALSE);
+        keywordMap.put("PERMANENT", TokenType.PERMANENT);
+        keywordMap.put("IF", TokenType.IF);
+        keywordMap.put("EXISTS", TokenType.EXISTS);
         
+        // 分片相关关键字
+        keywordMap.put("SHOW", TokenType.SHOW);
+        keywordMap.put("SHARD", TokenType.SHARD);
+        keywordMap.put("SHARDS", TokenType.SHARDS);
+        keywordMap.put("STATS", TokenType.STATS);
+        keywordMap.put("USING", TokenType.USING);
+        keywordMap.put("HASH", TokenType.HASH);
+        keywordMap.put("RANGE", TokenType.RANGE);
+
         // 数据类型
         keywordMap.put("INT", TokenType.INT);
         keywordMap.put("INTEGER", TokenType.INTEGER);
@@ -95,7 +116,64 @@ public class LexicalAnalyzer {
         keywordMap.put("LIKE", TokenType.LIKE);
         keywordMap.put("IN", TokenType.IN);
         keywordMap.put("BETWEEN", TokenType.BETWEEN);
+
+        // 排序关键字
+        keywordMap.put("ASC", TokenType.ASC);
+        keywordMap.put("DESC", TokenType.DESC);
+
+        // 约束关键字
+        keywordMap.put("CHECK", TokenType.CHECK);
+        keywordMap.put("ASC", TokenType.ASC);
+        keywordMap.put("DESC", TokenType.DESC);
         
+        // 聚合函数
+        keywordMap.put("COUNT", TokenType.COUNT);
+        keywordMap.put("SUM", TokenType.SUM);
+        keywordMap.put("AVG", TokenType.AVG);
+        keywordMap.put("MAX", TokenType.MAX);
+        keywordMap.put("MIN", TokenType.MIN);
+        
+        // 数学函数
+        keywordMap.put("ABS", TokenType.ABS);
+        keywordMap.put("CEIL", TokenType.CEIL);
+        keywordMap.put("FLOOR", TokenType.FLOOR);
+        keywordMap.put("ROUND", TokenType.ROUND);
+        keywordMap.put("SQRT", TokenType.SQRT);
+        keywordMap.put("POWER", TokenType.POWER);
+        keywordMap.put("MOD", TokenType.MOD);
+        keywordMap.put("RAND", TokenType.RAND);
+
+        // 字符串函数
+        keywordMap.put("UPPER", TokenType.UPPER);
+        keywordMap.put("LOWER", TokenType.LOWER);
+        keywordMap.put("LENGTH", TokenType.LENGTH);
+        keywordMap.put("SUBSTRING", TokenType.SUBSTRING);
+        keywordMap.put("CONCAT", TokenType.CONCAT);
+        keywordMap.put("TRIM", TokenType.TRIM);
+        keywordMap.put("LTRIM", TokenType.LTRIM);
+        keywordMap.put("RTRIM", TokenType.RTRIM);
+        keywordMap.put("REPLACE", TokenType.REPLACE);
+
+        // 日期函数
+        keywordMap.put("NOW", TokenType.NOW);
+        keywordMap.put("CURRENT_DATE", TokenType.CURRENT_DATE);
+        keywordMap.put("CURRENT_TIME", TokenType.CURRENT_TIME);
+        keywordMap.put("CURRENT_TIMESTAMP", TokenType.CURRENT_TIMESTAMP);
+        keywordMap.put("YEAR", TokenType.YEAR);
+        keywordMap.put("MONTH", TokenType.MONTH);
+        keywordMap.put("DAY", TokenType.DAY);
+        keywordMap.put("HOUR", TokenType.HOUR);
+        keywordMap.put("MINUTE", TokenType.MINUTE);
+        keywordMap.put("SECOND", TokenType.SECOND);
+        keywordMap.put("DATE_ADD", TokenType.DATE_ADD);
+        keywordMap.put("DATE_SUB", TokenType.DATE_SUB);
+        keywordMap.put("DATEDIFF", TokenType.DATEDIFF);
+
+
+        keywordMap.put("STORAGE", TokenType.STORAGE);
+        keywordMap.put("ROW", TokenType.ROW);
+        keywordMap.put("COLUMN", TokenType.COLUMN);
+
         return keywordMap;
     }
     
@@ -113,6 +191,12 @@ public class LexicalAnalyzer {
             
             if (Character.isWhitespace(currentChar)) {
                 skipWhitespace();
+            } else if (currentChar == '-' && currentPos + 1 < source.length() && source.charAt(currentPos + 1) == '-') {
+                // 处理SQL单行注释 (--)
+                skipSingleLineComment();
+            } else if (currentChar == '/' && currentPos + 1 < source.length() && source.charAt(currentPos + 1) == '*') {
+                // 处理SQL多行注释 (/* */)
+                skipMultiLineComment();
             } else if (Character.isLetter(currentChar) || currentChar == '_') {
                 readIdentifierOrKeyword();
             } else if (Character.isDigit(currentChar)) {
@@ -148,6 +232,59 @@ public class LexicalAnalyzer {
     }
     
     /**
+     * 跳过SQL单行注释 (--)
+     */
+    private void skipSingleLineComment() {
+        // 跳过 "--"
+        currentPos += 2;
+        currentColumn += 2;
+        
+        // 跳过注释内容直到行尾
+        while (currentPos < source.length() && source.charAt(currentPos) != '\n') {
+            currentPos++;
+            currentColumn++;
+        }
+        
+        // 如果遇到换行符，更新行号和列号
+        if (currentPos < source.length() && source.charAt(currentPos) == '\n') {
+            currentLine++;
+            currentColumn = 1;
+            currentPos++;
+        }
+    }
+    
+    /**
+     * 跳过SQL多行注释 (斜杠星号 星号斜杠)
+     */
+    private void skipMultiLineComment() {
+        // 跳过 "/*"
+        currentPos += 2;
+        currentColumn += 2;
+        
+        // 寻找注释结束标记 "*/"
+        while (currentPos + 1 < source.length()) {
+            if (source.charAt(currentPos) == '*' && source.charAt(currentPos + 1) == '/') {
+                // 找到注释结束，跳过 "*/"
+                currentPos += 2;
+                currentColumn += 2;
+                return;
+            } else if (source.charAt(currentPos) == '\n') {
+                // 遇到换行符，更新行号和列号
+                currentLine++;
+                currentColumn = 1;
+                currentPos++;
+            } else {
+                currentPos++;
+                currentColumn++;
+            }
+        }
+        
+        // 如果到达文件末尾仍未找到注释结束，这是一个错误，但我们容忍它
+        // 简单地移动到文件末尾
+        currentPos = source.length();
+    }
+    
+    /**
      * 读取标识符或关键字
      */
     private void readIdentifierOrKeyword() {
@@ -166,7 +303,11 @@ public class LexicalAnalyzer {
         TokenType type = keywords.get(value.toUpperCase());
         
         if (type != null) {
+
             // 处理特殊关键字
+            // 处理特殊关键字组合
+
+
             if (value.toUpperCase().equals("NOT") && 
                 currentPos < source.length() && 
                 source.substring(currentPos).trim().toUpperCase().startsWith("NULL")) {
@@ -180,8 +321,42 @@ public class LexicalAnalyzer {
                                        new Position(startLine, startColumn)));
                     return;
                 }
+
+            } else if (value.toUpperCase().equals("PRIMARY") && 
+                       currentPos < source.length() && 
+                       source.substring(currentPos).trim().toUpperCase().startsWith("KEY")) {
+                // 处理 PRIMARY KEY
+                skipWhitespace();
+                if (currentPos + 3 <= source.length() && 
+                    source.substring(currentPos, currentPos + 3).toUpperCase().equals("KEY")) {
+                    currentPos += 3;
+                    currentColumn += 3;
+                    tokens.add(new Token(TokenType.PRIMARY_KEY, "PRIMARY KEY", 
+                                       new Position(startLine, startColumn)));
+                    return;
+                }
+            } else if (value.toUpperCase().equals("FOREIGN") && 
+                       currentPos < source.length() && 
+                       source.substring(currentPos).trim().toUpperCase().startsWith("KEY")) {
+                // 处理 FOREIGN KEY
+                skipWhitespace();
+                if (currentPos + 3 <= source.length() && 
+                    source.substring(currentPos, currentPos + 3).toUpperCase().equals("KEY")) {
+                    currentPos += 3;
+                    currentColumn += 3;
+                    tokens.add(new Token(TokenType.FOREIGN_KEY, "FOREIGN KEY", 
+                                       new Position(startLine, startColumn)));
+                    return;
+                }
+            } else if (value.toUpperCase().equals("AUTO_INCREMENT")) {
+                // 处理 AUTO_INCREMENT
+                tokens.add(new Token(TokenType.AUTO_INCREMENT, value, new Position(startLine, startColumn)));
+                return;
             }
+            
+            // 处理其他关键字（包括ASC、DESC等）
             tokens.add(new Token(type, value, new Position(startLine, startColumn)));
+            return;
         } else {
             tokens.add(new Token(TokenType.IDENTIFIER, value, new Position(startLine, startColumn)));
         }

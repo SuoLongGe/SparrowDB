@@ -1,0 +1,49 @@
+# Java编译文件
+*.class
+target/
+out/
+
+# IDE文件
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志文件
+*.log
+
+# 临时文件
+*.tmp
+*.temp
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# 测试报告
+target/surefire-reports/
+target/maven-status/
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 备份文件
+*.bak
+*.backup
+
+# 编译脚本生成的文件
+*.jar
+*.war
+*.ear
+
+# 其他临时文件
+*.orig
+*.rej

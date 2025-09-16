@@ -3,9 +3,9 @@ package com.sqlcompiler.semantic;
 import com.sqlcompiler.ast.*;
 import com.sqlcompiler.catalog.*;
 import com.sqlcompiler.exception.CompilationException;
-import com.sqlcompiler.exception.SemanticException;
+// import com.sqlcompiler.exception.SemanticException;
 import com.sqlcompiler.lexer.Position;
-import com.sqlcompiler.lexer.TokenType;
+// import com.sqlcompiler.lexer.TokenType;
 
 import java.util.*;
 
@@ -17,11 +17,14 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
     private final Catalog catalog;
     private final List<String> errors;
     private final List<String> warnings;
+    // 临时表目录：用于批量语句分析时，按顺序记录本批次内新创建的表，避免影响真实目录
+    private final Map<String, TableInfo> temporaryTables;
     
     public SemanticAnalyzer(Catalog catalog) {
         this.catalog = catalog;
         this.errors = new ArrayList<>();
         this.warnings = new ArrayList<>();
+        this.temporaryTables = new HashMap<>();
     }
     
     /**
@@ -30,6 +33,7 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
     public SemanticAnalysisResult analyze(Statement statement) {
         errors.clear();
         warnings.clear();
+        temporaryTables.clear();
         
         try {
             statement.accept(this);
@@ -45,13 +49,79 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         // 基类，不需要处理
         return null;
     }
+    @Override
+    public Void visit(BatchStatement node) throws CompilationException {
+        // 按顺序验证批量语句中的每个语句
+        // 对于CREATE TABLE，先进行基本校验，再把表登记到临时目录，
+        // 使后续语句（如INSERT/SELECT）在同一批次内可见
+        for (Statement stmt : node.getStatements()) {
+            if (stmt instanceof CreateTableStatement) {
+                // 先对CREATE语句本身做校验
+                stmt.accept(this);
+
+                CreateTableStatement create = (CreateTableStatement) stmt;
+                String tableName = create.getTableName();
+
+                // 如果真实目录已存在，则错误已经在visit(CreateTableStatement)中记录，这里跳过登记
+                if (!catalog.tableExists(tableName)) {
+                    // 构造一个临时的TableInfo，仅用于本次批量语义分析
+                    TableInfo tableInfo = new TableInfo(tableName);
+
+                    // 添加列
+                    for (ColumnDefinition columnDef : create.getColumns()) {
+                        ColumnInfo columnInfo = createColumnInfo(columnDef);
+                        tableInfo.addColumn(columnInfo);
+                    }
+
+                    // 添加约束
+                    for (Constraint constraint : create.getConstraints()) {
+                        ConstraintInfo constraintInfo = createConstraintInfo(constraint, tableInfo);
+                        tableInfo.addConstraint(constraintInfo);
+                    }
+
+                    temporaryTables.put(tableName.toLowerCase(), tableInfo);
+                }
+            } else {
+                // 其他语句正常校验，但其表/列检查会同时参考temporaryTables
+                stmt.accept(this);
+            }
+        }
+        return null;
+    }
+    @Override
+    public Void visit(CreateViewStatement node) throws CompilationException {
+        // 检查视图名是否已存在（这里简化处理，实际应该有专门的视图目录）
+        String viewName = node.getViewName();
+        if (catalog.tableExists(viewName)) {
+            errors.add(String.format("[语义错误, %s, 名称 '%s' 已被表使用]", 
+                                   node.getPosition(), viewName));
+            return null;
+        }
+        
+        // 分析视图的SELECT语句
+        SelectStatement selectStatement = node.getSelectStatement();
+        selectStatement.accept(this);
+        
+        return null;
+    }
+    
+    @Override
+    public Void visit(DropViewStatement node) throws CompilationException {
+        // 这里简化处理，实际应该检查视图是否存在
+        // 如果不是IF EXISTS语义，应该验证视图存在性
+        if (!node.isIfExists()) {
+            // 应该检查视图是否存在，这里暂时跳过
+        }
+        
+        return null;
+    }
     
     @Override
     public Void visit(CreateTableStatement node) throws CompilationException {
         String tableName = node.getTableName();
         
         // 检查表是否已存在
-        if (catalog.tableExists(tableName)) {
+        if (catalog.tableExists(tableName) || temporaryTables.containsKey(tableName.toLowerCase())) {
             errors.add(String.format("[语义错误, %s, 表 '%s' 已存在]", 
                                    node.getPosition(), tableName));
             return null;
@@ -87,8 +157,8 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         // 验证约束
         validateConstraints(tableInfo);
         
-        // 将表信息添加到目录
-        catalog.addTable(tableInfo);
+        // 注意：不在语义分析阶段添加表到目录，这应该在执行阶段完成
+        // catalog.addTable(tableInfo);
         
         return null;
     }
@@ -98,10 +168,10 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         String tableName = node.getTableName();
         
         // 检查表是否存在
-        TableInfo tableInfo = catalog.getTable(tableName);
+        TableInfo tableInfo = temporaryTables.getOrDefault(tableName.toLowerCase(), catalog.getTable(tableName));
         if (tableInfo == null) {
-            errors.add(String.format("[语义错误, %s, 表 '%s' 不存在]", 
-                                   node.getPosition(), tableName));
+            errors.add(String.format("❌ 语义错误\n   位置: 第%d行第%d列\n   错误: 表 '%s' 不存在", 
+                                   node.getPosition().getLine(), node.getPosition().getColumn(), tableName));
             return null;
         }
         
@@ -116,8 +186,8 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         // 检查列是否存在
         for (String columnName : insertColumns) {
             if (!tableInfo.columnExists(columnName)) {
-                errors.add(String.format("[语义错误, %s, 列 '%s' 在表 '%s' 中不存在]", 
-                                       node.getPosition(), columnName, tableName));
+                errors.add(String.format("❌ 语义错误\n   位置: 第%d行第%d列\n   错误: 列 '%s' 在表 '%s' 中不存在", 
+                                       node.getPosition().getLine(), node.getPosition().getColumn(), columnName, tableName));
             }
         }
         
@@ -125,8 +195,8 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         for (int i = 0; i < values.size(); i++) {
             List<Expression> valueList = values.get(i);
             if (valueList.size() != insertColumns.size()) {
-                errors.add(String.format("[语义错误, %s, 第%d行值的数量(%d)与列数(%d)不匹配]", 
-                                       node.getPosition(), i + 1, valueList.size(), insertColumns.size()));
+                errors.add(String.format("❌ 语义错误\n   位置: 第%d行第%d列\n   错误: 第%d行值的数量(%d)与列数(%d)不匹配", 
+                                       node.getPosition().getLine(), node.getPosition().getColumn(), i + 1, valueList.size(), insertColumns.size()));
             }
         }
         
@@ -149,11 +219,12 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
     
     @Override
     public Void visit(SelectStatement node) throws CompilationException {
-        // 检查FROM子句中的表是否存在
+        // 检查FROM子句中的表或视图是否存在
         if (node.getFromClause() != null) {
             for (TableReference tableRef : node.getFromClause()) {
                 String tableName = tableRef.getTableName();
-                if (!catalog.tableExists(tableName)) {
+                boolean existsInTemp = temporaryTables.containsKey(tableName.toLowerCase());
+                if (!existsInTemp && !catalog.tableOrViewExists(tableName)) {
                     errors.add(String.format("[语义错误, %s, 表 '%s' 不存在]", 
                                            tableRef.getPosition(), tableName));
                 }
@@ -195,13 +266,55 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
     }
     
     @Override
+    public Void visit(UpdateStatement node) throws CompilationException {
+        String tableName = node.getTableName();
+        
+        // 检查表是否存在
+        TableInfo tableInfo = temporaryTables.getOrDefault(tableName.toLowerCase(), catalog.getTable(tableName));
+        if (tableInfo == null) {
+            errors.add(String.format("❌ 语义错误\n   位置: 第%d行第%d列\n   错误: 表 '%s' 不存在", 
+                                   node.getPosition().getLine(), node.getPosition().getColumn(), tableName));
+            return null;
+        }
+        
+        // 检查SET子句中的列是否存在
+        for (String columnName : node.getSetClause().keySet()) {
+            if (!tableInfo.columnExists(columnName)) {
+                errors.add(String.format("❌ 语义错误\n   位置: 第%d行第%d列\n   错误: 列 '%s' 在表 '%s' 中不存在", 
+                                       node.getPosition().getLine(), node.getPosition().getColumn(), columnName, tableName));
+            }
+        }
+        
+        // 检查SET子句中的表达式类型
+        for (Map.Entry<String, Expression> entry : node.getSetClause().entrySet()) {
+            String columnName = entry.getKey();
+            Expression expr = entry.getValue();
+            ColumnInfo columnInfo = tableInfo.getColumn(columnName);
+            
+            if (columnInfo != null) {
+                validateExpressionType(expr, columnInfo, node.getPosition());
+            }
+        }
+        
+        // 分析WHERE子句
+        if (node.getWhereClause() != null) {
+            List<TableReference> fromClause = Arrays.asList(
+                new TableReference(tableName, null, new ArrayList<>(), node.getPosition())
+            );
+            validateExpression(node.getWhereClause().getCondition(), fromClause, node.getPosition());
+        }
+        
+        return null;
+    }
+    
+    @Override
     public Void visit(DeleteStatement node) throws CompilationException {
         String tableName = node.getTableName();
         
         // 检查表是否存在
-        if (!catalog.tableExists(tableName)) {
-            errors.add(String.format("[语义错误, %s, 表 '%s' 不存在]", 
-                                   node.getPosition(), tableName));
+        if (!catalog.tableExists(tableName) && !temporaryTables.containsKey(tableName.toLowerCase())) {
+            errors.add(String.format("❌ 语义错误\n   位置: 第%d行第%d列\n   错误: 表 '%s' 不存在", 
+                                   node.getPosition().getLine(), node.getPosition().getColumn(), tableName));
             return null;
         }
         
@@ -254,11 +367,49 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
     }
     
     @Override
+    public Void visit(DotExpression node) throws CompilationException {
+        // 点号表达式在validateExpression中处理
+        return null;
+    }
+    
+    @Override
     public Void visit(FunctionCallExpression node) throws CompilationException {
         // 验证函数参数
         for (Expression arg : node.getArguments()) {
             arg.accept(this);
         }
+        return null;
+    }
+    
+    @Override
+    public Void visit(AliasExpression node) throws CompilationException {
+        // 验证别名表达式中的内部表达式
+        node.getExpression().accept(this);
+        return null;
+    }
+    
+    @Override
+    public Void visit(InExpression node) throws CompilationException {
+        // 验证左侧表达式
+        node.getLeft().accept(this);
+        
+        // 验证右侧（子查询或值列表）
+        if (node.isSubquery()) {
+            // 验证子查询
+            node.getSubquery().accept(this);
+        } else {
+            // 验证值列表
+            for (Expression value : node.getValues()) {
+                value.accept(this);
+            }
+        }
+        return null;
+    }
+    
+    @Override
+    public Void visit(SubqueryExpression node) throws CompilationException {
+        // 验证子查询
+        node.getSubquery().accept(this);
         return null;
     }
     
@@ -317,6 +468,43 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         return null;
     }
     
+    @Override
+    public Void visit(SelectListClause node) throws CompilationException {
+        for (Expression expr : node.getExpressions()) {
+            expr.accept(this);
+        }
+        return null;
+    }
+    
+    @Override
+    public Void visit(FromClause node) throws CompilationException {
+        for (TableReference tableRef : node.getTableReferences()) {
+            tableRef.accept(this);
+        }
+        return null;
+    }
+    
+    @Override
+    public Void visit(CreateFunctionStatement node) throws CompilationException {
+        // Function semantic validation could be added here
+        return null;
+    }
+    
+    @Override
+    public Void visit(CallStatement node) throws CompilationException {
+        // Call statement semantic validation could be added here
+        for (Expression arg : node.getArguments()) {
+            arg.accept(this);
+        }
+        return null;
+    }
+    
+    @Override
+    public Void visit(DropFunctionStatement node) throws CompilationException {
+        // Drop function semantic validation could be added here
+        return null;
+    }
+    
     /**
      * 创建列信息
      */
@@ -338,18 +526,25 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
                 case UNIQUE:
                     unique = true;
                     break;
+                case FOREIGN_KEY:
+                    // 列级外键在CREATE TABLE的表级处理中验证，这里忽略布尔标记
+                    break;
                 case DEFAULT:
                     defaultValue = constraint.getDefaultValue();
                     break;
                 case AUTO_INCREMENT:
                     autoIncrement = true;
                     break;
+                case CHECK:
+                    // 列级CHECK当前不做表达式验证
+                    break;
             }
         }
         
         return new ColumnInfo(columnDef.getColumnName(), columnDef.getDataType(),
-                            columnDef.getLength(), notNull, primaryKey, unique,
-                            defaultValue, autoIncrement);
+                            columnDef.getLength() != null ? columnDef.getLength() : 0, 
+                            !notNull, primaryKey, unique,
+                            autoIncrement, defaultValue, notNull);
     }
     
     /**
@@ -361,6 +556,7 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
                                 constraint.getColumns(),
                                 constraint.getReferencedTable(),
                                 constraint.getReferencedColumns(),
+                                null,
                                 constraint.getDefaultValue());
     }
     
@@ -381,6 +577,10 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
                 return ConstraintInfo.ConstraintType.DEFAULT;
             case AUTO_INCREMENT:
                 return ConstraintInfo.ConstraintType.AUTO_INCREMENT;
+            case CHECK:
+                // 目前不执行CHECK表达式验证，这里映射为UNIQUE之外的通用类型或保留DEFAULT
+                // 为了覆盖枚举分支，先返回UNIQUE（不影响后续执行阶段）
+                return ConstraintInfo.ConstraintType.UNIQUE;
             default:
                 throw new IllegalArgumentException("未知的约束类型: " + type);
         }
@@ -422,7 +622,8 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
             // 检查列是否存在于FROM子句的表中
             boolean columnFound = false;
             for (TableReference tableRef : fromClause) {
-                TableInfo tableInfo = catalog.getTable(tableRef.getTableName());
+                TableInfo tableInfo = temporaryTables.getOrDefault(tableRef.getTableName().toLowerCase(),
+                    catalog.getTable(tableRef.getTableName()));
                 if (tableInfo != null && tableInfo.columnExists(columnName)) {
                     columnFound = true;
                     break;
@@ -435,6 +636,19 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
         } else {
             expr.accept(this);
         }
+    }
+    
+    @Override
+    public Void visit(DropTableStatement node) throws CompilationException {
+        String tableName = node.getTableName();
+        
+        // 检查表是否存在（除非使用了IF EXISTS）
+        if (!node.isIfExists() && !catalog.tableExists(tableName)) {
+            errors.add(String.format("[语义错误, %s, 表 '%s' 不存在]", 
+                                   node.getPosition(), tableName));
+        }
+        
+        return null;
     }
     
     /**
@@ -450,5 +664,66 @@ public class SemanticAnalyzer implements ASTVisitor<Void> {
                                        position, value, columnInfo.getName(), columnInfo.getDataType()));
             }
         }
+    }
+    
+    @Override
+    public Void visit(CreateShardStatement node) throws CompilationException {
+        // 检查表是否存在
+        String tableName = node.getTableName();
+        if (!catalog.tableExists(tableName)) {
+            throw new CompilationException("表 '" + tableName + "' 不存在", node.getPosition(), "语义错误");
+        }
+        
+        // 检查分片键列是否存在
+        String shardKeyColumn = node.getShardKeyColumn();
+        TableInfo tableInfo = catalog.getTable(tableName);
+        if (tableInfo != null) {
+            boolean columnExists = tableInfo.getColumns().stream()
+                .anyMatch(col -> col.getName().equalsIgnoreCase(shardKeyColumn));
+            if (!columnExists) {
+                throw new CompilationException("表 '" + tableName + "' 中不存在列 '" + shardKeyColumn + "'", node.getPosition(), "语义错误");
+            }
+        }
+        
+        // 检查分片数量是否有效
+        int shardCount = node.getShardCount();
+        if (shardCount <= 0) {
+            throw new CompilationException("分片数量必须大于0", node.getPosition(), "语义错误");
+        }
+        
+        return null;
+    }
+    
+    @Override
+    public Void visit(DropShardStatement node) throws CompilationException {
+        // 检查表是否存在
+        String tableName = node.getTableName();
+        if (!catalog.tableExists(tableName)) {
+            throw new CompilationException("表 '" + tableName + "' 不存在", node.getPosition(), "语义错误");
+        }
+        
+        return null;
+    }
+    
+    @Override
+    public Void visit(ShowShardsStatement node) throws CompilationException {
+        // 检查表是否存在
+        String tableName = node.getTableName();
+        if (!catalog.tableExists(tableName)) {
+            throw new CompilationException("表 '" + tableName + "' 不存在", node.getPosition(), "语义错误");
+        }
+        
+        return null;
+    }
+    
+    @Override
+    public Void visit(ShardStatsStatement node) throws CompilationException {
+        // 检查表是否存在
+        String tableName = node.getTableName();
+        if (!catalog.tableExists(tableName)) {
+            throw new CompilationException("表 '" + tableName + "' 不存在", node.getPosition(), "语义错误");
+        }
+        
+        return null;
     }
 }

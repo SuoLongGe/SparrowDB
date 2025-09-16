@@ -1,0 +1,14 @@
+
+# Table Metadata
+TABLE_NAME=__system_functions__
+COLUMN_COUNT=6
+COLUMN=function_name:VARCHAR:255
+COLUMN=signature:VARCHAR:500
+COLUMN=return_type:VARCHAR:50
+COLUMN=body:TEXT:10000
+COLUMN=is_permanent:BOOLEAN:1
+COLUMN=create_time:BIGINT:8
+# End Metadata
+
+
+RECORD:return_type=DECIMAL|create_time=1758012550476|signature=original_price:DECIMAL,discount_rate:DECIMAL|function_name=calculate_discount|is_permanent=true|body=RETURN original_price * discount_rate ;

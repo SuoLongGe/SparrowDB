@@ -2,6 +2,7 @@ package com.sqlcompiler.ast;
 
 import com.sqlcompiler.exception.CompilationException;
 import com.sqlcompiler.lexer.Position;
+import java.util.Map;
 
 /**
  * AST打印器 - 用于显示抽象语法树的结构
@@ -29,7 +30,48 @@ public class ASTPrinter implements ASTVisitor<String> {
     public String visit(Statement node) throws CompilationException {
         return "Statement";
     }
+    @Override
+    public String visit(CreateViewStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("CreateViewStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("viewName: \"").append(node.getViewName()).append("\"\n");
+        sb.append(getIndent()).append("selectStatement: ").append(node.getSelectStatement().accept(this)).append("\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
     
+    @Override
+    public String visit(DropViewStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("DropViewStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("viewName: \"").append(node.getViewName()).append("\"\n");
+        sb.append(getIndent()).append("ifExists: ").append(node.isIfExists()).append("\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(BatchStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("BatchStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("statementCount: ").append(node.getStatementCount()).append("\n");
+        sb.append(getIndent()).append("statements: [\n");
+        increaseIndent();
+        for (int i = 0; i < node.getStatements().size(); i++) {
+            Statement stmt = node.getStatements().get(i);
+            sb.append(getIndent()).append("[").append(i + 1).append("] ").append(stmt.accept(this)).append(",\n");
+        }
+        decreaseIndent();
+        sb.append(getIndent()).append("]\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
     @Override
     public String visit(CreateTableStatement node) throws CompilationException {
         StringBuilder sb = new StringBuilder();
@@ -122,6 +164,27 @@ public class ASTPrinter implements ASTVisitor<String> {
     }
     
     @Override
+    public String visit(UpdateStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("UpdateStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("tableName: ").append(node.getTableName()).append("\n");
+        sb.append(getIndent()).append("setClause: {\n");
+        increaseIndent();
+        for (Map.Entry<String, Expression> entry : node.getSetClause().entrySet()) {
+            sb.append(getIndent()).append(entry.getKey()).append(" = ").append(entry.getValue().accept(this)).append("\n");
+        }
+        decreaseIndent();
+        sb.append(getIndent()).append("}\n");
+        if (node.getWhereClause() != null) {
+            sb.append(getIndent()).append("whereClause: ").append(node.getWhereClause().accept(this)).append("\n");
+        }
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
     public String visit(DeleteStatement node) throws CompilationException {
         StringBuilder sb = new StringBuilder();
         sb.append("DeleteStatement {\n");
@@ -130,6 +193,18 @@ public class ASTPrinter implements ASTVisitor<String> {
         if (node.getWhereClause() != null) {
             sb.append(getIndent()).append("whereClause: ").append(node.getWhereClause().accept(this)).append("\n");
         }
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(DropTableStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("DropTableStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("tableName: ").append(node.getTableName()).append("\n");
+        sb.append(getIndent()).append("ifExists: ").append(node.isIfExists()).append("\n");
         decreaseIndent();
         sb.append(getIndent()).append("}");
         return sb.toString();
@@ -192,6 +267,11 @@ public class ASTPrinter implements ASTVisitor<String> {
     }
     
     @Override
+    public String visit(DotExpression node) throws CompilationException {
+        return "DotExpression { tableName: \"" + node.getTableName() + "\", fieldName: \"" + node.getFieldName() + "\" }";
+    }
+    
+    @Override
     public String visit(FunctionCallExpression node) throws CompilationException {
         StringBuilder sb = new StringBuilder();
         sb.append("FunctionCallExpression {\n");
@@ -204,6 +284,57 @@ public class ASTPrinter implements ASTVisitor<String> {
         }
         decreaseIndent();
         sb.append(getIndent()).append("]\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(AliasExpression node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("AliasExpression {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("expression: ").append(node.getExpression().accept(this)).append("\n");
+        sb.append(getIndent()).append("alias: ").append(node.getAlias()).append("\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(InExpression node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("InExpression {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("left: ").append(node.getLeft().accept(this)).append("\n");
+        sb.append(getIndent()).append("right: ");
+        if (node.isSubquery()) {
+            sb.append("Subquery {\n");
+            increaseIndent();
+            sb.append(getIndent()).append(node.getSubquery().accept(this)).append("\n");
+            decreaseIndent();
+            sb.append(getIndent()).append("}");
+        } else {
+            sb.append("Values [\n");
+            increaseIndent();
+            for (Expression value : node.getValues()) {
+                sb.append(getIndent()).append(value.accept(this)).append(",\n");
+            }
+            decreaseIndent();
+            sb.append(getIndent()).append("]");
+        }
+        sb.append("\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(SubqueryExpression node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SubqueryExpression {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("subquery: ").append(node.getSubquery().accept(this)).append("\n");
         decreaseIndent();
         sb.append(getIndent()).append("}");
         return sb.toString();
@@ -243,7 +374,11 @@ public class ASTPrinter implements ASTVisitor<String> {
         sb.append("JoinClause {\n");
         increaseIndent();
         sb.append(getIndent()).append("joinType: ").append(node.getJoinType()).append("\n");
-        sb.append(getIndent()).append("tableName: ").append(node.getTableName()).append("\n");
+        if (node.isSubquery()) {
+            sb.append(getIndent()).append("subquery: ").append(node.getSubquery().accept(this)).append("\n");
+        } else {
+            sb.append(getIndent()).append("tableName: ").append(node.getTableName()).append("\n");
+        }
         if (node.getAlias() != null) {
             sb.append(getIndent()).append("alias: ").append(node.getAlias()).append("\n");
         }
@@ -311,6 +446,139 @@ public class ASTPrinter implements ASTVisitor<String> {
         if (node.getOffset() != null) {
             sb.append(getIndent()).append("offset: ").append(node.getOffset().accept(this)).append("\n");
         }
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(SelectListClause node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SelectListClause {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("expressions: [\n");
+        increaseIndent();
+        for (Expression expr : node.getExpressions()) {
+            sb.append(getIndent()).append(expr.accept(this)).append(",\n");
+        }
+        decreaseIndent();
+        sb.append(getIndent()).append("]\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(FromClause node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("FromClause {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("tableReferences: [\n");
+        increaseIndent();
+        for (TableReference tableRef : node.getTableReferences()) {
+            sb.append(getIndent()).append(tableRef.accept(this)).append(",\n");
+        }
+        decreaseIndent();
+        sb.append(getIndent()).append("]\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(CreateFunctionStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("CreateFunctionStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("functionName: '").append(node.getFunctionName()).append("'\n");
+        sb.append(getIndent()).append("parameters: [\n");
+        increaseIndent();
+        for (CreateFunctionStatement.FunctionParameter param : node.getParameters()) {
+            sb.append(getIndent()).append(param.getName()).append(" ").append(param.getType()).append(",\n");
+        }
+        decreaseIndent();
+        sb.append(getIndent()).append("]\n");
+        sb.append(getIndent()).append("returnType: '").append(node.getReturnType()).append("'\n");
+        sb.append(getIndent()).append("ifNotExists: ").append(node.hasIfNotExists()).append("\n");
+        sb.append(getIndent()).append("isPermanent: ").append(node.isPermanent()).append("\n");
+        sb.append(getIndent()).append("body: '").append(node.getFunctionBody()).append("'\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(CallStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("CallStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("functionName: '").append(node.getFunctionName()).append("'\n");
+        sb.append(getIndent()).append("arguments: [\n");
+        increaseIndent();
+        for (Expression arg : node.getArguments()) {
+            sb.append(getIndent()).append(arg.accept(this)).append(",\n");
+        }
+        decreaseIndent();
+        sb.append(getIndent()).append("]\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(DropFunctionStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("DropFunctionStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("functionName: '").append(node.getFunctionName()).append("'\n");
+        sb.append(getIndent()).append("ifExists: ").append(node.hasIfExists()).append("\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(CreateShardStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("CreateShardStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("tableName: \"").append(node.getTableName()).append("\"\n");
+        sb.append(getIndent()).append("shardKeyColumn: \"").append(node.getShardKeyColumn()).append("\"\n");
+        sb.append(getIndent()).append("strategy: \"").append(node.getStrategy()).append("\"\n");
+        sb.append(getIndent()).append("shardCount: ").append(node.getShardCount()).append("\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(DropShardStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("DropShardStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("tableName: \"").append(node.getTableName()).append("\"\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(ShowShardsStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ShowShardsStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("tableName: \"").append(node.getTableName()).append("\"\n");
+        decreaseIndent();
+        sb.append(getIndent()).append("}");
+        return sb.toString();
+    }
+    
+    @Override
+    public String visit(ShardStatsStatement node) throws CompilationException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ShardStatsStatement {\n");
+        increaseIndent();
+        sb.append(getIndent()).append("tableName: \"").append(node.getTableName()).append("\"\n");
         decreaseIndent();
         sb.append(getIndent()).append("}");
         return sb.toString();

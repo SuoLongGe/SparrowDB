@@ -13,7 +13,9 @@ public class Constraint extends ASTNode {
         UNIQUE,
         NOT_NULL,
         DEFAULT,
-        AUTO_INCREMENT
+        AUTO_INCREMENT,
+        CHECK
+
     }
     
     private final ConstraintType type;
@@ -62,5 +64,28 @@ public class Constraint extends ASTNode {
     @Override
     public <T> T accept(ASTVisitor<T> visitor) {
         return null; // 约束不直接访问
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Constraint { type: ").append(type);
+        if (name != null) {
+            sb.append(", name: ").append(name);
+        }
+        if (columns != null && !columns.isEmpty()) {
+            sb.append(", columns: ").append(columns);
+        }
+        if (referencedTable != null) {
+            sb.append(", referencedTable: ").append(referencedTable);
+        }
+        if (referencedColumns != null && !referencedColumns.isEmpty()) {
+            sb.append(", referencedColumns: ").append(referencedColumns);
+        }
+        if (defaultValue != null) {
+            sb.append(", defaultValue: ").append(defaultValue);
+        }
+        sb.append(" }");
+        return sb.toString();
     }
 }

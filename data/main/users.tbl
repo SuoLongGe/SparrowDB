@@ -1,0 +1,12 @@
+# Table Metadata
+TABLE_NAME=users
+COLUMN_COUNT=5
+COLUMN=id:INT:0
+COLUMN=name:VARCHAR:50
+COLUMN=email:VARCHAR:100
+COLUMN=age:INT:0
+COLUMN=city:VARCHAR:50
+# End Metadata
+
+
+

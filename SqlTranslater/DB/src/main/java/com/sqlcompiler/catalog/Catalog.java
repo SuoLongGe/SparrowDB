@@ -1,6 +1,7 @@
 package com.sqlcompiler.catalog;
 
 import java.util.*;
+import com.database.engine.ViewManager;
 
 /**
  * 数据库模式目录
@@ -8,9 +9,17 @@ import java.util.*;
  */
 public class Catalog {
     private final Map<String, TableInfo> tables;
+    private ViewManager viewManager;
     
     public Catalog() {
         this.tables = new HashMap<>();
+    }
+    
+    /**
+     * 设置视图管理器
+     */
+    public void setViewManager(ViewManager viewManager) {
+        this.viewManager = viewManager;
     }
     
     /**
@@ -32,6 +41,21 @@ public class Catalog {
      */
     public boolean tableExists(String tableName) {
         return tables.containsKey(tableName.toLowerCase());
+    }
+    
+    /**
+     * 检查表或视图是否存在
+     */
+    public boolean tableOrViewExists(String name) {
+        // 先检查表
+        if (tables.containsKey(name.toLowerCase())) {
+            return true;
+        }
+        // 再检查视图
+        if (viewManager != null && viewManager.viewExists(name)) {
+            return true;
+        }
+        return false;
     }
     
     /**

@@ -1,0 +1,18 @@
+# Table Metadata
+TABLE_NAME=enrollments
+COLUMN_COUNT=4
+COLUMN=student_id:INT:0
+COLUMN=course_id:INT:0
+COLUMN=enrollment_date:DATE:0
+COLUMN=score:DECIMAL:5
+# End Metadata
+
+RECORD:course_id=101|score=88.5|student_id=1|enrollment_date=2024-09-01
+RECORD:course_id=102|score=92.0|student_id=1|enrollment_date=2024-09-01
+RECORD:course_id=101|score=85.0|student_id=2|enrollment_date=2024-09-01
+RECORD:course_id=102|score=95.5|student_id=3|enrollment_date=2024-09-01
+RECORD:course_id=104|score=87.0|student_id=3|enrollment_date=2024-09-01
+RECORD:course_id=103|score=82.5|student_id=4|enrollment_date=2024-09-01
+RECORD:course_id=105|score=90.0|student_id=4|enrollment_date=2024-09-01
+RECORD:course_id=104|score=93.0|student_id=5|enrollment_date=2024-09-01
+RECORD:course_id=105|score=89.5|student_id=5|enrollment_date=2024-09-01

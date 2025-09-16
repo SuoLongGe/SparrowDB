@@ -1,23 +1,72 @@
 package com.sqlcompiler.execution;
 
 import com.sqlcompiler.ast.*;
+import com.sqlcompiler.catalog.*;
 import com.sqlcompiler.exception.CompilationException;
 import com.sqlcompiler.lexer.TokenType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 执行计划生成器
  * 将AST转换为逻辑执行计划
  */
 public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
+    private final Catalog catalog;
+    private List<TableReference> currentFromClause = null;
+    
+    public ExecutionPlanGenerator(Catalog catalog) {
+        this.catalog = catalog;
+    }
     
     @Override
     public ExecutionPlan visit(Statement node) throws CompilationException {
         throw new CompilationException("不支持的语句类型", node.getPosition(), "执行计划生成错误");
     }
-    
+    @Override
+    public ExecutionPlan visit(BatchStatement node) throws CompilationException {
+        // 批量语句转换为批量执行计划
+        List<ExecutionPlan> plans = new ArrayList<>();
+        
+        for (Statement statement : node.getStatements()) {
+            ExecutionPlan plan = statement.accept(this);
+            if (plan != null) {
+                plans.add(plan);
+            }
+        }
+        
+        return new BatchPlan(plans);
+    }
+    @Override
+    public ExecutionPlan visit(CreateViewStatement node) throws CompilationException {
+        // 将视图的SELECT语句转换为字符串（简化处理）
+        String originalQuery = node.getSelectStatement().toString();
+        return new CreateViewPlan(node.getViewName(), node.getSelectStatement(), originalQuery);
+    }
+
+    @Override
+    public ExecutionPlan visit(DropViewStatement node) throws CompilationException {
+        return new DropViewPlan(node.getViewName(), node.isIfExists());
+    }
+
+    @Override
+    public ExecutionPlan visit(CreateFunctionStatement node) throws CompilationException {
+        return new CreateFunctionPlan(node);
+    }
+
+    @Override
+    public ExecutionPlan visit(DropFunctionStatement node) throws CompilationException {
+        return new DropFunctionPlan(node);
+    }
+
+    @Override
+    public ExecutionPlan visit(CallStatement node) throws CompilationException {
+        return new CallPlan(node);
+    }
+
     @Override
     public ExecutionPlan visit(CreateTableStatement node) throws CompilationException {
         List<ColumnPlan> columns = new ArrayList<>();
@@ -35,7 +84,7 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
             constraints.add(constraintPlan);
         }
         
-        return new CreateTablePlan(node.getTableName(), columns, constraints);
+        return new CreateTablePlan(node.getTableName(), columns, constraints, node.getStorageFormat());
     }
     
     @Override
@@ -64,6 +113,9 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
         ExpressionPlan havingClause = null;
         List<OrderByItem> orderByClause = null;
         LimitPlan limitClause = null;
+        
+        // 设置当前FROM子句，用于列名解析
+        currentFromClause = node.getFromClause();
         
         // 转换SELECT列表
         for (Expression expr : node.getSelectList()) {
@@ -122,6 +174,23 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
     }
     
     @Override
+    public ExecutionPlan visit(UpdateStatement node) throws CompilationException {
+        // 转换SET子句
+        Map<String, ExpressionPlan> setClause = new java.util.HashMap<>();
+        for (Map.Entry<String, Expression> entry : node.getSetClause().entrySet()) {
+            setClause.put(entry.getKey(), convertExpression(entry.getValue()));
+        }
+        
+        // 转换WHERE子句
+        ExpressionPlan whereClause = null;
+        if (node.getWhereClause() != null) {
+            whereClause = convertExpression(node.getWhereClause().getCondition());
+        }
+        
+        return new UpdatePlan(node.getTableName(), setClause, whereClause);
+    }
+    
+    @Override
     public ExecutionPlan visit(DeleteStatement node) throws CompilationException {
         ExpressionPlan whereClause = null;
         
@@ -130,6 +199,11 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
         }
         
         return new DeletePlan(node.getTableName(), whereClause);
+    }
+    
+    @Override
+    public ExecutionPlan visit(DropTableStatement node) throws CompilationException {
+        return new DropTablePlan(node.getTableName(), node.isIfExists());
     }
     
     @Override
@@ -164,8 +238,28 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
     }
     
     @Override
+    public ExecutionPlan visit(DotExpression node) {
+        return null; // 表达式不直接转换为ExecutionPlan
+    }
+    
+    @Override
     public ExecutionPlan visit(FunctionCallExpression node) {
         return null; // 表达式不直接转换为ExecutionPlan
+    }
+    
+    @Override
+    public ExecutionPlan visit(AliasExpression node) {
+        return null; // 别名表达式在SELECT中处理
+    }
+
+    @Override
+    public ExecutionPlan visit(InExpression node) {
+        return null; // IN表达式在WHERE子句中处理
+    }
+    
+    @Override
+    public ExecutionPlan visit(SubqueryExpression node) {
+        return null; // 子查询表达式在WHERE子句中处理
     }
     
     @Override
@@ -208,6 +302,16 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
         return null; // LIMIT子句在SELECT中处理
     }
     
+    @Override
+    public ExecutionPlan visit(SelectListClause node) throws CompilationException {
+        return null; // SELECT列表在SELECT中处理
+    }
+    
+    @Override
+    public ExecutionPlan visit(FromClause node) throws CompilationException {
+        return null; // FROM子句在SELECT中处理
+    }
+    
     /**
      * 转换表达式
      */
@@ -217,7 +321,15 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
             return new LiteralExpressionPlan(literal.getValue(), literal.getType().getValue());
         } else if (expr instanceof IdentifierExpression) {
             IdentifierExpression identifier = (IdentifierExpression) expr;
-            return new IdentifierExpressionPlan(identifier.getName());
+            String columnName = identifier.getName();
+            
+            // 在子查询中，尝试解析列名到表别名的映射
+            if (currentFromClause != null && !currentFromClause.isEmpty()) {
+                String resolvedColumnName = resolveColumnName(columnName, currentFromClause);
+                return new IdentifierExpressionPlan(resolvedColumnName);
+            }
+            
+            return new IdentifierExpressionPlan(columnName);
         } else if (expr instanceof BinaryExpression) {
             BinaryExpression binary = (BinaryExpression) expr;
             ExpressionPlan left = convertExpression(binary.getLeft());
@@ -227,10 +339,56 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
             UnaryExpression unary = (UnaryExpression) expr;
             ExpressionPlan operand = convertExpression(unary.getOperand());
             return new BinaryExpressionPlan(null, unary.getOperator().getValue(), operand);
+        } else if (expr instanceof DotExpression) {
+            DotExpression dot = (DotExpression) expr;
+            // 将点号表达式转换为表名.字段名的字符串形式
+            return new IdentifierExpressionPlan(dot.getTableName() + "." + dot.getFieldName());
         } else if (expr instanceof FunctionCallExpression) {
             FunctionCallExpression func = (FunctionCallExpression) expr;
-            // 简化处理：将函数调用转换为标识符表达式
-            return new IdentifierExpressionPlan(func.getFunctionName() + "()");
+            // 将函数调用转换为函数调用计划
+            List<ExpressionPlan> argumentPlans = new ArrayList<>();
+            for (Expression arg : func.getArguments()) {
+                argumentPlans.add(convertExpression(arg));
+            }
+            return new FunctionCallExpressionPlan(func.getFunctionName(), argumentPlans);
+        } else if (expr instanceof AliasExpression) {
+            AliasExpression alias = (AliasExpression) expr;
+            // 将别名表达式转换为带别名的表达式计划
+            ExpressionPlan innerPlan = convertExpression(alias.getExpression());
+            return new AliasExpressionPlan(innerPlan, alias.getAlias());
+        } else if (expr instanceof SubqueryExpression) {
+            SubqueryExpression subquery = (SubqueryExpression) expr;
+            // 将子查询转换为子查询计划
+            SelectPlan subqueryPlan = (SelectPlan) subquery.getSubquery().accept(this);
+            return new SubqueryExpressionPlan(subqueryPlan);
+        } else if (expr instanceof InExpression) {
+            InExpression inExpr = (InExpression) expr;
+            ExpressionPlan left = convertExpression(inExpr.getLeft());
+            if (inExpr.isSubquery()) {
+                // 子查询形式的IN
+                SelectPlan subqueryPlan = (SelectPlan) inExpr.getSubquery().accept(this);
+                return new BinaryExpressionPlan(left, "IN", new SubqueryExpressionPlan(subqueryPlan));
+            } else {
+                // 值列表形式的IN
+                List<ExpressionPlan> valuePlans = new ArrayList<>();
+                for (Expression value : inExpr.getValues()) {
+                    valuePlans.add(convertExpression(value));
+                }
+                return new BinaryExpressionPlan(left, "IN", new FunctionCallExpressionPlan("IN", valuePlans));
+            }
+        } else if (expr instanceof BetweenExpression) {
+            BetweenExpression betweenExpr = (BetweenExpression) expr;
+            ExpressionPlan left = convertExpression(betweenExpr.getLeft());
+            ExpressionPlan lowerBound = convertExpression(betweenExpr.getLowerBound());
+            ExpressionPlan upperBound = convertExpression(betweenExpr.getUpperBound());
+            // 将BETWEEN转换为BETWEEN操作符
+            return new BinaryExpressionPlan(left, "BETWEEN", new FunctionCallExpressionPlan("BETWEEN", 
+                Arrays.asList(lowerBound, upperBound)));
+        } else if (expr instanceof IsNullExpression) {
+            IsNullExpression isNullExpr = (IsNullExpression) expr;
+            ExpressionPlan left = convertExpression(isNullExpr.getLeft());
+            String operator = isNullExpr.isNot() ? "IS NOT NULL" : "IS NULL";
+            return new BinaryExpressionPlan(left, "IS", new LiteralExpressionPlan(operator, "STRING_LITERAL"));
         } else {
             throw new CompilationException("不支持的表达式类型: " + expr.getClass().getSimpleName(), 
                                         expr.getPosition(), "执行计划生成错误");
@@ -263,6 +421,12 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
                     break;
                 case AUTO_INCREMENT:
                     autoIncrement = true;
+                    break;
+                case FOREIGN_KEY:
+                    // 外键约束在列级别不需要特殊处理
+                    break;
+                case CHECK:
+                    // CHECK约束在列级别不需要特殊处理
                     break;
             }
         }
@@ -299,6 +463,9 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
                 return ConstraintPlan.ConstraintType.DEFAULT;
             case AUTO_INCREMENT:
                 return ConstraintPlan.ConstraintType.AUTO_INCREMENT;
+            case CHECK:
+                // CHECK约束暂时映射为UNIQUE，因为ConstraintPlan可能没有CHECK类型
+                return ConstraintPlan.ConstraintType.UNIQUE;
             default:
                 throw new CompilationException("未知的约束类型: " + type, null, "执行计划生成错误");
         }
@@ -327,7 +494,13 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
         JoinPlan.JoinType joinType = convertJoinType(joinClause.getJoinType());
         ExpressionPlan condition = convertExpression(joinClause.getCondition());
         
-        return new JoinPlan(joinType, joinClause.getTableName(), joinClause.getAlias(), condition);
+        if (joinClause.isSubquery()) {
+            // 对于子查询JOIN，我们需要先转换子查询为SelectPlan
+            SelectPlan subqueryPlan = (SelectPlan) joinClause.getSubquery().accept(this);
+            return new JoinPlan(joinType, subqueryPlan, joinClause.getAlias(), condition);
+        } else {
+            return new JoinPlan(joinType, joinClause.getTableName(), joinClause.getAlias(), condition);
+        }
     }
     
     /**
@@ -360,5 +533,60 @@ public class ExecutionPlanGenerator implements ASTVisitor<ExecutionPlan> {
             default:
                 return OrderByItem.SortOrder.ASC;
         }
+    }
+    
+    /**
+     * 解析列名到表别名的映射
+     */
+    private String resolveColumnName(String columnName, List<TableReference> fromClause) {
+        // 如果列名已经包含表别名，直接返回
+        if (columnName.contains(".")) {
+            return columnName;
+        }
+        
+        // 如果只有一个表且没有别名，直接返回原始列名
+        if (fromClause.size() == 1) {
+            TableReference tableRef = fromClause.get(0);
+            if (tableRef.getAlias() == null) {
+                return columnName;
+            }
+        }
+        
+        // 查找包含该列的表
+        for (TableReference tableRef : fromClause) {
+            String tableName = tableRef.getTableName();
+            String alias = tableRef.getAlias();
+            
+            // 检查表是否包含该列
+            TableInfo tableInfo = catalog.getTable(tableName);
+            if (tableInfo != null && tableInfo.columnExists(columnName)) {
+                // 如果表有别名，使用别名；否则使用表名
+                String prefix = alias != null ? alias : tableName;
+                return prefix + "." + columnName;
+            }
+        }
+        
+        // 如果找不到匹配的表，返回原始列名
+        return columnName;
+    }
+    
+    @Override
+    public ExecutionPlan visit(CreateShardStatement node) throws CompilationException {
+        return new CreateShardPlan(node);
+    }
+    
+    @Override
+    public ExecutionPlan visit(DropShardStatement node) throws CompilationException {
+        return new DropShardPlan(node);
+    }
+    
+    @Override
+    public ExecutionPlan visit(ShowShardsStatement node) throws CompilationException {
+        return new ShowShardsPlan(node);
+    }
+    
+    @Override
+    public ExecutionPlan visit(ShardStatsStatement node) throws CompilationException {
+        return new ShardStatsPlan(node);
     }
 }

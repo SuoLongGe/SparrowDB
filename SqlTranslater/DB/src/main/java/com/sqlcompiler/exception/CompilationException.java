@@ -25,6 +25,7 @@ public class CompilationException extends Exception {
     
     @Override
     public String toString() {
-        return String.format("[%s, %s, %s]", errorType, position, getMessage());
+        return String.format("❌ %s\n   位置: 第%d行第%d列\n   错误: %s", 
+                           errorType, position.getLine(), position.getColumn(), getMessage());
     }
 }

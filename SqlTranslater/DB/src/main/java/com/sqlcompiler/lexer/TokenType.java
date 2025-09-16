@@ -18,7 +18,16 @@ public enum TokenType {
     DROP("DROP"),
     ALTER("ALTER"),
     UPDATE("UPDATE"),
+    VIEW("VIEW"),
     SET("SET"),
+    FUNCTION("FUNCTION"),
+    PROCEDURE("PROCEDURE"),
+    CALL("CALL"),
+    BEGIN("BEGIN"),
+    END("END"),
+    RETURN("RETURN"),
+    RETURNS("RETURNS"),
+    DECLARE("DECLARE"),
     AND("AND"),
     OR("OR"),
     NOT("NOT"),
@@ -39,8 +48,31 @@ public enum TokenType {
     IS("IS"),
     NULL("NULL"),
     TRUE("TRUE"),
+    PERMANENT("PERMANENT"),
     FALSE("FALSE"),
     
+    // 分片相关关键字
+    SHOW("SHOW"),
+    SHARD("SHARD"),
+    SHARDS("SHARDS"),
+    STATS("STATS"),
+    USING("USING"),
+    HASH("HASH"),
+    RANGE("RANGE"),
+    IF("IF"),
+    ELSE("ELSE"),
+    ELSEIF("ELSEIF"),
+    ENDIF("ENDIF"),
+    WHILE("WHILE"),
+    LOOP("LOOP"),
+    ENDLOOP("ENDLOOP"),
+    REPEAT("REPEAT"),
+    UNTIL("UNTIL"),
+    CASE("CASE"),
+    WHEN("WHEN"),
+    THEN("THEN"),
+    EXISTS("EXISTS"),
+
     // 数据类型
     INT("INT"),
     INTEGER("INTEGER"),
@@ -58,15 +90,68 @@ public enum TokenType {
     // 约束关键字
     PRIMARY("PRIMARY"),
     KEY("KEY"),
+    PRIMARY_KEY("PRIMARY KEY"),
     FOREIGN("FOREIGN"),
+    FOREIGN_KEY("FOREIGN KEY"),
     REFERENCES("REFERENCES"),
     UNIQUE("UNIQUE"),
     NOT_NULL("NOT NULL"),
     DEFAULT("DEFAULT"),
     AUTO_INCREMENT("AUTO_INCREMENT"),
+    CHECK("CHECK"),
     ASC("ASC"),
     DESC("DESC"),
     
+    // 存储格式关键字
+    STORAGE("STORAGE"),
+    ROW("ROW"),
+    COLUMN("COLUMN"),
+    ROW_STORAGE("ROW_STORAGE"),
+    COLUMN_STORAGE("COLUMN_STORAGE"),
+
+    // 聚合函数
+    COUNT("COUNT"),
+    SUM("SUM"),
+    AVG("AVG"),
+    MAX("MAX"),
+    MIN("MIN"),
+    
+    // 数学函数
+    ABS("ABS"),
+    CEIL("CEIL"),
+    FLOOR("FLOOR"),
+    ROUND("ROUND"),
+    SQRT("SQRT"),
+    POWER("POWER"),
+    MOD("MOD"),
+    RAND("RAND"),
+
+    // 字符串函数
+    UPPER("UPPER"),
+    LOWER("LOWER"),
+    LENGTH("LENGTH"),
+    SUBSTRING("SUBSTRING"),
+    CONCAT("CONCAT"),
+    TRIM("TRIM"),
+    LTRIM("LTRIM"),
+    RTRIM("RTRIM"),
+    REPLACE("REPLACE"),
+
+    // 日期函数
+    NOW("NOW"),
+    CURRENT_DATE("CURRENT_DATE"),
+    CURRENT_TIME("CURRENT_TIME"),
+    CURRENT_TIMESTAMP("CURRENT_TIMESTAMP"),
+    YEAR("YEAR"),
+    MONTH("MONTH"),
+    DAY("DAY"),
+    HOUR("HOUR"),
+    MINUTE("MINUTE"),
+    SECOND("SECOND"),
+    DATE_ADD("DATE_ADD"),
+    DATE_SUB("DATE_SUB"),
+    DATEDIFF("DATEDIFF"),
+
     // 运算符
     EQUALS("="),
     NOT_EQUALS("!="),
@@ -124,17 +209,28 @@ public enum TokenType {
         return this == CREATE || this == TABLE || this == INSERT || this == INTO ||
                this == VALUES || this == SELECT || this == FROM || this == WHERE ||
                this == DELETE || this == DROP || this == ALTER || this == UPDATE ||
+               this == VIEW || this == FUNCTION || this == PROCEDURE || this == CALL ||
+               this == BEGIN || this == END || this == RETURN || this == RETURNS || this == DECLARE ||
                this == SET || this == AND || this == OR || this == NOT || this == AS ||
                this == DISTINCT || this == ORDER || this == BY || this == GROUP ||
                this == HAVING || this == LIMIT || this == OFFSET || this == JOIN ||
                this == INNER || this == LEFT || this == RIGHT || this == OUTER ||
                this == ON || this == IS || this == NULL || this == TRUE || this == FALSE ||
+               this == IF || this == EXISTS ||
+               this == IF || this == ELSE || this == ELSEIF || this == ENDIF ||
+               this == WHILE || this == LOOP || this == ENDLOOP || this == REPEAT ||
+               this == UNTIL || this == CASE || this == WHEN || this == THEN || this == EXISTS ||
                this == INT || this == INTEGER || this == VARCHAR || this == CHAR ||
                this == TEXT || this == DECIMAL || this == FLOAT || this == DOUBLE ||
                this == BOOLEAN || this == DATE || this == TIME || this == TIMESTAMP ||
-               this == PRIMARY || this == KEY || this == FOREIGN || this == REFERENCES ||
-               this == UNIQUE || this == NOT_NULL || this == DEFAULT || this == AUTO_INCREMENT ||
-               this == LIKE || this == IN || this == BETWEEN;
+               this == PRIMARY || this == KEY || this == PRIMARY_KEY || this == FOREIGN || 
+               this == FOREIGN_KEY || this == REFERENCES || this == UNIQUE || this == NOT_NULL || 
+               this == DEFAULT || this == AUTO_INCREMENT || this == CHECK ||
+               this == ASC || this == DESC ||
+               this == STORAGE || this == ROW || this == COLUMN || this == ROW_STORAGE || this == COLUMN_STORAGE ||
+               this == COUNT || this == SUM || this == AVG || this == MAX || this == MIN ||
+               this == LIKE || this == IN || this == BETWEEN ||
+               this == SHOW || this == SHARD || this == SHARDS || this == STATS || this == USING || this == HASH || this == RANGE;
     }
     
     /**
