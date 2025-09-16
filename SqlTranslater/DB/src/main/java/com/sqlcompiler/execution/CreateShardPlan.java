@@ -20,6 +20,21 @@ public class CreateShardPlan extends ExecutionPlan {
         return statement;
     }
     
+    public String getTableName() {
+        return statement.getTableName();
+    }
+    
+    public String getShardKeyColumn() {
+        return statement.getShardKeyColumn();
+    }
+    
+    public String getStrategy() {
+        return statement.getStrategy();
+    }
+    
+    public int getShardCount() {
+        return statement.getShardCount();
+    }
     
     @Override
     public String toString() {

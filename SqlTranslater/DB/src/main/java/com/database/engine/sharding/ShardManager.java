@@ -94,6 +94,11 @@ public class ShardManager {
             saveShardMetadata();
             System.out.println("分片元数据保存完成");
             
+            // 创建分片文件
+            System.out.println("开始创建分片文件...");
+            createShardFiles(tableName, shards);
+            System.out.println("分片文件创建完成");
+            
             // 迁移现有数据到分片
             System.out.println("开始迁移现有数据到分片...");
             migrateExistingData(tableName, shardKeyColumn, shards);
@@ -130,10 +135,258 @@ public class ShardManager {
                 tableName, currentNodeId, dataDirectory, shardKeyColumn, shardCount);
         }
         
-        // 为每个分片创建独立的存储文件
-        createShardFiles(tableName, shards);
-        
         return shards;
+    }
+    
+    /**
+     * 获取数据范围
+     */
+    private Object[] getDataRange(String tableName, String columnName) {
+        try {
+            System.out.println("正在获取表 " + tableName + " 的数据范围...");
+            
+            // 读取表数据来获取实际的范围
+            List<Map<String, Object>> records = storageAdapter.scanTable(tableName);
+            if (records.isEmpty()) {
+                System.out.println("表 " + tableName + " 无数据，使用默认范围");
+                return new Object[]{"A", "Z"}; // 字符串默认范围
+            }
+            
+            Object minValue = null;
+            Object maxValue = null;
+            
+            for (Map<String, Object> record : records) {
+                Object value = record.get(columnName);
+                if (value == null) continue;
+                
+                if (minValue == null || compareValues(value, minValue) < 0) {
+                    minValue = value;
+                }
+                if (maxValue == null || compareValues(value, maxValue) > 0) {
+                    maxValue = value;
+                }
+            }
+            
+            if (minValue == null || maxValue == null) {
+                System.out.println("无法获取有效范围，使用默认范围");
+                return new Object[]{"A", "Z"};
+            }
+            
+            System.out.println("数据范围: " + minValue + " - " + maxValue);
+            return new Object[]{minValue, maxValue};
+            
+        } catch (Exception e) {
+            System.err.println("获取数据范围失败: " + e.getMessage());
+            return new Object[]{"A", "Z"}; // 字符串默认范围
+        }
+    }
+    
+    /**
+     * 比较两个值的大小
+     */
+    private int compareValues(Object a, Object b) {
+        if (a == null && b == null) return 0;
+        if (a == null) return -1;
+        if (b == null) return 1;
+        
+        if (a instanceof Comparable && b instanceof Comparable) {
+            try {
+                return ((Comparable) a).compareTo(b);
+            } catch (ClassCastException e) {
+                // 如果类型不兼容，转换为字符串比较
+                return a.toString().compareTo(b.toString());
+            }
+        }
+        
+        // 默认字符串比较
+        return a.toString().compareTo(b.toString());
+    }
+    
+    
+    /**
+     * 删除表的分片
+     */
+    public boolean dropTableShards(String tableName) {
+        try {
+            if (!shardMetadataMap.containsKey(tableName)) {
+                System.err.println("表 " + tableName + " 没有分片");
+                return false;
+            }
+            
+            // 获取分片信息
+            ShardMetadata metadata = shardMetadataMap.get(tableName);
+            List<ShardInfo> shards = metadata.getShards();
+            
+            // 删除分片文件
+            System.out.println("开始删除分片文件...");
+            for (ShardInfo shard : shards) {
+                String shardFileName = shard.getShardId() + ".tbl";
+                String shardFilePath = getActualDataDirectory() + File.separator + shardFileName;
+                File shardFile = new File(shardFilePath);
+                if (shardFile.exists()) {
+                    if (shardFile.delete()) {
+                        System.out.println("删除分片文件: " + shardFileName);
+                    } else {
+                        System.err.println("删除分片文件失败: " + shardFileName);
+                    }
+                }
+            }
+            
+            // 删除分片元数据
+            shardMetadataMap.remove(tableName);
+            
+            // 从路由器中移除
+            shardRouter.getTableShards(tableName).clear();
+            
+            // 保存元数据
+            saveShardMetadata();
+            
+            System.out.println("成功删除表 " + tableName + " 的分片");
+            return true;
+            
+        } catch (Exception e) {
+            System.err.println("删除表分片失败: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * 路由到分片
+     */
+    public ShardInfo routeToShard(String tableName, String shardKeyColumn, Object shardKeyValue) {
+        return shardRouter.routeToShard(tableName, shardKeyColumn, shardKeyValue);
+    }
+    
+    /**
+     * 获取表的所有分片
+     */
+    public List<ShardInfo> getTableShards(String tableName) {
+        return shardRouter.getTableShards(tableName);
+    }
+    
+    /**
+     * 获取活跃分片
+     */
+    public List<ShardInfo> getActiveShards(String tableName) {
+        return shardRouter.getActiveShards(tableName);
+    }
+    
+    /**
+     * 获取本地分片
+     */
+    public List<ShardInfo> getLocalShards(String tableName) {
+        return shardRouter.getLocalShards(tableName);
+    }
+    
+    /**
+     * 检查表是否已分片
+     */
+    public boolean isTableSharded(String tableName) {
+        return shardMetadataMap.containsKey(tableName);
+    }
+    
+    /**
+     * 获取分片元数据
+     */
+    public ShardMetadata getShardMetadata(String tableName) {
+        return shardMetadataMap.get(tableName);
+    }
+    
+    /**
+     * 更新分片记录数
+     */
+    public void updateShardRecordCount(String tableName, String shardId, long recordCount) {
+        List<ShardInfo> shards = shardRouter.getTableShards(tableName);
+        for (ShardInfo shard : shards) {
+            if (shardId.equals(shard.getShardId())) {
+                shard.setRecordCount(recordCount);
+                shard.setLastUpdated(System.currentTimeMillis());
+                break;
+            }
+        }
+    }
+    
+    /**
+     * 获取分片统计信息
+     */
+    public Map<String, Object> getShardStatistics(String tableName) {
+        return shardRouter.getShardStatistics(tableName);
+    }
+    
+    /**
+     * 获取负载均衡信息
+     */
+    public Map<String, Object> getLoadBalanceInfo(String tableName) {
+        return shardRouter.getLoadBalanceInfo(tableName);
+    }
+    
+    /**
+     * 保存分片元数据到文件
+     */
+    private void saveShardMetadata() {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(shardMetadataFile, StandardCharsets.UTF_8))) {
+            writer.println("# 分片元数据文件");
+            writer.println("# 格式: table_name|shard_key_column|strategy|shard_count");
+            
+            for (ShardMetadata metadata : shardMetadataMap.values()) {
+                writer.println(metadata.toFileFormat());
+            }
+            
+        } catch (IOException e) {
+            System.err.println("保存分片元数据失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 从文件加载分片元数据
+     */
+    private void loadShardMetadata() {
+        File file = new File(shardMetadataFile);
+        if (!file.exists()) {
+            return;
+        }
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("#")) {
+                    continue;
+                }
+                
+                ShardMetadata metadata = ShardMetadata.fromFileFormat(line);
+                if (metadata != null) {
+                    shardMetadataMap.put(metadata.getTableName(), metadata);
+                    
+                    // 注册到路由器
+                    shardRouter.registerTableShards(metadata.getTableName(), metadata.getShards());
+                    shardRouter.setShardStrategy(metadata.getTableName(), metadata.getStrategy());
+                }
+            }
+            
+        } catch (IOException e) {
+            System.err.println("加载分片元数据失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 创建默认分片元数据
+     */
+    private void createDefaultShardMetadata() {
+        // 创建空的元数据文件
+        try (PrintWriter writer = new PrintWriter(new FileWriter(shardMetadataFile, StandardCharsets.UTF_8))) {
+            writer.println("# 分片元数据文件");
+            writer.println("# 格式: table_name|shard_key_column|strategy|shard_count");
+        } catch (IOException e) {
+            System.err.println("创建默认分片元数据失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取分片路由器
+     */
+    public ShardRouter getShardRouter() {
+        return shardRouter;
     }
     
     /**
@@ -152,7 +405,8 @@ public class ShardManager {
             
             for (ShardInfo shard : shards) {
                 String shardFileName = shard.getShardId() + ".tbl";
-                String shardFilePath = dataDirectory + File.separator + shardFileName;
+                String actualDataDir = getActualDataDirectory();
+                String shardFilePath = actualDataDir + File.separator + shardFileName;
                 
                 System.out.println("创建分片文件: " + shardFilePath);
                 
@@ -160,7 +414,7 @@ public class ShardManager {
                 createShardFileWithSchema(shardFilePath, tableInfo);
                 
                 // 更新分片信息，记录实际的文件路径
-                shard.setDataDirectory(dataDirectory);
+                shard.setDataDirectory(actualDataDir);
                 shard.setShardId(shard.getShardId()); // 确保分片ID正确
                 
                 System.out.println("分片文件创建完成: " + shardFileName);
@@ -263,7 +517,8 @@ public class ShardManager {
      */
     private void writeRecordsToShardFile(ShardInfo shard, List<Map<String, Object>> records) {
         try {
-            String shardFilePath = dataDirectory + File.separator + shard.getShardId() + ".tbl";
+            String actualDataDir = getActualDataDirectory();
+            String shardFilePath = actualDataDir + File.separator + shard.getShardId() + ".tbl";
             File shardFile = new File(shardFilePath);
             
             // 读取现有文件内容
@@ -280,18 +535,20 @@ public class ShardManager {
             // 写入数据到文件
             try (PrintWriter writer = new PrintWriter(new FileWriter(shardFile, StandardCharsets.UTF_8))) {
                 // 写入元数据部分
+                boolean foundPageMarker = false;
                 for (String line : existingLines) {
-                    if (line.startsWith("PAGE:1")) {
-                        writer.println(line);
-                        break;
-                    }
                     writer.println(line);
+                    if (line.startsWith("PAGE:1")) {
+                        foundPageMarker = true;
+                    }
                 }
                 
-                // 写入数据记录
-                for (Map<String, Object> record : records) {
-                    String serializedRecord = serializeRecord(record);
-                    writer.println(serializedRecord);
+                // 写入数据记录 (只在找到PAGE:1标记后写入，确保数据在正确位置)
+                if (foundPageMarker) {
+                    for (Map<String, Object> record : records) {
+                        String serializedRecord = "RECORD:" + serializeRecord(record);
+                        writer.println(serializedRecord);
+                    }
                 }
             }
             
@@ -320,102 +577,18 @@ public class ShardManager {
     }
     
     /**
-     * 获取数据范围
+     * 获取实际的数据目录路径（包含数据库名称）
      */
-    private Object[] getDataRange(String tableName, String columnName) {
-        try {
-            // 为了避免阻塞，我们只扫描前1000行数据来估算范围
-            // 或者直接返回默认范围，让用户手动指定
-            System.out.println("正在获取表 " + tableName + " 的数据范围...");
-            
-            // 简化处理：直接返回默认范围，避免扫描整个表
-            return new Object[]{0, 1000};
-            
-        } catch (Exception e) {
-            System.err.println("获取数据范围失败: " + e.getMessage());
-            return new Object[]{0, 1000};
+    private String getActualDataDirectory() {
+        // 从StorageAdapter获取实际的数据目录
+        String actualDir = storageAdapter.getDataDirectory();
+        if (actualDir != null && !actualDir.equals(dataDirectory)) {
+            return actualDir;
         }
-    }
-    
-    /**
-     * 比较两个值的大小
-     */
-    @SuppressWarnings("unchecked")
-    private int compareValues(Object value1, Object value2) {
-        if (value1 instanceof Comparable && value2 instanceof Comparable) {
-            return ((Comparable<Object>) value1).compareTo(value2);
-        }
-        return value1.toString().compareTo(value2.toString());
-    }
-    
-    /**
-     * 删除表的分片
-     */
-    public boolean dropTableShards(String tableName) {
-        try {
-            if (!shardMetadataMap.containsKey(tableName)) {
-                System.err.println("表 " + tableName + " 没有分片");
-                return false;
-            }
-            
-            // 删除分片元数据
-            shardMetadataMap.remove(tableName);
-            
-            // 从路由器中移除
-            shardRouter.getTableShards(tableName).clear();
-            
-            // 保存元数据
-            saveShardMetadata();
-            
-            System.out.println("成功删除表 " + tableName + " 的分片");
-            return true;
-            
-        } catch (Exception e) {
-            System.err.println("删除表分片失败: " + e.getMessage());
-            return false;
-        }
-    }
-    
-    /**
-     * 路由到分片
-     */
-    public ShardInfo routeToShard(String tableName, String shardKeyColumn, Object shardKeyValue) {
-        return shardRouter.routeToShard(tableName, shardKeyColumn, shardKeyValue);
-    }
-    
-    /**
-     * 获取表的所有分片
-     */
-    public List<ShardInfo> getTableShards(String tableName) {
-        return shardRouter.getTableShards(tableName);
-    }
-    
-    /**
-     * 获取活跃分片
-     */
-    public List<ShardInfo> getActiveShards(String tableName) {
-        return shardRouter.getActiveShards(tableName);
-    }
-    
-    /**
-     * 获取本地分片
-     */
-    public List<ShardInfo> getLocalShards(String tableName) {
-        return shardRouter.getLocalShards(tableName);
-    }
-    
-    /**
-     * 检查表是否已分片
-     */
-    public boolean isTableSharded(String tableName) {
-        return shardMetadataMap.containsKey(tableName);
-    }
-    
-    /**
-     * 获取分片元数据
-     */
-    public ShardMetadata getShardMetadata(String tableName) {
-        return shardMetadataMap.get(tableName);
+        
+        // 如果StorageAdapter的路径和传入的路径相同，直接使用传入的路径
+        // 因为DatabaseEngine现在传入的dataDirectory已经是完整的数据库路径
+        return dataDirectory;
     }
     
     /**
@@ -423,102 +596,5 @@ public class ShardManager {
      */
     public boolean hasShards(String tableName) {
         return shardMetadataMap.containsKey(tableName);
-    }
-    
-    /**
-     * 更新分片记录数
-     */
-    public void updateShardRecordCount(String tableName, String shardId, long recordCount) {
-        List<ShardInfo> shards = shardRouter.getTableShards(tableName);
-        for (ShardInfo shard : shards) {
-            if (shardId.equals(shard.getShardId())) {
-                shard.setRecordCount(recordCount);
-                shard.setLastUpdated(System.currentTimeMillis());
-                break;
-            }
-        }
-    }
-    
-    /**
-     * 获取分片统计信息
-     */
-    public Map<String, Object> getShardStatistics(String tableName) {
-        return shardRouter.getShardStatistics(tableName);
-    }
-    
-    /**
-     * 获取负载均衡信息
-     */
-    public Map<String, Object> getLoadBalanceInfo(String tableName) {
-        return shardRouter.getLoadBalanceInfo(tableName);
-    }
-    
-    /**
-     * 保存分片元数据到文件
-     */
-    private void saveShardMetadata() {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(shardMetadataFile, StandardCharsets.UTF_8))) {
-            writer.println("# 分片元数据文件");
-            writer.println("# 格式: table_name|shard_key_column|strategy|shard_count");
-            
-            for (ShardMetadata metadata : shardMetadataMap.values()) {
-                writer.println(metadata.toFileFormat());
-            }
-            
-        } catch (IOException e) {
-            System.err.println("保存分片元数据失败: " + e.getMessage());
-        }
-    }
-    
-    /**
-     * 从文件加载分片元数据
-     */
-    private void loadShardMetadata() {
-        File file = new File(shardMetadataFile);
-        if (!file.exists()) {
-            return;
-        }
-        
-        try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                if (line.isEmpty() || line.startsWith("#")) {
-                    continue;
-                }
-                
-                ShardMetadata metadata = ShardMetadata.fromFileFormat(line);
-                if (metadata != null) {
-                    shardMetadataMap.put(metadata.getTableName(), metadata);
-                    
-                    // 注册到路由器
-                    shardRouter.registerTableShards(metadata.getTableName(), metadata.getShards());
-                    shardRouter.setShardStrategy(metadata.getTableName(), metadata.getStrategy());
-                }
-            }
-            
-        } catch (IOException e) {
-            System.err.println("加载分片元数据失败: " + e.getMessage());
-        }
-    }
-    
-    /**
-     * 创建默认分片元数据
-     */
-    private void createDefaultShardMetadata() {
-        // 创建空的元数据文件
-        try (PrintWriter writer = new PrintWriter(new FileWriter(shardMetadataFile, StandardCharsets.UTF_8))) {
-            writer.println("# 分片元数据文件");
-            writer.println("# 格式: table_name|shard_key_column|strategy|shard_count");
-        } catch (IOException e) {
-            System.err.println("创建默认分片元数据失败: " + e.getMessage());
-        }
-    }
-    
-    /**
-     * 获取分片路由器
-     */
-    public ShardRouter getShardRouter() {
-        return shardRouter;
     }
 }

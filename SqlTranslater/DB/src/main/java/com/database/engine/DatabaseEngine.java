@@ -8,10 +8,7 @@ import com.database.io.SQLFileManager;
 import com.database.engine.sharding.*;
 import java.util.*;
 import java.util.Arrays;
-import java.io.*;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
 
 /**
  * 数据库引擎主类 - 整合所有组件
@@ -51,11 +48,14 @@ public class DatabaseEngine {
         this.dataDirectory = dataDirectory;
         this.currentNodeId = "node_" + System.currentTimeMillis();
         
+        // dataDirectory已经包含了数据库路径，不需要再添加databaseName
+        String databasePath = dataDirectory;
+        
         // 初始化存储引擎（整合Java存储系统）
-        this.storageEngine = new StorageEngine(dataDirectory);
+        this.storageEngine = new StorageEngine(databasePath);
         
         // 初始化存储适配器
-        StorageAdapter storageAdapter = new StorageAdapter(dataDirectory);
+        StorageAdapter storageAdapter = new StorageAdapter(databasePath);
 
         // 初始化目录管理器
         this.catalogManager = new CatalogManager(storageEngine);
@@ -116,9 +116,6 @@ public class DatabaseEngine {
             // 确保StorageAdapter中的列式存储表信息同步到CatalogManager
             syncColumnarTablesToCatalog();
             
-            // 确保系统表存在
-            ensureSystemTablesExist();
-            
             // 设置ViewManager到SQLCompiler，以便语义分析器可以检查视图
             sqlCompiler.setViewManager(viewManager);
 
@@ -162,115 +159,6 @@ public class DatabaseEngine {
             }
         } catch (Exception e) {
             System.err.println("同步列式存储表失败: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    /**
-     * 确保系统表存在
-     */
-    private void ensureSystemTablesExist() {
-        try {
-            // 确保系统列表存在
-            String systemColumnsPath = dataDirectory + File.separator + "__system_columns__.tbl";
-            File systemColumnsFile = new File(systemColumnsPath);
-            
-            if (!systemColumnsFile.exists()) {
-                // 创建系统列表文件
-                try (PrintWriter writer = new PrintWriter(new FileWriter(systemColumnsFile))) {
-                    writer.println("# Table Metadata");
-                    writer.println("TABLE_NAME=__system_columns__");
-                    writer.println("COLUMN_COUNT=9");
-                    writer.println("COLUMN=table_name:VARCHAR:255");
-                    writer.println("COLUMN=column_name:VARCHAR:255");
-                    writer.println("COLUMN=data_type:VARCHAR:50");
-                    writer.println("COLUMN=length:INT:4");
-                    writer.println("COLUMN=not_null:BOOLEAN:1");
-                    writer.println("COLUMN=primary_key:BOOLEAN:1");
-                    writer.println("COLUMN=unique:BOOLEAN:1");
-                    writer.println("COLUMN=default_value:VARCHAR:255");
-                    writer.println("COLUMN=auto_increment:BOOLEAN:1");
-                    writer.println("# End Metadata");
-                    writer.println();
-                    writer.println("PAGE:1");
-                    writer.println();
-                }
-                System.out.println("✅ 数据库初始化时创建系统列表文件: " + systemColumnsPath);
-                
-                // 如果已有表存在，需要重新扫描并填充系统列表
-                rebuildSystemColumnsTable();
-            }
-        } catch (Exception e) {
-            System.err.println("确保系统表存在失败: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    /**
-     * 重建系统列表 - 扫描现有表并填充系统列表
-     */
-    private void rebuildSystemColumnsTable() {
-        try {
-            System.out.println("🔄 重建系统列表...");
-            
-            // 获取所有现有表
-            Set<String> tableNames = catalogManager.getAllTableNames();
-            
-            if (!tableNames.isEmpty()) {
-                String systemColumnsPath = dataDirectory + File.separator + "__system_columns__.tbl";
-                
-                // 重新写入系统列表，包含所有现有表的列信息
-                try (PrintWriter writer = new PrintWriter(new FileWriter(systemColumnsPath))) {
-                    writer.println("# Table Metadata");
-                    writer.println("TABLE_NAME=__system_columns__");
-                    writer.println("COLUMN_COUNT=9");
-                    writer.println("COLUMN=table_name:VARCHAR:255");
-                    writer.println("COLUMN=column_name:VARCHAR:255");
-                    writer.println("COLUMN=data_type:VARCHAR:50");
-                    writer.println("COLUMN=length:INT:4");
-                    writer.println("COLUMN=not_null:BOOLEAN:1");
-                    writer.println("COLUMN=primary_key:BOOLEAN:1");
-                    writer.println("COLUMN=unique:BOOLEAN:1");
-                    writer.println("COLUMN=default_value:VARCHAR:255");
-                    writer.println("COLUMN=auto_increment:BOOLEAN:1");
-                    writer.println("# End Metadata");
-                    writer.println();
-                    writer.println("PAGE:1");
-                    
-                    // 为每个表添加列信息
-                    for (String tableName : tableNames) {
-                        TableInfo tableInfo = catalogManager.getTable(tableName);
-                        if (tableInfo != null) {
-                            for (ColumnInfo column : tableInfo.getColumns()) {
-                                boolean isPrimaryKey = tableInfo.getPrimaryKeyColumns().contains(column.getName());
-                                boolean isUnique = tableInfo.getUniqueConstraints().stream()
-                                    .anyMatch(constraint -> constraint.getColumns().contains(column.getName()));
-                                
-                                String record = String.format(
-                                    "auto_increment=%s|not_null=%s|unique=%s|column_name=%s|data_type=%s|length=%d|default_value=%s|table_name=%s|primary_key=%s",
-                                    column.isAutoIncrement() ? "true" : "false",
-                                    column.isNotNull() ? "true" : "false",
-                                    isUnique ? "true" : "false",
-                                    column.getName(),
-                                    column.getDataType(),
-                                    column.getLength(),
-                                    column.getDefaultValue() != null ? column.getDefaultValue().toString() : "null",
-                                    tableName,
-                                    isPrimaryKey ? "true" : "false"
-                                );
-                                writer.println(record);
-                            }
-                        }
-                    }
-                    
-                    writer.println(); // 空行结束
-                }
-                
-                System.out.println("✅ 已重建系统列表，包含 " + tableNames.size() + " 个表的信息");
-            }
-            
-        } catch (Exception e) {
-            System.err.println("重建系统列表失败: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -358,7 +246,7 @@ public class DatabaseEngine {
             if (predicatePushdownEnabled) {
                 plan = predicatePushdownOptimizer.optimize(plan);
             }
-
+            
             // 执行计划
             ExecutionResult result = null;
 
@@ -547,7 +435,7 @@ public class DatabaseEngine {
                     result = new ExecutionResult(result.isSuccess(), baseMsg, result.getData(), rewriteInfo);
                 }
             }
-
+            
             // 记录执行结果
             if (result.isSuccess()) {
                 System.out.println("SQL执行成功");

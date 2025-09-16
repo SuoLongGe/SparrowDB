@@ -19,6 +19,9 @@ public class DropShardPlan extends ExecutionPlan {
         return statement;
     }
     
+    public String getTableName() {
+        return statement.getTableName();
+    }
     
     @Override
     public String toString() {

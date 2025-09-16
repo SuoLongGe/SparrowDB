@@ -2,3 +2,989 @@
 2025-09-16 08:50:04.464 | LSN:00000042 | SELECT       | TXN:1757983804464 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
 2025-09-16 08:50:04.589 | LSN:00000043 | SELECT       | TXN:1757983804464 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
 2025-09-16 08:50:04.589 | LSN:00000044 | TXN_COMMIT   | TXN:1757983804464 |                 | 事务提交 | INFO:事务ID: 1757983804464
+2025-09-16 16:26:00.957 | LSN:00000045 | TXN_START    | TXN:1758011160939 |                 | 事务开始 | INFO:事务ID: 1758011160939
+2025-09-16 16:26:00.962 | LSN:00000046 | CREATE_TABLE | TXN:1758011160939 | demo_products   | SQL执行开始 | INFO:SQL: CREATE TABLE demo_products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50),
+    price DECIMAL(10,2),
+    stock_quantity INT,
+    supplier VARCHAR(50),
+    created_date DATE
+);
+2025-09-16 16:26:01.050 | LSN:00000047 | CREATE_TABLE | TXN:1758011160939 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE TABLE demo_products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50),
+    price DECIMAL(10,2),
+    stock_quantity INT,
+    supplier VARCHAR(50),
+    created_date DATE
+);
+2025-09-16 16:26:01.051 | LSN:00000048 | TXN_COMMIT   | TXN:1758011160939 |                 | 事务提交 | INFO:事务ID: 1758011160939
+2025-09-16 16:27:25.787 | LSN:00000049 | TXN_START    | TXN:1758011245785 |                 | 事务开始 | INFO:事务ID: 1758011245785
+2025-09-16 16:27:25.792 | LSN:00000050 | INSERT       | TXN:1758011245785 | demo_products   | SQL执行开始 | INFO:SQL: INSERT INTO demo_products VALUES 
+(1, 'Laptop Pro', 'Electronics', 1299.99, 10, 'TechCorp', '2024-01-01'),
+(2, 'Wireless Mouse', 'Electronics', 29.99, 50, 'TechCorp', '2024-01-02'),
+(3, 'Programming Book', 'Books', 59.99, 25, 'BookHouse', '2024-01-03'),
+(4, 'Mechanical Keyboard', 'Electronics', 129.99, 15, 'TechCorp', '2024-01-04'),
+(5, 'Design Guidebook', 'Books', 49.99, 30, 'BookHouse', '2024-01-05'),
+(6, 'Gaming Monitor', 'Electronics', 299.99, 8, 'DisplayTech', '2024-01-06'),
+(7, 'Database Theory', 'Books', 79.99, 20, 'BookHouse', '2024-01-07'),
+(8, 'USB-C Hub', 'Electronics', 39.99, 35, 'TechCorp', '2024-01-08');
+2025-09-16 16:27:25.817 | LSN:00000051 | INSERT       | TXN:1758011245785 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO demo_products VALUES 
+(1, 'Laptop Pro', 'Electronics', 1299.99, 10, 'TechCorp', '2024-01-01'),
+(2, 'Wireless Mouse', 'Electronics', 29.99, 50, 'TechCorp', '2024-01-02'),
+(3, 'Programming Book', 'Books', 59.99, 25, 'BookHouse', '2024-01-03'),
+(4, 'Mechanical Keyboard', 'Electronics', 129.99, 15, 'TechCorp', '2024-01-04'),
+(5, 'Design Guidebook', 'Books', 49.99, 30, 'BookHouse', '2024-01-05'),
+(6, 'Gaming Monitor', 'Electronics', 299.99, 8, 'DisplayTech', '2024-01-06'),
+(7, 'Database Theory', 'Books', 79.99, 20, 'BookHouse', '2024-01-07'),
+(8, 'USB-C Hub', 'Electronics', 39.99, 35, 'TechCorp', '2024-01-08');
+2025-09-16 16:27:25.818 | LSN:00000052 | TXN_COMMIT   | TXN:1758011245785 |                 | 事务提交 | INFO:事务ID: 1758011245785
+2025-09-16 16:27:34.826 | LSN:00000053 | TXN_START    | TXN:1758011254826 |                 | 事务开始 | INFO:事务ID: 1758011254826
+2025-09-16 16:27:34.827 | LSN:00000054 | SELECT       | TXN:1758011254826 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 16:27:34.986 | LSN:00000055 | SELECT       | TXN:1758011254826 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 16:27:34.986 | LSN:00000056 | TXN_COMMIT   | TXN:1758011254826 |                 | 事务提交 | INFO:事务ID: 1758011254826
+2025-09-16 16:27:55.108 | LSN:00000057 | TXN_START    | TXN:1758011275108 |                 | 事务开始 | INFO:事务ID: 1758011275108
+2025-09-16 16:27:55.109 | LSN:00000058 | SELECT       | TXN:1758011275108 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 16:27:55.221 | LSN:00000059 | SELECT       | TXN:1758011275108 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 16:27:55.222 | LSN:00000060 | TXN_COMMIT   | TXN:1758011275108 |                 | 事务提交 | INFO:事务ID: 1758011275108
+2025-09-16 16:27:57.512 | LSN:00000061 | TXN_START    | TXN:1758011277511 |                 | 事务开始 | INFO:事务ID: 1758011277511
+2025-09-16 16:27:57.513 | LSN:00000062 | SELECT       | TXN:1758011277511 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 16:27:57.679 | LSN:00000063 | SELECT       | TXN:1758011277511 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 16:27:57.681 | LSN:00000064 | TXN_COMMIT   | TXN:1758011277511 |                 | 事务提交 | INFO:事务ID: 1758011277511
+2025-09-16 16:28:01.487 | LSN:00000065 | TXN_START    | TXN:1758011281487 |                 | 事务开始 | INFO:事务ID: 1758011281487
+2025-09-16 16:28:01.488 | LSN:00000066 | SELECT       | TXN:1758011281487 | demo_products;  | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products;
+2025-09-16 16:28:01.606 | LSN:00000067 | SELECT       | TXN:1758011281487 | demo_products;  | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products;
+2025-09-16 16:28:01.606 | LSN:00000068 | TXN_COMMIT   | TXN:1758011281487 |                 | 事务提交 | INFO:事务ID: 1758011281487
+2025-09-16 16:28:34.366 | LSN:00000069 | TXN_START    | TXN:1758011314366 |                 | 事务开始 | INFO:事务ID: 1758011314366
+2025-09-16 16:28:34.367 | LSN:00000070 | SELECT       | TXN:1758011314366 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products WHERE category = 'Electronics';
+2025-09-16 16:28:34.386 | LSN:00000071 | SELECT       | TXN:1758011314366 | demo_products   | SQL执行成功 | DATA:NEW[返回 5 条记录] | INFO:SQL: SELECT * FROM demo_products WHERE category = 'Electronics';
+2025-09-16 16:28:34.386 | LSN:00000072 | TXN_COMMIT   | TXN:1758011314366 |                 | 事务提交 | INFO:事务ID: 1758011314366
+2025-09-16 16:28:48.518 | LSN:00000073 | TXN_START    | TXN:1758011328518 |                 | 事务开始 | INFO:事务ID: 1758011328518
+2025-09-16 16:28:48.519 | LSN:00000074 | SELECT       | TXN:1758011328518 | demo_products   | SQL执行开始 | INFO:SQL: SELECT supplier, COUNT(*) as product_count, AVG(price) as avg_price 
+FROM demo_products 
+GROUP BY supplier;
+2025-09-16 16:28:48.670 | LSN:00000075 | SELECT       | TXN:1758011328518 | demo_products   | SQL执行成功 | DATA:NEW[返回 3 条记录] | INFO:SQL: SELECT supplier, COUNT(*) as product_count, AVG(price) as avg_price 
+FROM demo_products 
+GROUP BY supplier;
+2025-09-16 16:28:48.672 | LSN:00000076 | TXN_COMMIT   | TXN:1758011328518 |                 | 事务提交 | INFO:事务ID: 1758011328518
+2025-09-16 16:37:26.289 | LSN:00000077 | TXN_START    | TXN:1758011846287 |                 | 事务开始 | INFO:事务ID: 1758011846287
+2025-09-16 16:37:26.290 | LSN:00000078 | SYSTEM       | TXN:1758011846287 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 16:37:26.321 | LSN:00000079 | SYSTEM       | TXN:1758011846287 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 16:37:26.323 | LSN:00000080 | TXN_COMMIT   | TXN:1758011846287 |                 | 事务提交 | INFO:事务ID: 1758011846287
+2025-09-16 16:41:11.807 | LSN:00000081 | TXN_START    | TXN:1758012071807 |                 | 事务开始 | INFO:事务ID: 1758012071807
+2025-09-16 16:41:11.808 | LSN:00000082 | SELECT       | TXN:1758012071807 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products WHERE supplier = 'TechCorp';
+2025-09-16 16:41:11.821 | LSN:00000083 | SELECT       | TXN:1758012071807 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products WHERE supplier = 'TechCorp';
+2025-09-16 16:41:11.821 | LSN:00000084 | TXN_COMMIT   | TXN:1758012071807 |                 | 事务提交 | INFO:事务ID: 1758012071807
+2025-09-16 16:41:19.971 | LSN:00000085 | TXN_START    | TXN:1758012079971 |                 | 事务开始 | INFO:事务ID: 1758012079971
+2025-09-16 16:41:19.972 | LSN:00000086 | SELECT       | TXN:1758012079971 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 16:41:20.091 | LSN:00000087 | SELECT       | TXN:1758012079971 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 16:41:20.091 | LSN:00000088 | TXN_COMMIT   | TXN:1758012079971 |                 | 事务提交 | INFO:事务ID: 1758012079971
+2025-09-16 16:42:59.715 | LSN:00000089 | TXN_START    | TXN:1758012179715 |                 | 事务开始 | INFO:事务ID: 1758012179715
+2025-09-16 16:42:59.717 | LSN:00000090 | SYSTEM       | TXN:1758012179715 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 16:42:59.721 | LSN:00000091 | SYSTEM       | TXN:1758012179715 |                 | SQL解析失败 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 16:42:59.756 | LSN:00000092 | TXN_ABORT    | TXN:1758012179715 |                 | 事务回滚 | INFO:事务ID: 1758012179715
+2025-09-16 16:47:12.332 | LSN:00000093 | TXN_START    | TXN:1758012432332 |                 | 事务开始 | INFO:事务ID: 1758012432332
+2025-09-16 16:47:12.333 | LSN:00000094 | SYSTEM       | TXN:1758012432332 |                 | SQL执行开始 | INFO:SQL: CREATE PERMANENT FUNCTION calculate_discount(original_price DECIMAL, discount_rate DECIMAL) 
+RETURNS DECIMAL 
+BEGIN 
+    RETURN original_price * (1 - discount_rate); 
+END;
+2025-09-16 16:47:12.342 | LSN:00000095 | SYSTEM       | TXN:1758012432332 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE PERMANENT FUNCTION calculate_discount(original_price DECIMAL, discount_rate DECIMAL) 
+RETURNS DECIMAL 
+BEGIN 
+    RETURN original_price * (1 - discount_rate); 
+END;
+2025-09-16 16:47:12.342 | LSN:00000096 | TXN_COMMIT   | TXN:1758012432332 |                 | 事务提交 | INFO:事务ID: 1758012432332
+2025-09-16 16:47:37.431 | LSN:00000097 | TXN_START    | TXN:1758012457431 |                 | 事务开始 | INFO:事务ID: 1758012457431
+2025-09-16 16:47:37.432 | LSN:00000098 | SYSTEM       | TXN:1758012457431 |                 | SQL执行开始 | INFO:SQL: CALL calculate_discount(100,0.5)
+2025-09-16 16:47:37.436 | LSN:00000099 | SYSTEM       | TXN:1758012457431 |                 | SQL执行失败 | DATA:NEW[调用函数失败: 调用函数失败: 函数执行错误: 无法执行算术运算: 100 * ( 1 - 0...] | INFO:SQL: CALL calculate_discount(100,0.5)
+2025-09-16 16:47:37.454 | LSN:00000100 | TXN_ABORT    | TXN:1758012457431 |                 | 事务回滚 | INFO:事务ID: 1758012457431
+2025-09-16 16:48:40.707 | LSN:00000101 | TXN_START    | TXN:1758012520707 |                 | 事务开始 | INFO:事务ID: 1758012520707
+2025-09-16 16:48:40.708 | LSN:00000102 | SYSTEM       | TXN:1758012520707 |                 | SQL执行开始 | INFO:SQL: DROP FUNCTION calculate_discount
+2025-09-16 16:48:40.715 | LSN:00000103 | SYSTEM       | TXN:1758012520707 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP FUNCTION calculate_discount
+2025-09-16 16:48:40.715 | LSN:00000104 | TXN_COMMIT   | TXN:1758012520707 |                 | 事务提交 | INFO:事务ID: 1758012520707
+2025-09-16 16:49:10.471 | LSN:00000105 | TXN_START    | TXN:1758012550471 |                 | 事务开始 | INFO:事务ID: 1758012550471
+2025-09-16 16:49:10.472 | LSN:00000106 | SYSTEM       | TXN:1758012550471 |                 | SQL执行开始 | INFO:SQL: CREATE PERMANENT FUNCTION calculate_discount(original_price DECIMAL, discount_rate DECIMAL) 
+RETURNS DECIMAL 
+BEGIN 
+    RETURN original_price * discount_rate; 
+END;
+2025-09-16 16:49:10.477 | LSN:00000107 | SYSTEM       | TXN:1758012550471 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE PERMANENT FUNCTION calculate_discount(original_price DECIMAL, discount_rate DECIMAL) 
+RETURNS DECIMAL 
+BEGIN 
+    RETURN original_price * discount_rate; 
+END;
+2025-09-16 16:49:10.478 | LSN:00000108 | TXN_COMMIT   | TXN:1758012550471 |                 | 事务提交 | INFO:事务ID: 1758012550471
+2025-09-16 16:49:20.373 | LSN:00000109 | TXN_START    | TXN:1758012560373 |                 | 事务开始 | INFO:事务ID: 1758012560373
+2025-09-16 16:49:20.374 | LSN:00000110 | SYSTEM       | TXN:1758012560373 |                 | SQL执行开始 | INFO:SQL: CALL calculate_discount(100,0.5)
+2025-09-16 16:49:20.377 | LSN:00000111 | SYSTEM       | TXN:1758012560373 |                 | SQL执行成功 | DATA:NEW[返回 1 条记录] | INFO:SQL: CALL calculate_discount(100,0.5)
+2025-09-16 16:49:20.377 | LSN:00000112 | TXN_COMMIT   | TXN:1758012560373 |                 | 事务提交 | INFO:事务ID: 1758012560373
+2025-09-16 16:50:25.899 | LSN:00000113 | TXN_START    | TXN:1758012625899 |                 | 事务开始 | INFO:事务ID: 1758012625899
+2025-09-16 16:50:25.899 | LSN:00000114 | SYSTEM       | TXN:1758012625899 |                 | SQL执行开始 | INFO:SQL: CREATE PERMANENT FUNCTION price_category(price DECIMAL) 
+RETURNS VARCHAR 
+BEGIN 
+    IF price > 500 THEN 
+        RETURN 'Premium'; 
+    ELSEIF price > 100 THEN 
+        RETURN 'Standard'; 
+    ELSE 
+        RETURN 'Budget'; 
+    END IF; 
+END;
+2025-09-16 16:50:25.908 | LSN:00000115 | SYSTEM       | TXN:1758012625899 |                 | SQL执行失败 | DATA:NEW[批量执行失败: 0/1 成功, 错误: 创建函数失败: 创建函数失败: IF语句不匹配：IF数...] | INFO:SQL: CREATE PERMANENT FUNCTION price_category(price DECIMAL) 
+RETURNS VARCHAR 
+BEGIN 
+    IF price > 500 THEN 
+        RETURN 'Premium'; 
+    ELSEIF price > 100 THEN 
+        RETURN 'Standard'; 
+    ELSE 
+        RETURN 'Budget'; 
+    END IF; 
+END;
+2025-09-16 16:50:25.923 | LSN:00000116 | TXN_ABORT    | TXN:1758012625899 |                 | 事务回滚 | INFO:事务ID: 1758012625899
+2025-09-16 16:52:05.111 | LSN:00000117 | TXN_START    | TXN:1758012725111 |                 | 事务开始 | INFO:事务ID: 1758012725111
+2025-09-16 16:52:05.113 | LSN:00000118 | SELECT       | TXN:1758012725111 | demo_products   | SQL执行开始 | INFO:SQL: SELECT 
+    product_name,
+    price,
+    calculate_discount(price, 0.1) as discounted_price
+FROM demo_products 
+WHERE category = 'Electronics';
+2025-09-16 16:52:05.132 | LSN:00000119 | SELECT       | TXN:1758012725111 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT 
+    product_name,
+    price,
+    calculate_discount(price, 0.1) as discounted_price
+FROM demo_products 
+WHERE category = 'Electronics';
+2025-09-16 16:52:05.132 | LSN:00000120 | TXN_COMMIT   | TXN:1758012725111 |                 | 事务提交 | INFO:事务ID: 1758012725111
+2025-09-16 16:52:11.779 | LSN:00000121 | TXN_START    | TXN:1758012731779 |                 | 事务开始 | INFO:事务ID: 1758012731779
+2025-09-16 16:52:11.779 | LSN:00000122 | SELECT       | TXN:1758012731779 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 16:52:11.888 | LSN:00000123 | SELECT       | TXN:1758012731779 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 16:52:11.889 | LSN:00000124 | TXN_COMMIT   | TXN:1758012731779 |                 | 事务提交 | INFO:事务ID: 1758012731779
+2025-09-16 16:52:40.499 | LSN:00000125 | TXN_START    | TXN:1758012760499 |                 | 事务开始 | INFO:事务ID: 1758012760499
+2025-09-16 16:52:40.500 | LSN:00000126 | INSERT       | TXN:1758012760499 | demo_products   | SQL执行开始 | INFO:SQL: INSERT INTO demo_products VALUES 
+(1, 'Laptop Pro', 'Electronics', 1299.99, 10, 'TechCorp', '2024-01-01'),
+(2, 'Wireless Mouse', 'Electronics', 29.99, 50, 'TechCorp', '2024-01-02'),
+(3, 'Programming Book', 'Books', 59.99, 25, 'BookHouse', '2024-01-03'),
+(4, 'Mechanical Keyboard', 'Electronics', 129.99, 15, 'TechCorp', '2024-01-04'),
+(5, 'Design Guidebook', 'Books', 49.99, 30, 'BookHouse', '2024-01-05'),
+(6, 'Gaming Monitor', 'Electronics', 299.99, 8, 'DisplayTech', '2024-01-06'),
+(7, 'Database Theory', 'Books', 79.99, 20, 'BookHouse', '2024-01-07'),
+(8, 'USB-C Hub', 'Electronics', 39.99, 35, 'TechCorp', '2024-01-08');
+2025-09-16 16:52:40.521 | LSN:00000127 | INSERT       | TXN:1758012760499 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO demo_products VALUES 
+(1, 'Laptop Pro', 'Electronics', 1299.99, 10, 'TechCorp', '2024-01-01'),
+(2, 'Wireless Mouse', 'Electronics', 29.99, 50, 'TechCorp', '2024-01-02'),
+(3, 'Programming Book', 'Books', 59.99, 25, 'BookHouse', '2024-01-03'),
+(4, 'Mechanical Keyboard', 'Electronics', 129.99, 15, 'TechCorp', '2024-01-04'),
+(5, 'Design Guidebook', 'Books', 49.99, 30, 'BookHouse', '2024-01-05'),
+(6, 'Gaming Monitor', 'Electronics', 299.99, 8, 'DisplayTech', '2024-01-06'),
+(7, 'Database Theory', 'Books', 79.99, 20, 'BookHouse', '2024-01-07'),
+(8, 'USB-C Hub', 'Electronics', 39.99, 35, 'TechCorp', '2024-01-08');
+2025-09-16 16:52:40.521 | LSN:00000128 | TXN_COMMIT   | TXN:1758012760499 |                 | 事务提交 | INFO:事务ID: 1758012760499
+2025-09-16 16:52:43.238 | LSN:00000129 | TXN_START    | TXN:1758012763238 |                 | 事务开始 | INFO:事务ID: 1758012763238
+2025-09-16 16:52:43.239 | LSN:00000130 | SELECT       | TXN:1758012763238 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 16:52:43.389 | LSN:00000131 | SELECT       | TXN:1758012763238 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 16:52:43.390 | LSN:00000132 | TXN_COMMIT   | TXN:1758012763238 |                 | 事务提交 | INFO:事务ID: 1758012763238
+2025-09-16 16:52:44.095 | LSN:00000133 | TXN_START    | TXN:1758012764095 |                 | 事务开始 | INFO:事务ID: 1758012764095
+2025-09-16 16:52:44.095 | LSN:00000134 | SELECT       | TXN:1758012764095 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 16:52:44.217 | LSN:00000135 | SELECT       | TXN:1758012764095 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 16:52:44.218 | LSN:00000136 | TXN_COMMIT   | TXN:1758012764095 |                 | 事务提交 | INFO:事务ID: 1758012764095
+2025-09-16 16:52:48.820 | LSN:00000137 | TXN_START    | TXN:1758012768820 |                 | 事务开始 | INFO:事务ID: 1758012768820
+2025-09-16 16:52:48.821 | LSN:00000138 | SELECT       | TXN:1758012768820 | demo_products   | SQL执行开始 | INFO:SQL: SELECT 
+    product_name,
+    price,
+    calculate_discount(price, 0.1) as discounted_price
+FROM demo_products 
+WHERE category = 'Electronics';
+2025-09-16 16:52:48.836 | LSN:00000139 | SELECT       | TXN:1758012768820 | demo_products   | SQL执行成功 | DATA:NEW[返回 5 条记录] | INFO:SQL: SELECT 
+    product_name,
+    price,
+    calculate_discount(price, 0.1) as discounted_price
+FROM demo_products 
+WHERE category = 'Electronics';
+2025-09-16 16:52:48.836 | LSN:00000140 | TXN_COMMIT   | TXN:1758012768820 |                 | 事务提交 | INFO:事务ID: 1758012768820
+2025-09-16 16:57:34.755 | LSN:00000141 | TXN_START    | TXN:1758013054755 |                 | 事务开始 | INFO:事务ID: 1758013054755
+2025-09-16 16:57:34.757 | LSN:00000142 | SELECT       | TXN:1758013054755 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 16:57:34.866 | LSN:00000143 | SELECT       | TXN:1758013054755 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 16:57:34.867 | LSN:00000144 | TXN_COMMIT   | TXN:1758013054755 |                 | 事务提交 | INFO:事务ID: 1758013054755
+2025-09-16 16:57:36.516 | LSN:00000145 | TXN_START    | TXN:1758013056516 |                 | 事务开始 | INFO:事务ID: 1758013056516
+2025-09-16 16:57:36.516 | LSN:00000146 | SELECT       | TXN:1758013056516 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 16:57:36.640 | LSN:00000147 | SELECT       | TXN:1758013056516 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 16:57:36.640 | LSN:00000148 | TXN_COMMIT   | TXN:1758013056516 |                 | 事务提交 | INFO:事务ID: 1758013056516
+2025-09-16 17:13:25.375 | LSN:00000149 | TXN_START    | TXN:1758014005374 |                 | 事务开始 | INFO:事务ID: 1758014005374
+2025-09-16 17:13:25.379 | LSN:00000150 | SYSTEM       | TXN:1758014005374 |                 | SQL执行开始 | INFO:SQL: drop SHARD demo_products
+2025-09-16 17:13:25.383 | LSN:00000151 | SYSTEM       | TXN:1758014005374 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: drop SHARD demo_products
+2025-09-16 17:13:25.384 | LSN:00000152 | TXN_COMMIT   | TXN:1758014005374 |                 | 事务提交 | INFO:事务ID: 1758014005374
+2025-09-16 17:16:08.580 | LSN:00000153 | TXN_START    | TXN:1758014168580 |                 | 事务开始 | INFO:事务ID: 1758014168580
+2025-09-16 17:16:08.581 | LSN:00000154 | SYSTEM       | TXN:1758014168580 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 17:16:08.603 | LSN:00000155 | SYSTEM       | TXN:1758014168580 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 17:16:08.603 | LSN:00000156 | TXN_COMMIT   | TXN:1758014168580 |                 | 事务提交 | INFO:事务ID: 1758014168580
+2025-09-16 17:17:52.711 | LSN:00000157 | TXN_START    | TXN:1758014272711 |                 | 事务开始 | INFO:事务ID: 1758014272711
+2025-09-16 17:17:52.722 | LSN:00000158 | SELECT       | TXN:1758014272711 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:17:52.849 | LSN:00000159 | SELECT       | TXN:1758014272711 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:17:52.850 | LSN:00000160 | TXN_COMMIT   | TXN:1758014272711 |                 | 事务提交 | INFO:事务ID: 1758014272711
+2025-09-16 17:36:04.070 | LSN:00000161 | TXN_START    | TXN:1758015364069 |                 | 事务开始 | INFO:事务ID: 1758015364069
+2025-09-16 17:36:04.078 | LSN:00000162 | SELECT       | TXN:1758015364069 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:36:04.191 | LSN:00000163 | SELECT       | TXN:1758015364069 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:36:04.192 | LSN:00000164 | TXN_COMMIT   | TXN:1758015364069 |                 | 事务提交 | INFO:事务ID: 1758015364069
+2025-09-16 17:36:20.589 | LSN:00000165 | TXN_START    | TXN:1758015380589 |                 | 事务开始 | INFO:事务ID: 1758015380589
+2025-09-16 17:36:20.590 | LSN:00000166 | SYSTEM       | TXN:1758015380589 |                 | SQL执行开始 | INFO:SQL: drop SHARD demo_products
+2025-09-16 17:36:20.598 | LSN:00000167 | SYSTEM       | TXN:1758015380589 |                 | SQL执行失败 | DATA:NEW[删除分片失败，表 demo_products 可能没有分片] | INFO:SQL: drop SHARD demo_products
+2025-09-16 17:36:20.627 | LSN:00000168 | TXN_ABORT    | TXN:1758015380589 |                 | 事务回滚 | INFO:事务ID: 1758015380589
+2025-09-16 17:37:33.248 | LSN:00000169 | TXN_START    | TXN:1758015453247 |                 | 事务开始 | INFO:事务ID: 1758015453247
+2025-09-16 17:37:33.252 | LSN:00000170 | SELECT       | TXN:1758015453247 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:37:33.362 | LSN:00000171 | SELECT       | TXN:1758015453247 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:37:33.363 | LSN:00000172 | TXN_COMMIT   | TXN:1758015453247 |                 | 事务提交 | INFO:事务ID: 1758015453247
+2025-09-16 17:37:34.936 | LSN:00000173 | TXN_START    | TXN:1758015454936 |                 | 事务开始 | INFO:事务ID: 1758015454936
+2025-09-16 17:37:34.937 | LSN:00000174 | SELECT       | TXN:1758015454936 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 17:37:35.046 | LSN:00000175 | SELECT       | TXN:1758015454936 | student         | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 17:37:35.047 | LSN:00000176 | TXN_COMMIT   | TXN:1758015454936 |                 | 事务提交 | INFO:事务ID: 1758015454936
+2025-09-16 17:37:36.079 | LSN:00000177 | TXN_START    | TXN:1758015456079 |                 | 事务开始 | INFO:事务ID: 1758015456079
+2025-09-16 17:37:36.080 | LSN:00000178 | SELECT       | TXN:1758015456079 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:37:36.204 | LSN:00000179 | SELECT       | TXN:1758015456079 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:37:36.205 | LSN:00000180 | TXN_COMMIT   | TXN:1758015456079 |                 | 事务提交 | INFO:事务ID: 1758015456079
+2025-09-16 17:37:38.404 | LSN:00000181 | TXN_START    | TXN:1758015458404 |                 | 事务开始 | INFO:事务ID: 1758015458404
+2025-09-16 17:37:38.404 | LSN:00000182 | SELECT       | TXN:1758015458404 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 17:37:38.516 | LSN:00000183 | SELECT       | TXN:1758015458404 | student         | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 17:37:38.517 | LSN:00000184 | TXN_COMMIT   | TXN:1758015458404 |                 | 事务提交 | INFO:事务ID: 1758015458404
+2025-09-16 17:53:11.352 | LSN:00000185 | TXN_START    | TXN:1758016391351 |                 | 事务开始 | INFO:事务ID: 1758016391351
+2025-09-16 17:53:11.356 | LSN:00000186 | SELECT       | TXN:1758016391351 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:53:11.467 | LSN:00000187 | SELECT       | TXN:1758016391351 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:53:11.468 | LSN:00000188 | TXN_COMMIT   | TXN:1758016391351 |                 | 事务提交 | INFO:事务ID: 1758016391351
+2025-09-16 17:54:27.085 | LSN:00000189 | TXN_START    | TXN:1758016467085 |                 | 事务开始 | INFO:事务ID: 1758016467085
+2025-09-16 17:54:27.086 | LSN:00000190 | DROP_TABLE   | TXN:1758016467085 | demo_products   | SQL执行开始 | INFO:SQL: DROP TABLE demo_products
+2025-09-16 17:54:27.094 | LSN:00000191 | DROP_TABLE   | TXN:1758016467085 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP TABLE demo_products
+2025-09-16 17:54:27.094 | LSN:00000192 | TXN_COMMIT   | TXN:1758016467085 |                 | 事务提交 | INFO:事务ID: 1758016467085
+2025-09-16 17:55:29.142 | LSN:00000193 | TXN_START    | TXN:1758016529141 |                 | 事务开始 | INFO:事务ID: 1758016529141
+2025-09-16 17:55:29.147 | LSN:00000194 | SELECT       | TXN:1758016529141 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:55:29.271 | LSN:00000195 | SELECT       | TXN:1758016529141 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:55:29.272 | LSN:00000196 | TXN_COMMIT   | TXN:1758016529141 |                 | 事务提交 | INFO:事务ID: 1758016529141
+2025-09-16 17:55:33.391 | LSN:00000197 | TXN_START    | TXN:1758016533391 |                 | 事务开始 | INFO:事务ID: 1758016533391
+2025-09-16 17:55:33.392 | LSN:00000198 | SELECT       | TXN:1758016533391 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 17:55:33.503 | LSN:00000199 | SELECT       | TXN:1758016533391 | student         | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 17:55:33.503 | LSN:00000200 | TXN_COMMIT   | TXN:1758016533391 |                 | 事务提交 | INFO:事务ID: 1758016533391
+2025-09-16 17:55:34.378 | LSN:00000201 | TXN_START    | TXN:1758016534378 |                 | 事务开始 | INFO:事务ID: 1758016534378
+2025-09-16 17:55:34.381 | LSN:00000202 | SELECT       | TXN:1758016534378 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:55:34.505 | LSN:00000203 | SELECT       | TXN:1758016534378 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:55:34.505 | LSN:00000204 | TXN_COMMIT   | TXN:1758016534378 |                 | 事务提交 | INFO:事务ID: 1758016534378
+2025-09-16 17:55:35.671 | LSN:00000205 | TXN_START    | TXN:1758016535671 |                 | 事务开始 | INFO:事务ID: 1758016535671
+2025-09-16 17:55:35.672 | LSN:00000206 | SELECT       | TXN:1758016535671 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 17:55:35.788 | LSN:00000207 | SELECT       | TXN:1758016535671 | student         | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 17:55:35.789 | LSN:00000208 | TXN_COMMIT   | TXN:1758016535671 |                 | 事务提交 | INFO:事务ID: 1758016535671
+2025-09-16 17:55:40.231 | LSN:00000209 | TXN_START    | TXN:1758016540231 |                 | 事务开始 | INFO:事务ID: 1758016540231
+2025-09-16 17:55:40.232 | LSN:00000210 | SELECT       | TXN:1758016540231 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:55:40.344 | LSN:00000211 | SELECT       | TXN:1758016540231 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:55:40.345 | LSN:00000212 | TXN_COMMIT   | TXN:1758016540231 |                 | 事务提交 | INFO:事务ID: 1758016540231
+2025-09-16 17:56:06.182 | LSN:00000213 | TXN_START    | TXN:1758016566182 |                 | 事务开始 | INFO:事务ID: 1758016566182
+2025-09-16 17:56:06.183 | LSN:00000214 | INSERT       | TXN:1758016566182 | demo_products   | SQL执行开始 | INFO:SQL: INSERT INTO demo_products VALUES 
+(1, 'Laptop Pro', 'Electronics', 1299.99, 10, 'TechCorp', '2024-01-01'),
+(2, 'Wireless Mouse', 'Electronics', 29.99, 50, 'TechCorp', '2024-01-02'),
+(3, 'Programming Book', 'Books', 59.99, 25, 'BookHouse', '2024-01-03'),
+(4, 'Mechanical Keyboard', 'Electronics', 129.99, 15, 'TechCorp', '2024-01-04'),
+(5, 'Design Guidebook', 'Books', 49.99, 30, 'BookHouse', '2024-01-05'),
+(6, 'Gaming Monitor', 'Electronics', 299.99, 8, 'DisplayTech', '2024-01-06'),
+(7, 'Database Theory', 'Books', 79.99, 20, 'BookHouse', '2024-01-07'),
+(8, 'USB-C Hub', 'Electronics', 39.99, 35, 'TechCorp', '2024-01-08');
+2025-09-16 17:56:06.198 | LSN:00000215 | INSERT       | TXN:1758016566182 | demo_products   | SQL执行失败 | DATA:NEW[插入记录失败] | INFO:SQL: INSERT INTO demo_products VALUES 
+(1, 'Laptop Pro', 'Electronics', 1299.99, 10, 'TechCorp', '2024-01-01'),
+(2, 'Wireless Mouse', 'Electronics', 29.99, 50, 'TechCorp', '2024-01-02'),
+(3, 'Programming Book', 'Books', 59.99, 25, 'BookHouse', '2024-01-03'),
+(4, 'Mechanical Keyboard', 'Electronics', 129.99, 15, 'TechCorp', '2024-01-04'),
+(5, 'Design Guidebook', 'Books', 49.99, 30, 'BookHouse', '2024-01-05'),
+(6, 'Gaming Monitor', 'Electronics', 299.99, 8, 'DisplayTech', '2024-01-06'),
+(7, 'Database Theory', 'Books', 79.99, 20, 'BookHouse', '2024-01-07'),
+(8, 'USB-C Hub', 'Electronics', 39.99, 35, 'TechCorp', '2024-01-08');
+2025-09-16 17:56:06.222 | LSN:00000216 | TXN_ABORT    | TXN:1758016566182 |                 | 事务回滚 | INFO:事务ID: 1758016566182
+2025-09-16 17:57:28.234 | LSN:00000217 | TXN_START    | TXN:1758016648234 |                 | 事务开始 | INFO:事务ID: 1758016648234
+2025-09-16 17:57:28.236 | LSN:00000218 | SELECT       | TXN:1758016648234 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 17:57:28.351 | LSN:00000219 | SELECT       | TXN:1758016648234 | student         | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 17:57:28.352 | LSN:00000220 | TXN_COMMIT   | TXN:1758016648234 |                 | 事务提交 | INFO:事务ID: 1758016648234
+2025-09-16 17:57:35.856 | LSN:00000221 | TXN_START    | TXN:1758016655856 |                 | 事务开始 | INFO:事务ID: 1758016655856
+2025-09-16 17:57:35.856 | LSN:00000222 | SELECT       | TXN:1758016655856 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 17:57:35.975 | LSN:00000223 | SELECT       | TXN:1758016655856 | student         | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 17:57:35.976 | LSN:00000224 | TXN_COMMIT   | TXN:1758016655856 |                 | 事务提交 | INFO:事务ID: 1758016655856
+2025-09-16 17:59:07.822 | LSN:00000225 | TXN_START    | TXN:1758016747819 |                 | 事务开始 | INFO:事务ID: 1758016747819
+2025-09-16 17:59:07.832 | LSN:00000226 | SELECT       | TXN:1758016747819 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:59:07.950 | LSN:00000227 | SELECT       | TXN:1758016747819 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 17:59:07.951 | LSN:00000228 | TXN_COMMIT   | TXN:1758016747819 |                 | 事务提交 | INFO:事务ID: 1758016747819
+2025-09-16 17:59:09.541 | LSN:00000229 | TXN_START    | TXN:1758016749541 |                 | 事务开始 | INFO:事务ID: 1758016749541
+2025-09-16 17:59:09.542 | LSN:00000230 | SELECT       | TXN:1758016749541 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 17:59:09.670 | LSN:00000231 | SELECT       | TXN:1758016749541 | student         | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 17:59:09.671 | LSN:00000232 | TXN_COMMIT   | TXN:1758016749541 |                 | 事务提交 | INFO:事务ID: 1758016749541
+2025-09-16 18:01:34.415 | LSN:00000233 | TXN_START    | TXN:1758016894415 |                 | 事务开始 | INFO:事务ID: 1758016894415
+2025-09-16 18:01:34.416 | LSN:00000234 | SELECT       | TXN:1758016894415 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:01:34.546 | LSN:00000235 | SELECT       | TXN:1758016894415 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:01:34.547 | LSN:00000236 | TXN_COMMIT   | TXN:1758016894415 |                 | 事务提交 | INFO:事务ID: 1758016894415
+2025-09-16 18:01:35.997 | LSN:00000237 | TXN_START    | TXN:1758016895997 |                 | 事务开始 | INFO:事务ID: 1758016895997
+2025-09-16 18:01:35.998 | LSN:00000238 | SELECT       | TXN:1758016895997 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 18:01:36.125 | LSN:00000239 | SELECT       | TXN:1758016895997 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 18:01:36.126 | LSN:00000240 | TXN_COMMIT   | TXN:1758016895997 |                 | 事务提交 | INFO:事务ID: 1758016895997
+2025-09-16 18:01:37.608 | LSN:00000241 | TXN_START    | TXN:1758016897608 |                 | 事务开始 | INFO:事务ID: 1758016897608
+2025-09-16 18:01:37.609 | LSN:00000242 | SELECT       | TXN:1758016897608 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:01:37.732 | LSN:00000243 | SELECT       | TXN:1758016897608 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:01:37.733 | LSN:00000244 | TXN_COMMIT   | TXN:1758016897608 |                 | 事务提交 | INFO:事务ID: 1758016897608
+2025-09-16 18:14:26.228 | LSN:00000245 | TXN_START    | TXN:1758017666228 |                 | 事务开始 | INFO:事务ID: 1758017666228
+2025-09-16 18:14:26.229 | LSN:00000246 | SELECT       | TXN:1758017666228 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:14:26.367 | LSN:00000247 | SELECT       | TXN:1758017666228 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:14:26.369 | LSN:00000248 | TXN_COMMIT   | TXN:1758017666228 |                 | 事务提交 | INFO:事务ID: 1758017666228
+2025-09-16 18:15:14.135 | LSN:00000249 | TXN_START    | TXN:1758017714135 |                 | 事务开始 | INFO:事务ID: 1758017714135
+2025-09-16 18:15:14.135 | LSN:00000250 | SYSTEM       | TXN:1758017714135 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:15:14.159 | LSN:00000251 | SYSTEM       | TXN:1758017714135 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:15:14.160 | LSN:00000252 | TXN_COMMIT   | TXN:1758017714135 |                 | 事务提交 | INFO:事务ID: 1758017714135
+2025-09-16 18:25:56.479 | LSN:00000253 | TXN_START    | TXN:1758018356478 |                 | 事务开始 | INFO:事务ID: 1758018356478
+2025-09-16 18:25:56.484 | LSN:00000254 | SYSTEM       | TXN:1758018356478 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:25:56.488 | LSN:00000255 | SYSTEM       | TXN:1758018356478 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:25:56.489 | LSN:00000256 | TXN_COMMIT   | TXN:1758018356478 |                 | 事务提交 | INFO:事务ID: 1758018356478
+2025-09-16 18:26:01.932 | LSN:00000257 | TXN_START    | TXN:1758018361932 |                 | 事务开始 | INFO:事务ID: 1758018361932
+2025-09-16 18:26:01.933 | LSN:00000258 | SELECT       | TXN:1758018361932 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:26:02.055 | LSN:00000259 | SELECT       | TXN:1758018361932 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:26:02.055 | LSN:00000260 | TXN_COMMIT   | TXN:1758018361932 |                 | 事务提交 | INFO:事务ID: 1758018361932
+2025-09-16 18:26:25.987 | LSN:00000261 | TXN_START    | TXN:1758018385987 |                 | 事务开始 | INFO:事务ID: 1758018385987
+2025-09-16 18:26:25.988 | LSN:00000262 | SYSTEM       | TXN:1758018385987 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:26:26.022 | LSN:00000263 | SYSTEM       | TXN:1758018385987 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:26:26.022 | LSN:00000264 | TXN_COMMIT   | TXN:1758018385987 |                 | 事务提交 | INFO:事务ID: 1758018385987
+2025-09-16 18:27:05.536 | LSN:00000265 | TXN_START    | TXN:1758018425536 |                 | 事务开始 | INFO:事务ID: 1758018425536
+2025-09-16 18:27:05.536 | LSN:00000266 | SYSTEM       | TXN:1758018425536 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:27:05.542 | LSN:00000267 | SYSTEM       | TXN:1758018425536 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:27:05.542 | LSN:00000268 | TXN_COMMIT   | TXN:1758018425536 |                 | 事务提交 | INFO:事务ID: 1758018425536
+2025-09-16 18:28:09.070 | LSN:00000269 | TXN_START    | TXN:1758018489069 |                 | 事务开始 | INFO:事务ID: 1758018489069
+2025-09-16 18:28:09.071 | LSN:00000270 | SYSTEM       | TXN:1758018489069 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:28:09.106 | LSN:00000271 | SYSTEM       | TXN:1758018489069 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:28:09.107 | LSN:00000272 | TXN_COMMIT   | TXN:1758018489069 |                 | 事务提交 | INFO:事务ID: 1758018489069
+2025-09-16 18:30:23.855 | LSN:00000273 | TXN_START    | TXN:1758018623854 |                 | 事务开始 | INFO:事务ID: 1758018623854
+2025-09-16 18:30:23.858 | LSN:00000274 | SYSTEM       | TXN:1758018623854 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:30:23.866 | LSN:00000275 | SYSTEM       | TXN:1758018623854 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:30:23.867 | LSN:00000276 | TXN_COMMIT   | TXN:1758018623854 |                 | 事务提交 | INFO:事务ID: 1758018623854
+2025-09-16 18:30:38.293 | LSN:00000277 | TXN_START    | TXN:1758018638293 |                 | 事务开始 | INFO:事务ID: 1758018638293
+2025-09-16 18:30:38.294 | LSN:00000278 | SYSTEM       | TXN:1758018638293 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:30:38.325 | LSN:00000279 | SYSTEM       | TXN:1758018638293 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:30:38.326 | LSN:00000280 | TXN_COMMIT   | TXN:1758018638293 |                 | 事务提交 | INFO:事务ID: 1758018638293
+2025-09-16 18:30:52.703 | LSN:00000281 | TXN_START    | TXN:1758018652703 |                 | 事务开始 | INFO:事务ID: 1758018652703
+2025-09-16 18:30:52.705 | LSN:00000282 | SELECT       | TXN:1758018652703 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:30:52.815 | LSN:00000283 | SELECT       | TXN:1758018652703 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:30:52.816 | LSN:00000284 | TXN_COMMIT   | TXN:1758018652703 |                 | 事务提交 | INFO:事务ID: 1758018652703
+2025-09-16 18:30:55.741 | LSN:00000285 | TXN_START    | TXN:1758018655741 |                 | 事务开始 | INFO:事务ID: 1758018655741
+2025-09-16 18:30:55.742 | LSN:00000286 | SELECT       | TXN:1758018655741 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 18:30:55.912 | LSN:00000287 | SELECT       | TXN:1758018655741 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 18:30:55.913 | LSN:00000288 | TXN_COMMIT   | TXN:1758018655741 |                 | 事务提交 | INFO:事务ID: 1758018655741
+2025-09-16 18:30:57.023 | LSN:00000289 | TXN_START    | TXN:1758018657023 |                 | 事务开始 | INFO:事务ID: 1758018657023
+2025-09-16 18:30:57.024 | LSN:00000290 | SELECT       | TXN:1758018657023 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:30:57.138 | LSN:00000291 | SELECT       | TXN:1758018657023 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:30:57.139 | LSN:00000292 | TXN_COMMIT   | TXN:1758018657023 |                 | 事务提交 | INFO:事务ID: 1758018657023
+2025-09-16 18:35:47.254 | LSN:00000293 | TXN_START    | TXN:1758018947253 |                 | 事务开始 | INFO:事务ID: 1758018947253
+2025-09-16 18:35:47.259 | LSN:00000294 | SELECT       | TXN:1758018947253 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:35:47.375 | LSN:00000295 | SELECT       | TXN:1758018947253 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:35:47.377 | LSN:00000296 | TXN_COMMIT   | TXN:1758018947253 |                 | 事务提交 | INFO:事务ID: 1758018947253
+2025-09-16 18:35:49.027 | LSN:00000297 | TXN_START    | TXN:1758018949027 |                 | 事务开始 | INFO:事务ID: 1758018949027
+2025-09-16 18:35:49.027 | LSN:00000298 | SELECT       | TXN:1758018949027 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 18:35:49.156 | LSN:00000299 | SELECT       | TXN:1758018949027 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 18:35:49.157 | LSN:00000300 | TXN_COMMIT   | TXN:1758018949027 |                 | 事务提交 | INFO:事务ID: 1758018949027
+2025-09-16 18:35:50.264 | LSN:00000301 | TXN_START    | TXN:1758018950263 |                 | 事务开始 | INFO:事务ID: 1758018950263
+2025-09-16 18:35:50.264 | LSN:00000302 | SELECT       | TXN:1758018950263 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:35:50.392 | LSN:00000303 | SELECT       | TXN:1758018950263 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:35:50.394 | LSN:00000304 | TXN_COMMIT   | TXN:1758018950263 |                 | 事务提交 | INFO:事务ID: 1758018950263
+2025-09-16 18:35:54.542 | LSN:00000305 | TXN_START    | TXN:1758018954542 |                 | 事务开始 | INFO:事务ID: 1758018954542
+2025-09-16 18:35:54.543 | LSN:00000306 | SYSTEM       | TXN:1758018954542 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:35:54.554 | LSN:00000307 | SYSTEM       | TXN:1758018954542 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:35:54.555 | LSN:00000308 | TXN_COMMIT   | TXN:1758018954542 |                 | 事务提交 | INFO:事务ID: 1758018954542
+2025-09-16 18:36:21.113 | LSN:00000309 | TXN_START    | TXN:1758018981113 |                 | 事务开始 | INFO:事务ID: 1758018981113
+2025-09-16 18:36:21.114 | LSN:00000310 | SYSTEM       | TXN:1758018981113 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:36:21.136 | LSN:00000311 | SYSTEM       | TXN:1758018981113 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:36:21.136 | LSN:00000312 | TXN_COMMIT   | TXN:1758018981113 |                 | 事务提交 | INFO:事务ID: 1758018981113
+2025-09-16 18:36:24.522 | LSN:00000313 | TXN_START    | TXN:1758018984522 |                 | 事务开始 | INFO:事务ID: 1758018984522
+2025-09-16 18:36:24.523 | LSN:00000314 | SELECT       | TXN:1758018984522 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 18:36:24.644 | LSN:00000315 | SELECT       | TXN:1758018984522 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 18:36:24.645 | LSN:00000316 | TXN_COMMIT   | TXN:1758018984522 |                 | 事务提交 | INFO:事务ID: 1758018984522
+2025-09-16 18:36:25.416 | LSN:00000317 | TXN_START    | TXN:1758018985415 |                 | 事务开始 | INFO:事务ID: 1758018985415
+2025-09-16 18:36:25.417 | LSN:00000318 | SELECT       | TXN:1758018985415 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:36:25.535 | LSN:00000319 | SELECT       | TXN:1758018985415 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:36:25.535 | LSN:00000320 | TXN_COMMIT   | TXN:1758018985415 |                 | 事务提交 | INFO:事务ID: 1758018985415
+2025-09-16 18:36:44.747 | LSN:00000321 | TXN_START    | TXN:1758019004747 |                 | 事务开始 | INFO:事务ID: 1758019004747
+2025-09-16 18:36:44.748 | LSN:00000322 | SYSTEM       | TXN:1758019004747 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:36:44.764 | LSN:00000323 | SYSTEM       | TXN:1758019004747 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:36:44.764 | LSN:00000324 | TXN_COMMIT   | TXN:1758019004747 |                 | 事务提交 | INFO:事务ID: 1758019004747
+2025-09-16 18:37:13.198 | LSN:00000325 | TXN_START    | TXN:1758019033195 |                 | 事务开始 | INFO:事务ID: 1758019033195
+2025-09-16 18:37:13.203 | LSN:00000326 | SELECT       | TXN:1758019033195 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:37:13.324 | LSN:00000327 | SELECT       | TXN:1758019033195 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:37:13.325 | LSN:00000328 | TXN_COMMIT   | TXN:1758019033195 |                 | 事务提交 | INFO:事务ID: 1758019033195
+2025-09-16 18:37:18.317 | LSN:00000329 | TXN_START    | TXN:1758019038317 |                 | 事务开始 | INFO:事务ID: 1758019038317
+2025-09-16 18:37:18.317 | LSN:00000330 | SYSTEM       | TXN:1758019038317 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:37:18.345 | LSN:00000331 | SYSTEM       | TXN:1758019038317 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:37:18.345 | LSN:00000332 | TXN_COMMIT   | TXN:1758019038317 |                 | 事务提交 | INFO:事务ID: 1758019038317
+2025-09-16 18:37:21.875 | LSN:00000333 | TXN_START    | TXN:1758019041875 |                 | 事务开始 | INFO:事务ID: 1758019041875
+2025-09-16 18:37:21.876 | LSN:00000334 | SELECT       | TXN:1758019041875 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:37:21.985 | LSN:00000335 | SELECT       | TXN:1758019041875 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:37:21.986 | LSN:00000336 | TXN_COMMIT   | TXN:1758019041875 |                 | 事务提交 | INFO:事务ID: 1758019041875
+2025-09-16 18:38:00.529 | LSN:00000337 | TXN_START    | TXN:1758019080529 |                 | 事务开始 | INFO:事务ID: 1758019080529
+2025-09-16 18:38:00.529 | LSN:00000338 | INSERT       | TXN:1758019080529 | demo_products   | SQL执行开始 | INFO:SQL: INSERT INTO demo_products VALUES 
+(1, 'Laptop Pro', 'Electronics', 1299.99, 10, 'TechCorp', '2024-01-01'),
+(2, 'Wireless Mouse', 'Electronics', 29.99, 50, 'TechCorp', '2024-01-02'),
+(3, 'Programming Book', 'Books', 59.99, 25, 'BookHouse', '2024-01-03'),
+(4, 'Mechanical Keyboard', 'Electronics', 129.99, 15, 'TechCorp', '2024-01-04'),
+(5, 'Design Guidebook', 'Books', 49.99, 30, 'BookHouse', '2024-01-05'),
+(6, 'Gaming Monitor', 'Electronics', 299.99, 8, 'DisplayTech', '2024-01-06'),
+(7, 'Database Theory', 'Books', 79.99, 20, 'BookHouse', '2024-01-07'),
+(8, 'USB-C Hub', 'Electronics', 39.99, 35, 'TechCorp', '2024-01-08');
+2025-09-16 18:38:00.576 | LSN:00000339 | INSERT       | TXN:1758019080529 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO demo_products VALUES 
+(1, 'Laptop Pro', 'Electronics', 1299.99, 10, 'TechCorp', '2024-01-01'),
+(2, 'Wireless Mouse', 'Electronics', 29.99, 50, 'TechCorp', '2024-01-02'),
+(3, 'Programming Book', 'Books', 59.99, 25, 'BookHouse', '2024-01-03'),
+(4, 'Mechanical Keyboard', 'Electronics', 129.99, 15, 'TechCorp', '2024-01-04'),
+(5, 'Design Guidebook', 'Books', 49.99, 30, 'BookHouse', '2024-01-05'),
+(6, 'Gaming Monitor', 'Electronics', 299.99, 8, 'DisplayTech', '2024-01-06'),
+(7, 'Database Theory', 'Books', 79.99, 20, 'BookHouse', '2024-01-07'),
+(8, 'USB-C Hub', 'Electronics', 39.99, 35, 'TechCorp', '2024-01-08');
+2025-09-16 18:38:00.576 | LSN:00000340 | TXN_COMMIT   | TXN:1758019080529 |                 | 事务提交 | INFO:事务ID: 1758019080529
+2025-09-16 18:38:07.018 | LSN:00000341 | TXN_START    | TXN:1758019087018 |                 | 事务开始 | INFO:事务ID: 1758019087018
+2025-09-16 18:38:07.019 | LSN:00000342 | SELECT       | TXN:1758019087018 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:38:07.131 | LSN:00000343 | SELECT       | TXN:1758019087018 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:38:07.133 | LSN:00000344 | TXN_COMMIT   | TXN:1758019087018 |                 | 事务提交 | INFO:事务ID: 1758019087018
+2025-09-16 18:41:02.531 | LSN:00000345 | TXN_START    | TXN:1758019262529 |                 | 事务开始 | INFO:事务ID: 1758019262529
+2025-09-16 18:41:02.532 | LSN:00000346 | SYSTEM       | TXN:1758019262529 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:41:02.546 | LSN:00000347 | SYSTEM       | TXN:1758019262529 |                 | SQL执行失败 | DATA:NEW[创建分片失败，可能表已存在分片或分片键列不存在] | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:41:02.581 | LSN:00000348 | TXN_ABORT    | TXN:1758019262529 |                 | 事务回滚 | INFO:事务ID: 1758019262529
+2025-09-16 18:41:12.025 | LSN:00000349 | TXN_START    | TXN:1758019272025 |                 | 事务开始 | INFO:事务ID: 1758019272025
+2025-09-16 18:41:12.025 | LSN:00000350 | SYSTEM       | TXN:1758019272025 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:41:12.032 | LSN:00000351 | SYSTEM       | TXN:1758019272025 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:41:12.032 | LSN:00000352 | TXN_COMMIT   | TXN:1758019272025 |                 | 事务提交 | INFO:事务ID: 1758019272025
+2025-09-16 18:41:24.056 | LSN:00000353 | TXN_START    | TXN:1758019284056 |                 | 事务开始 | INFO:事务ID: 1758019284056
+2025-09-16 18:41:24.056 | LSN:00000354 | SYSTEM       | TXN:1758019284056 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:41:24.074 | LSN:00000355 | SYSTEM       | TXN:1758019284056 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:41:24.075 | LSN:00000356 | TXN_COMMIT   | TXN:1758019284056 |                 | 事务提交 | INFO:事务ID: 1758019284056
+2025-09-16 18:41:55.749 | LSN:00000357 | TXN_START    | TXN:1758019315749 |                 | 事务开始 | INFO:事务ID: 1758019315749
+2025-09-16 18:41:55.751 | LSN:00000358 | SELECT       | TXN:1758019315749 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:41:55.874 | LSN:00000359 | SELECT       | TXN:1758019315749 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:41:55.875 | LSN:00000360 | TXN_COMMIT   | TXN:1758019315749 |                 | 事务提交 | INFO:事务ID: 1758019315749
+2025-09-16 18:41:59.889 | LSN:00000361 | TXN_START    | TXN:1758019319889 |                 | 事务开始 | INFO:事务ID: 1758019319889
+2025-09-16 18:41:59.890 | LSN:00000362 | SELECT       | TXN:1758019319889 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 18:42:00.017 | LSN:00000363 | SELECT       | TXN:1758019319889 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 18:42:00.017 | LSN:00000364 | TXN_COMMIT   | TXN:1758019319889 |                 | 事务提交 | INFO:事务ID: 1758019319889
+2025-09-16 18:42:00.799 | LSN:00000365 | TXN_START    | TXN:1758019320799 |                 | 事务开始 | INFO:事务ID: 1758019320799
+2025-09-16 18:42:00.800 | LSN:00000366 | SELECT       | TXN:1758019320799 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:42:00.912 | LSN:00000367 | SELECT       | TXN:1758019320799 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:42:00.912 | LSN:00000368 | TXN_COMMIT   | TXN:1758019320799 |                 | 事务提交 | INFO:事务ID: 1758019320799
+2025-09-16 18:42:20.950 | LSN:00000369 | TXN_START    | TXN:1758019340950 |                 | 事务开始 | INFO:事务ID: 1758019340950
+2025-09-16 18:42:20.951 | LSN:00000370 | SYSTEM       | TXN:1758019340950 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:42:21.001 | LSN:00000371 | SYSTEM       | TXN:1758019340950 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:42:21.002 | LSN:00000372 | TXN_COMMIT   | TXN:1758019340950 |                 | 事务提交 | INFO:事务ID: 1758019340950
+2025-09-16 18:42:43.195 | LSN:00000373 | TXN_START    | TXN:1758019363193 |                 | 事务开始 | INFO:事务ID: 1758019363193
+2025-09-16 18:42:43.197 | LSN:00000374 | SYSTEM       | TXN:1758019363193 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:42:43.218 | LSN:00000375 | SYSTEM       | TXN:1758019363193 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:42:43.219 | LSN:00000376 | TXN_COMMIT   | TXN:1758019363193 |                 | 事务提交 | INFO:事务ID: 1758019363193
+2025-09-16 18:53:27.299 | LSN:00000377 | TXN_START    | TXN:1758020007298 |                 | 事务开始 | INFO:事务ID: 1758020007298
+2025-09-16 18:53:27.303 | LSN:00000378 | SELECT       | TXN:1758020007298 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:53:27.431 | LSN:00000379 | SELECT       | TXN:1758020007298 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:53:27.431 | LSN:00000380 | TXN_COMMIT   | TXN:1758020007298 |                 | 事务提交 | INFO:事务ID: 1758020007298
+2025-09-16 18:53:28.404 | LSN:00000381 | TXN_START    | TXN:1758020008404 |                 | 事务开始 | INFO:事务ID: 1758020008404
+2025-09-16 18:53:28.405 | LSN:00000382 | SELECT       | TXN:1758020008404 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 18:53:28.532 | LSN:00000383 | SELECT       | TXN:1758020008404 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 18:53:28.532 | LSN:00000384 | TXN_COMMIT   | TXN:1758020008404 |                 | 事务提交 | INFO:事务ID: 1758020008404
+2025-09-16 18:55:31.855 | LSN:00000385 | TXN_START    | TXN:1758020131855 |                 | 事务开始 | INFO:事务ID: 1758020131855
+2025-09-16 18:55:31.855 | LSN:00000386 | SYSTEM       | TXN:1758020131855 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:55:31.865 | LSN:00000387 | SYSTEM       | TXN:1758020131855 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD demo_products
+2025-09-16 18:55:31.866 | LSN:00000388 | TXN_COMMIT   | TXN:1758020131855 |                 | 事务提交 | INFO:事务ID: 1758020131855
+2025-09-16 18:55:38.237 | LSN:00000389 | TXN_START    | TXN:1758020138237 |                 | 事务开始 | INFO:事务ID: 1758020138237
+2025-09-16 18:55:38.238 | LSN:00000390 | SELECT       | TXN:1758020138237 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:55:38.386 | LSN:00000391 | SELECT       | TXN:1758020138237 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 18:55:38.386 | LSN:00000392 | TXN_COMMIT   | TXN:1758020138237 |                 | 事务提交 | INFO:事务ID: 1758020138237
+2025-09-16 18:55:45.702 | LSN:00000393 | TXN_START    | TXN:1758020145702 |                 | 事务开始 | INFO:事务ID: 1758020145702
+2025-09-16 18:55:45.703 | LSN:00000394 | SYSTEM       | TXN:1758020145702 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:55:45.723 | LSN:00000395 | SYSTEM       | TXN:1758020145702 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 18:55:45.723 | LSN:00000396 | TXN_COMMIT   | TXN:1758020145702 |                 | 事务提交 | INFO:事务ID: 1758020145702
+2025-09-16 19:08:44.949 | LSN:00000397 | TXN_START    | TXN:1758020924947 |                 | 事务开始 | INFO:事务ID: 1758020924947
+2025-09-16 19:08:44.950 | LSN:00000398 | SYSTEM       | TXN:1758020924947 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 19:08:44.957 | LSN:00000399 | SYSTEM       | TXN:1758020924947 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD demo_products
+2025-09-16 19:08:44.958 | LSN:00000400 | TXN_COMMIT   | TXN:1758020924947 |                 | 事务提交 | INFO:事务ID: 1758020924947
+2025-09-16 19:09:25.864 | LSN:00000401 | TXN_START    | TXN:1758020965864 |                 | 事务开始 | INFO:事务ID: 1758020965864
+2025-09-16 19:09:25.864 | LSN:00000402 | SYSTEM       | TXN:1758020965864 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 19:09:25.881 | LSN:00000403 | SYSTEM       | TXN:1758020965864 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 19:09:25.882 | LSN:00000404 | TXN_COMMIT   | TXN:1758020965864 |                 | 事务提交 | INFO:事务ID: 1758020965864
+2025-09-16 19:09:29.066 | LSN:00000405 | TXN_START    | TXN:1758020969066 |                 | 事务开始 | INFO:事务ID: 1758020969066
+2025-09-16 19:09:29.068 | LSN:00000406 | SELECT       | TXN:1758020969066 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 19:09:29.197 | LSN:00000407 | SELECT       | TXN:1758020969066 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 19:09:29.197 | LSN:00000408 | TXN_COMMIT   | TXN:1758020969066 |                 | 事务提交 | INFO:事务ID: 1758020969066
+2025-09-16 19:09:32.034 | LSN:00000409 | TXN_START    | TXN:1758020972034 |                 | 事务开始 | INFO:事务ID: 1758020972034
+2025-09-16 19:09:32.036 | LSN:00000410 | SELECT       | TXN:1758020972034 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 19:09:32.153 | LSN:00000411 | SELECT       | TXN:1758020972034 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 19:09:32.154 | LSN:00000412 | TXN_COMMIT   | TXN:1758020972034 |                 | 事务提交 | INFO:事务ID: 1758020972034
+2025-09-16 19:09:32.867 | LSN:00000413 | TXN_START    | TXN:1758020972867 |                 | 事务开始 | INFO:事务ID: 1758020972867
+2025-09-16 19:09:32.868 | LSN:00000414 | SELECT       | TXN:1758020972867 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 19:09:32.986 | LSN:00000415 | SELECT       | TXN:1758020972867 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 19:09:32.987 | LSN:00000416 | TXN_COMMIT   | TXN:1758020972867 |                 | 事务提交 | INFO:事务ID: 1758020972867
+2025-09-16 19:31:18.689 | LSN:00000417 | TXN_START    | TXN:1758022278688 |                 | 事务开始 | INFO:事务ID: 1758022278688
+2025-09-16 19:31:18.691 | LSN:00000418 | SYSTEM       | TXN:1758022278688 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 19:31:18.693 | LSN:00000419 | SYSTEM       | TXN:1758022278688 |                 | SQL解析失败 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 19:31:18.737 | LSN:00000420 | TXN_ABORT    | TXN:1758022278688 |                 | 事务回滚 | INFO:事务ID: 1758022278688
+2025-09-16 19:41:24.902 | LSN:00000421 | TXN_START    | TXN:1758022884899 |                 | 事务开始 | INFO:事务ID: 1758022884899
+2025-09-16 19:41:24.905 | LSN:00000422 | SYSTEM       | TXN:1758022884899 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 19:41:24.915 | LSN:00000423 | SYSTEM       | TXN:1758022884899 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD demo_products
+2025-09-16 19:41:24.917 | LSN:00000424 | TXN_COMMIT   | TXN:1758022884899 |                 | 事务提交 | INFO:事务ID: 1758022884899
+2025-09-16 19:41:54.505 | LSN:00000425 | TXN_START    | TXN:1758022914505 |                 | 事务开始 | INFO:事务ID: 1758022914505
+2025-09-16 19:41:54.507 | LSN:00000426 | SELECT       | TXN:1758022914505 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 19:41:54.633 | LSN:00000427 | SELECT       | TXN:1758022914505 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 19:41:54.634 | LSN:00000428 | TXN_COMMIT   | TXN:1758022914505 |                 | 事务提交 | INFO:事务ID: 1758022914505
+2025-09-16 19:41:57.605 | LSN:00000429 | TXN_START    | TXN:1758022917605 |                 | 事务开始 | INFO:事务ID: 1758022917605
+2025-09-16 19:41:57.605 | LSN:00000430 | SELECT       | TXN:1758022917605 | test_products   | SQL执行开始 | INFO:SQL: SELECT * FROM test_products
+2025-09-16 19:41:57.720 | LSN:00000431 | SELECT       | TXN:1758022917605 | test_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM test_products
+2025-09-16 19:41:57.720 | LSN:00000432 | TXN_COMMIT   | TXN:1758022917605 |                 | 事务提交 | INFO:事务ID: 1758022917605
+2025-09-16 19:42:00.691 | LSN:00000433 | TXN_START    | TXN:1758022920691 |                 | 事务开始 | INFO:事务ID: 1758022920691
+2025-09-16 19:42:00.692 | LSN:00000434 | SELECT       | TXN:1758022920691 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 19:42:00.806 | LSN:00000435 | SELECT       | TXN:1758022920691 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 19:42:00.808 | LSN:00000436 | TXN_COMMIT   | TXN:1758022920691 |                 | 事务提交 | INFO:事务ID: 1758022920691
+2025-09-16 19:44:17.916 | LSN:00000437 | TXN_START    | TXN:1758023057916 |                 | 事务开始 | INFO:事务ID: 1758023057916
+2025-09-16 19:44:17.917 | LSN:00000438 | DROP_TABLE   | TXN:1758023057916 | demo_products   | SQL执行开始 | INFO:SQL: DROP TABLE demo_products
+2025-09-16 19:44:17.920 | LSN:00000439 | DROP_TABLE   | TXN:1758023057916 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP TABLE demo_products
+2025-09-16 19:44:17.921 | LSN:00000440 | TXN_COMMIT   | TXN:1758023057916 |                 | 事务提交 | INFO:事务ID: 1758023057916
+2025-09-16 19:44:40.660 | LSN:00000441 | TXN_START    | TXN:1758023080660 |                 | 事务开始 | INFO:事务ID: 1758023080660
+2025-09-16 19:44:40.661 | LSN:00000442 | CREATE_TABLE | TXN:1758023080660 | demo_products   | SQL执行开始 | INFO:SQL: CREATE TABLE demo_products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50),
+    price DECIMAL(10,2),
+    stock_quantity INT,
+    supplier VARCHAR(50),
+    created_date DATE
+);
+
+-- 1.2 插入测试数据
+INSERT INTO demo_products VALUES 
+(1, 'Laptop Pro', 'Electronics', 1299.99, 10, 'TechCorp', '2024-01-01'),
+(2, 'Wireless Mouse', 'Electronics', 29.99, 50, 'TechCorp', '2024-01-02'),
+(3, 'Programming Book', 'Books', 59.99, 25, 'BookHouse', '2024-01-03'),
+(4, 'Mechanical Keyboard', 'Electronics', 129.99, 15, 'TechCorp', '2024-01-04'),
+(5, 'Design Guidebook', 'Books', 49.99, 30, 'BookHouse', '2024-01-05'),
+(6, 'Gaming Monitor', 'Electronics', 299.99, 8, 'DisplayTech', '2024-01-06'),
+(7, 'Database Theory', 'Books', 79.99, 20, 'BookHouse', '2024-01-07'),
+(8, 'USB-C Hub', 'Electronics', 39.99, 35, 'TechCorp', '2024-01-08');
+2025-09-16 19:44:40.736 | LSN:00000443 | CREATE_TABLE | TXN:1758023080660 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE TABLE demo_products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50),
+    price DECIMAL(10,2),
+    stock_quantity INT,
+    supplier VARCHAR(50),
+    created_date DATE
+);
+
+-- 1.2 插入测试数据
+INSERT INTO demo_products VALUES 
+(1, 'Laptop Pro', 'Electronics', 1299.99, 10, 'TechCorp', '2024-01-01'),
+(2, 'Wireless Mouse', 'Electronics', 29.99, 50, 'TechCorp', '2024-01-02'),
+(3, 'Programming Book', 'Books', 59.99, 25, 'BookHouse', '2024-01-03'),
+(4, 'Mechanical Keyboard', 'Electronics', 129.99, 15, 'TechCorp', '2024-01-04'),
+(5, 'Design Guidebook', 'Books', 49.99, 30, 'BookHouse', '2024-01-05'),
+(6, 'Gaming Monitor', 'Electronics', 299.99, 8, 'DisplayTech', '2024-01-06'),
+(7, 'Database Theory', 'Books', 79.99, 20, 'BookHouse', '2024-01-07'),
+(8, 'USB-C Hub', 'Electronics', 39.99, 35, 'TechCorp', '2024-01-08');
+2025-09-16 19:44:40.737 | LSN:00000444 | TXN_COMMIT   | TXN:1758023080660 |                 | 事务提交 | INFO:事务ID: 1758023080660
+2025-09-16 19:44:44.073 | LSN:00000445 | TXN_START    | TXN:1758023084073 |                 | 事务开始 | INFO:事务ID: 1758023084073
+2025-09-16 19:44:44.074 | LSN:00000446 | SELECT       | TXN:1758023084073 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 19:44:44.203 | LSN:00000447 | SELECT       | TXN:1758023084073 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 19:44:44.203 | LSN:00000448 | TXN_COMMIT   | TXN:1758023084073 |                 | 事务提交 | INFO:事务ID: 1758023084073
+2025-09-16 19:45:09.235 | LSN:00000449 | TXN_START    | TXN:1758023109235 |                 | 事务开始 | INFO:事务ID: 1758023109235
+2025-09-16 19:45:09.235 | LSN:00000450 | SYSTEM       | TXN:1758023109235 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 19:45:09.257 | LSN:00000451 | SYSTEM       | TXN:1758023109235 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (4)
+2025-09-16 19:45:09.257 | LSN:00000452 | TXN_COMMIT   | TXN:1758023109235 |                 | 事务提交 | INFO:事务ID: 1758023109235
+2025-09-16 19:57:45.309 | LSN:00000453 | TXN_START    | TXN:1758023865309 |                 | 事务开始 | INFO:事务ID: 1758023865309
+2025-09-16 19:57:45.310 | LSN:00000454 | SELECT       | TXN:1758023865309 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 19:57:45.424 | LSN:00000455 | SELECT       | TXN:1758023865309 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 19:57:45.425 | LSN:00000456 | TXN_COMMIT   | TXN:1758023865309 |                 | 事务提交 | INFO:事务ID: 1758023865309
+2025-09-16 19:57:46.957 | LSN:00000457 | TXN_START    | TXN:1758023866957 |                 | 事务开始 | INFO:事务ID: 1758023866957
+2025-09-16 19:57:46.958 | LSN:00000458 | SELECT       | TXN:1758023866957 | test_products   | SQL执行开始 | INFO:SQL: SELECT * FROM test_products
+2025-09-16 19:57:47.073 | LSN:00000459 | SELECT       | TXN:1758023866957 | test_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM test_products
+2025-09-16 19:57:47.074 | LSN:00000460 | TXN_COMMIT   | TXN:1758023866957 |                 | 事务提交 | INFO:事务ID: 1758023866957
+2025-09-16 19:57:59.753 | LSN:00000461 | TXN_START    | TXN:1758023879753 |                 | 事务开始 | INFO:事务ID: 1758023879753
+2025-09-16 19:57:59.754 | LSN:00000462 | SYSTEM       | TXN:1758023879753 |                 | SQL执行开始 | INFO:SQL: SHARD STATS demo_products
+2025-09-16 19:57:59.756 | LSN:00000463 | SYSTEM       | TXN:1758023879753 |                 | SQL解析失败 | INFO:SQL: SHARD STATS demo_products
+2025-09-16 19:57:59.785 | LSN:00000464 | TXN_ABORT    | TXN:1758023879753 |                 | 事务回滚 | INFO:事务ID: 1758023879753
+2025-09-16 20:01:10.194 | LSN:00000465 | TXN_START    | TXN:1758024070193 |                 | 事务开始 | INFO:事务ID: 1758024070193
+2025-09-16 20:01:10.194 | LSN:00000466 | UPDATE       | TXN:1758024070193 | demo_products   | SQL执行开始 | INFO:SQL: UPDATE demo_products SET stock_quantity = stock_quantity + 5 WHERE category = 'Books';
+2025-09-16 20:01:10.230 | LSN:00000467 | UPDATE       | TXN:1758024070193 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: UPDATE demo_products SET stock_quantity = stock_quantity + 5 WHERE category = 'Books';
+2025-09-16 20:01:10.230 | LSN:00000468 | TXN_COMMIT   | TXN:1758024070193 |                 | 事务提交 | INFO:事务ID: 1758024070193
+2025-09-16 20:01:13.582 | LSN:00000469 | TXN_START    | TXN:1758024073582 |                 | 事务开始 | INFO:事务ID: 1758024073582
+2025-09-16 20:01:13.583 | LSN:00000470 | SELECT       | TXN:1758024073582 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:01:13.700 | LSN:00000471 | SELECT       | TXN:1758024073582 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:01:13.701 | LSN:00000472 | TXN_COMMIT   | TXN:1758024073582 |                 | 事务提交 | INFO:事务ID: 1758024073582
+2025-09-16 20:01:21.132 | LSN:00000473 | TXN_START    | TXN:1758024081131 |                 | 事务开始 | INFO:事务ID: 1758024081131
+2025-09-16 20:01:21.133 | LSN:00000474 | UPDATE       | TXN:1758024081131 | demo_products   | SQL执行开始 | INFO:SQL: UPDATE demo_products SET stock_quantity = stock_quantity + 5 WHERE category = 'Books';
+2025-09-16 20:01:21.168 | LSN:00000475 | UPDATE       | TXN:1758024081131 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: UPDATE demo_products SET stock_quantity = stock_quantity + 5 WHERE category = 'Books';
+2025-09-16 20:01:21.169 | LSN:00000476 | TXN_COMMIT   | TXN:1758024081131 |                 | 事务提交 | INFO:事务ID: 1758024081131
+2025-09-16 20:01:29.269 | LSN:00000477 | TXN_START    | TXN:1758024089269 |                 | 事务开始 | INFO:事务ID: 1758024089269
+2025-09-16 20:01:29.270 | LSN:00000478 | SELECT       | TXN:1758024089269 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:01:29.379 | LSN:00000479 | SELECT       | TXN:1758024089269 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:01:29.380 | LSN:00000480 | TXN_COMMIT   | TXN:1758024089269 |                 | 事务提交 | INFO:事务ID: 1758024089269
+2025-09-16 20:01:36.222 | LSN:00000481 | TXN_START    | TXN:1758024096222 |                 | 事务开始 | INFO:事务ID: 1758024096222
+2025-09-16 20:01:36.223 | LSN:00000482 | UPDATE       | TXN:1758024096222 | demo_products   | SQL执行开始 | INFO:SQL: UPDATE demo_products SET stock_quantity = stock_quantity + 5 WHERE category = 'Books';
+2025-09-16 20:01:36.252 | LSN:00000483 | UPDATE       | TXN:1758024096222 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: UPDATE demo_products SET stock_quantity = stock_quantity + 5 WHERE category = 'Books';
+2025-09-16 20:01:36.253 | LSN:00000484 | TXN_COMMIT   | TXN:1758024096222 |                 | 事务提交 | INFO:事务ID: 1758024096222
+2025-09-16 20:01:39.482 | LSN:00000485 | TXN_START    | TXN:1758024099482 |                 | 事务开始 | INFO:事务ID: 1758024099482
+2025-09-16 20:01:39.483 | LSN:00000486 | SELECT       | TXN:1758024099482 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:01:39.596 | LSN:00000487 | SELECT       | TXN:1758024099482 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:01:39.596 | LSN:00000488 | TXN_COMMIT   | TXN:1758024099482 |                 | 事务提交 | INFO:事务ID: 1758024099482
+2025-09-16 20:03:22.520 | LSN:00000489 | TXN_START    | TXN:1758024202520 |                 | 事务开始 | INFO:事务ID: 1758024202520
+2025-09-16 20:03:22.521 | LSN:00000490 | SYSTEM       | TXN:1758024202520 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 20:03:22.524 | LSN:00000491 | SYSTEM       | TXN:1758024202520 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD demo_products
+2025-09-16 20:03:22.524 | LSN:00000492 | TXN_COMMIT   | TXN:1758024202520 |                 | 事务提交 | INFO:事务ID: 1758024202520
+2025-09-16 20:04:27.839 | LSN:00000493 | TXN_START    | TXN:1758024267839 |                 | 事务开始 | INFO:事务ID: 1758024267839
+2025-09-16 20:04:27.840 | LSN:00000494 | SELECT       | TXN:1758024267839 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 20:04:27.957 | LSN:00000495 | SELECT       | TXN:1758024267839 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 20:04:27.959 | LSN:00000496 | TXN_COMMIT   | TXN:1758024267839 |                 | 事务提交 | INFO:事务ID: 1758024267839
+2025-09-16 20:04:31.512 | LSN:00000497 | TXN_START    | TXN:1758024271511 |                 | 事务开始 | INFO:事务ID: 1758024271511
+2025-09-16 20:04:31.512 | LSN:00000498 | SELECT       | TXN:1758024271511 | test_products   | SQL执行开始 | INFO:SQL: SELECT * FROM test_products
+2025-09-16 20:04:31.624 | LSN:00000499 | SELECT       | TXN:1758024271511 | test_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM test_products
+2025-09-16 20:04:31.625 | LSN:00000500 | TXN_COMMIT   | TXN:1758024271511 |                 | 事务提交 | INFO:事务ID: 1758024271511
+2025-09-16 20:04:33.537 | LSN:00000501 | TXN_START    | TXN:1758024273537 |                 | 事务开始 | INFO:事务ID: 1758024273537
+2025-09-16 20:04:33.539 | LSN:00000502 | SELECT       | TXN:1758024273537 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:04:33.655 | LSN:00000503 | SELECT       | TXN:1758024273537 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:04:33.656 | LSN:00000504 | TXN_COMMIT   | TXN:1758024273537 |                 | 事务提交 | INFO:事务ID: 1758024273537
+2025-09-16 20:11:25.514 | LSN:00000505 | TXN_START    | TXN:1758024685514 |                 | 事务开始 | INFO:事务ID: 1758024685514
+2025-09-16 20:11:25.515 | LSN:00000506 | SELECT       | TXN:1758024685514 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 20:11:25.645 | LSN:00000507 | SELECT       | TXN:1758024685514 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 20:11:25.646 | LSN:00000508 | TXN_COMMIT   | TXN:1758024685514 |                 | 事务提交 | INFO:事务ID: 1758024685514
+2025-09-16 20:11:27.613 | LSN:00000509 | TXN_START    | TXN:1758024687613 |                 | 事务开始 | INFO:事务ID: 1758024687613
+2025-09-16 20:11:27.614 | LSN:00000510 | SELECT       | TXN:1758024687613 | test_products   | SQL执行开始 | INFO:SQL: SELECT * FROM test_products
+2025-09-16 20:11:27.718 | LSN:00000511 | SELECT       | TXN:1758024687613 | test_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM test_products
+2025-09-16 20:11:27.719 | LSN:00000512 | TXN_COMMIT   | TXN:1758024687613 |                 | 事务提交 | INFO:事务ID: 1758024687613
+2025-09-16 20:11:28.721 | LSN:00000513 | TXN_START    | TXN:1758024688721 |                 | 事务开始 | INFO:事务ID: 1758024688721
+2025-09-16 20:11:28.721 | LSN:00000514 | SELECT       | TXN:1758024688721 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:11:28.872 | LSN:00000515 | SELECT       | TXN:1758024688721 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:11:28.872 | LSN:00000516 | TXN_COMMIT   | TXN:1758024688721 |                 | 事务提交 | INFO:事务ID: 1758024688721
+2025-09-16 20:12:05.042 | LSN:00000517 | TXN_START    | TXN:1758024725042 |                 | 事务开始 | INFO:事务ID: 1758024725042
+2025-09-16 20:12:05.043 | LSN:00000518 | SYSTEM       | TXN:1758024725042 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY product_id USING HASH (4)
+2025-09-16 20:12:05.057 | LSN:00000519 | SYSTEM       | TXN:1758024725042 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY product_id USING HASH (4)
+2025-09-16 20:12:05.057 | LSN:00000520 | TXN_COMMIT   | TXN:1758024725042 |                 | 事务提交 | INFO:事务ID: 1758024725042
+2025-09-16 20:26:57.399 | LSN:00000521 | TXN_START    | TXN:1758025617398 |                 | 事务开始 | INFO:事务ID: 1758025617398
+2025-09-16 20:26:57.404 | LSN:00000522 | CREATE_TABLE | TXN:1758025617398 | demo_products   | SQL执行开始 | INFO:SQL: CREATE TABLE demo_products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50),
+    price DECIMAL(10,2),
+    stock_quantity INT,
+    supplier VARCHAR(50),
+    created_date DATE
+);
+
+-- 1.2 插入测试数据
+INSERT INTO demo_products VALUES 
+(1, 'Laptop Pro', 'Electronics', 1299.99, 10, 'TechCorp', '2024-01-01'),
+(2, 'Wireless Mouse', 'Electronics', 29.99, 50, 'TechCorp', '2024-01-02'),
+(3, 'Programming Book', 'Books', 59.99, 25, 'BookHouse', '2024-01-03'),
+(4, 'Mechanical Keyboard', 'Electronics', 129.99, 15, 'TechCorp', '2024-01-04'),
+(5, 'Design Guidebook', 'Books', 49.99, 30, 'BookHouse', '2024-01-05'),
+(6, 'Gaming Monitor', 'Electronics', 299.99, 8, 'DisplayTech', '2024-01-06'),
+(7, 'Database Theory', 'Books', 79.99, 20, 'BookHouse', '2024-01-07'),
+(8, 'USB-C Hub', 'Electronics', 39.99, 35, 'TechCorp', '2024-01-08');
+2025-09-16 20:26:57.442 | LSN:00000523 | CREATE_TABLE | TXN:1758025617398 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE TABLE demo_products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50),
+    price DECIMAL(10,2),
+    stock_quantity INT,
+    supplier VARCHAR(50),
+    created_date DATE
+);
+
+-- 1.2 插入测试数据
+INSERT INTO demo_products VALUES 
+(1, 'Laptop Pro', 'Electronics', 1299.99, 10, 'TechCorp', '2024-01-01'),
+(2, 'Wireless Mouse', 'Electronics', 29.99, 50, 'TechCorp', '2024-01-02'),
+(3, 'Programming Book', 'Books', 59.99, 25, 'BookHouse', '2024-01-03'),
+(4, 'Mechanical Keyboard', 'Electronics', 129.99, 15, 'TechCorp', '2024-01-04'),
+(5, 'Design Guidebook', 'Books', 49.99, 30, 'BookHouse', '2024-01-05'),
+(6, 'Gaming Monitor', 'Electronics', 299.99, 8, 'DisplayTech', '2024-01-06'),
+(7, 'Database Theory', 'Books', 79.99, 20, 'BookHouse', '2024-01-07'),
+(8, 'USB-C Hub', 'Electronics', 39.99, 35, 'TechCorp', '2024-01-08');
+2025-09-16 20:26:57.443 | LSN:00000524 | TXN_COMMIT   | TXN:1758025617398 |                 | 事务提交 | INFO:事务ID: 1758025617398
+2025-09-16 20:27:00.827 | LSN:00000525 | TXN_START    | TXN:1758025620827 |                 | 事务开始 | INFO:事务ID: 1758025620827
+2025-09-16 20:27:00.828 | LSN:00000526 | SELECT       | TXN:1758025620827 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:27:00.959 | LSN:00000527 | SELECT       | TXN:1758025620827 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:27:00.960 | LSN:00000528 | TXN_COMMIT   | TXN:1758025620827 |                 | 事务提交 | INFO:事务ID: 1758025620827
+2025-09-16 20:27:49.203 | LSN:00000529 | TXN_START    | TXN:1758025669202 |                 | 事务开始 | INFO:事务ID: 1758025669202
+2025-09-16 20:27:49.208 | LSN:00000530 | SELECT       | TXN:1758025669202 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:27:49.337 | LSN:00000531 | SELECT       | TXN:1758025669202 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:27:49.337 | LSN:00000532 | TXN_COMMIT   | TXN:1758025669202 |                 | 事务提交 | INFO:事务ID: 1758025669202
+2025-09-16 20:28:54.752 | LSN:00000533 | TXN_START    | TXN:1758025734752 |                 | 事务开始 | INFO:事务ID: 1758025734752
+2025-09-16 20:28:54.752 | LSN:00000534 | SYSTEM       | TXN:1758025734752 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 20:28:54.756 | LSN:00000535 | SYSTEM       | TXN:1758025734752 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD demo_products
+2025-09-16 20:28:54.756 | LSN:00000536 | TXN_COMMIT   | TXN:1758025734752 |                 | 事务提交 | INFO:事务ID: 1758025734752
+2025-09-16 20:29:27.029 | LSN:00000537 | TXN_START    | TXN:1758025767029 |                 | 事务开始 | INFO:事务ID: 1758025767029
+2025-09-16 20:29:27.030 | LSN:00000538 | SYSTEM       | TXN:1758025767029 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY product_id USING HASH (4)
+2025-09-16 20:29:27.050 | LSN:00000539 | SYSTEM       | TXN:1758025767029 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY product_id USING HASH (4)
+2025-09-16 20:29:27.051 | LSN:00000540 | TXN_COMMIT   | TXN:1758025767029 |                 | 事务提交 | INFO:事务ID: 1758025767029
+2025-09-16 20:40:24.075 | LSN:00000541 | TXN_START    | TXN:1758026424074 |                 | 事务开始 | INFO:事务ID: 1758026424074
+2025-09-16 20:40:24.081 | LSN:00000542 | SELECT       | TXN:1758026424074 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:40:24.203 | LSN:00000543 | SELECT       | TXN:1758026424074 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:40:24.204 | LSN:00000544 | TXN_COMMIT   | TXN:1758026424074 |                 | 事务提交 | INFO:事务ID: 1758026424074
+2025-09-16 20:40:46.360 | LSN:00000545 | TXN_START    | TXN:1758026446360 |                 | 事务开始 | INFO:事务ID: 1758026446360
+2025-09-16 20:40:46.361 | LSN:00000546 | SYSTEM       | TXN:1758026446360 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 20:40:46.370 | LSN:00000547 | SYSTEM       | TXN:1758026446360 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD demo_products
+2025-09-16 20:40:46.371 | LSN:00000548 | TXN_COMMIT   | TXN:1758026446360 |                 | 事务提交 | INFO:事务ID: 1758026446360
+2025-09-16 20:41:19.193 | LSN:00000549 | TXN_START    | TXN:1758026479193 |                 | 事务开始 | INFO:事务ID: 1758026479193
+2025-09-16 20:41:19.195 | LSN:00000550 | SELECT       | TXN:1758026479193 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:41:19.318 | LSN:00000551 | SELECT       | TXN:1758026479193 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:41:19.319 | LSN:00000552 | TXN_COMMIT   | TXN:1758026479193 |                 | 事务提交 | INFO:事务ID: 1758026479193
+2025-09-16 20:41:27.417 | LSN:00000553 | TXN_START    | TXN:1758026487417 |                 | 事务开始 | INFO:事务ID: 1758026487417
+2025-09-16 20:41:27.418 | LSN:00000554 | SYSTEM       | TXN:1758026487417 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY product_id USING HASH (4)
+2025-09-16 20:41:27.447 | LSN:00000555 | SYSTEM       | TXN:1758026487417 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY product_id USING HASH (4)
+2025-09-16 20:41:27.448 | LSN:00000556 | TXN_COMMIT   | TXN:1758026487417 |                 | 事务提交 | INFO:事务ID: 1758026487417
+2025-09-16 20:42:30.623 | LSN:00000557 | TXN_START    | TXN:1758026550622 |                 | 事务开始 | INFO:事务ID: 1758026550622
+2025-09-16 20:42:30.633 | LSN:00000558 | SELECT       | TXN:1758026550622 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:42:30.754 | LSN:00000559 | SELECT       | TXN:1758026550622 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:42:30.756 | LSN:00000560 | TXN_COMMIT   | TXN:1758026550622 |                 | 事务提交 | INFO:事务ID: 1758026550622
+2025-09-16 20:46:12.919 | LSN:00000561 | TXN_START    | TXN:1758026772918 |                 | 事务开始 | INFO:事务ID: 1758026772918
+2025-09-16 20:46:12.924 | LSN:00000562 | SELECT       | TXN:1758026772918 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 20:46:13.055 | LSN:00000563 | SELECT       | TXN:1758026772918 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 20:46:13.056 | LSN:00000564 | TXN_COMMIT   | TXN:1758026772918 |                 | 事务提交 | INFO:事务ID: 1758026772918
+2025-09-16 20:46:13.564 | LSN:00000565 | TXN_START    | TXN:1758026773564 |                 | 事务开始 | INFO:事务ID: 1758026773564
+2025-09-16 20:46:13.566 | LSN:00000566 | SELECT       | TXN:1758026773564 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:46:13.690 | LSN:00000567 | SELECT       | TXN:1758026773564 | demo_products   | SQL执行成功 | DATA:NEW[返回 11 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:46:13.692 | LSN:00000568 | TXN_COMMIT   | TXN:1758026773564 |                 | 事务提交 | INFO:事务ID: 1758026773564
+2025-09-16 20:47:00.209 | LSN:00000569 | TXN_START    | TXN:1758026820209 |                 | 事务开始 | INFO:事务ID: 1758026820209
+2025-09-16 20:47:00.210 | LSN:00000570 | SELECT       | TXN:1758026820209 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 20:47:00.320 | LSN:00000571 | SELECT       | TXN:1758026820209 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 20:47:00.321 | LSN:00000572 | TXN_COMMIT   | TXN:1758026820209 |                 | 事务提交 | INFO:事务ID: 1758026820209
+2025-09-16 20:47:00.601 | LSN:00000573 | TXN_START    | TXN:1758026820601 |                 | 事务开始 | INFO:事务ID: 1758026820601
+2025-09-16 20:47:00.602 | LSN:00000574 | SELECT       | TXN:1758026820601 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:47:00.721 | LSN:00000575 | SELECT       | TXN:1758026820601 | demo_products   | SQL执行成功 | DATA:NEW[返回 11 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:47:00.721 | LSN:00000576 | TXN_COMMIT   | TXN:1758026820601 |                 | 事务提交 | INFO:事务ID: 1758026820601
+2025-09-16 20:47:29.300 | LSN:00000577 | TXN_START    | TXN:1758026849300 |                 | 事务开始 | INFO:事务ID: 1758026849300
+2025-09-16 20:47:29.301 | LSN:00000578 | DROP_TABLE   | TXN:1758026849300 | demo_products   | SQL执行开始 | INFO:SQL: DROP TABLE demo_products
+2025-09-16 20:47:29.305 | LSN:00000579 | DROP_TABLE   | TXN:1758026849300 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP TABLE demo_products
+2025-09-16 20:47:29.306 | LSN:00000580 | TXN_COMMIT   | TXN:1758026849300 |                 | 事务提交 | INFO:事务ID: 1758026849300
+2025-09-16 20:48:02.157 | LSN:00000581 | TXN_START    | TXN:1758026882155 |                 | 事务开始 | INFO:事务ID: 1758026882155
+2025-09-16 20:48:02.163 | LSN:00000582 | SELECT       | TXN:1758026882155 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:48:02.283 | LSN:00000583 | SELECT       | TXN:1758026882155 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:48:02.284 | LSN:00000584 | TXN_COMMIT   | TXN:1758026882155 |                 | 事务提交 | INFO:事务ID: 1758026882155
+2025-09-16 20:48:18.796 | LSN:00000585 | TXN_START    | TXN:1758026898796 |                 | 事务开始 | INFO:事务ID: 1758026898796
+2025-09-16 20:48:18.797 | LSN:00000586 | DROP_TABLE   | TXN:1758026898796 | demo_products   | SQL执行开始 | INFO:SQL: DROP TABLE demo_products
+2025-09-16 20:48:18.800 | LSN:00000587 | DROP_TABLE   | TXN:1758026898796 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP TABLE demo_products
+2025-09-16 20:48:18.800 | LSN:00000588 | TXN_COMMIT   | TXN:1758026898796 |                 | 事务提交 | INFO:事务ID: 1758026898796
+2025-09-16 20:48:36.185 | LSN:00000589 | TXN_START    | TXN:1758026916185 |                 | 事务开始 | INFO:事务ID: 1758026916185
+2025-09-16 20:48:36.186 | LSN:00000590 | CREATE_TABLE | TXN:1758026916185 | users           | SQL执行开始 | INFO:SQL: CREATE TABLE users (
+    id INT PRIMARY KEY,
+    name VARCHAR(50),
+    email VARCHAR(100),
+    age INT,
+    city VARCHAR(50)
+);
+2025-09-16 20:48:36.232 | LSN:00000591 | CREATE_TABLE | TXN:1758026916185 | users           | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE TABLE users (
+    id INT PRIMARY KEY,
+    name VARCHAR(50),
+    email VARCHAR(100),
+    age INT,
+    city VARCHAR(50)
+);
+2025-09-16 20:48:36.232 | LSN:00000592 | TXN_COMMIT   | TXN:1758026916185 |                 | 事务提交 | INFO:事务ID: 1758026916185
+2025-09-16 20:48:48.734 | LSN:00000593 | TXN_START    | TXN:1758026928734 |                 | 事务开始 | INFO:事务ID: 1758026928734
+2025-09-16 20:48:48.735 | LSN:00000594 | INSERT       | TXN:1758026928734 | users           | SQL执行开始 | INFO:SQL: INSERT INTO users VALUES (1, '张三', 'zhangsan@email.com', 25, '北京');
+INSERT INTO users VALUES (2, '李四', 'lisi@email.com', 30, '上海');
+INSERT INTO users VALUES (3, '王五', 'wangwu@email.com', 28, '广州');
+INSERT INTO users VALUES (4, '赵六', 'zhaoliu@email.com', 35, '深圳');
+INSERT INTO users VALUES (5, '钱七', 'qianqi@email.com', 22, '杭州');
+INSERT INTO users VALUES (6, '孙八', 'sunba@email.com', 29, '南京');
+INSERT INTO users VALUES (7, '周九', 'zhoujiu@email.com', 31, '武汉');
+INSERT INTO users VALUES (8, '吴十', 'wushi@email.com', 27, '成都');
+2025-09-16 20:48:48.756 | LSN:00000595 | INSERT       | TXN:1758026928734 | users           | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO users VALUES (1, '张三', 'zhangsan@email.com', 25, '北京');
+INSERT INTO users VALUES (2, '李四', 'lisi@email.com', 30, '上海');
+INSERT INTO users VALUES (3, '王五', 'wangwu@email.com', 28, '广州');
+INSERT INTO users VALUES (4, '赵六', 'zhaoliu@email.com', 35, '深圳');
+INSERT INTO users VALUES (5, '钱七', 'qianqi@email.com', 22, '杭州');
+INSERT INTO users VALUES (6, '孙八', 'sunba@email.com', 29, '南京');
+INSERT INTO users VALUES (7, '周九', 'zhoujiu@email.com', 31, '武汉');
+INSERT INTO users VALUES (8, '吴十', 'wushi@email.com', 27, '成都');
+2025-09-16 20:48:48.756 | LSN:00000596 | TXN_COMMIT   | TXN:1758026928734 |                 | 事务提交 | INFO:事务ID: 1758026928734
+2025-09-16 20:48:50.292 | LSN:00000597 | TXN_START    | TXN:1758026930292 |                 | 事务开始 | INFO:事务ID: 1758026930292
+2025-09-16 20:48:50.293 | LSN:00000598 | SELECT       | TXN:1758026930292 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
+2025-09-16 20:48:50.411 | LSN:00000599 | SELECT       | TXN:1758026930292 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
+2025-09-16 20:48:50.411 | LSN:00000600 | TXN_COMMIT   | TXN:1758026930292 |                 | 事务提交 | INFO:事务ID: 1758026930292
+2025-09-16 20:49:01.883 | LSN:00000601 | TXN_START    | TXN:1758026941883 |                 | 事务开始 | INFO:事务ID: 1758026941883
+2025-09-16 20:49:01.884 | LSN:00000602 | SYSTEM       | TXN:1758026941883 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD users BY id USING HASH (4)
+2025-09-16 20:49:01.903 | LSN:00000603 | SYSTEM       | TXN:1758026941883 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD users BY id USING HASH (4)
+2025-09-16 20:49:01.903 | LSN:00000604 | TXN_COMMIT   | TXN:1758026941883 |                 | 事务提交 | INFO:事务ID: 1758026941883
+2025-09-16 20:50:50.752 | LSN:00000605 | TXN_START    | TXN:1758027050752 |                 | 事务开始 | INFO:事务ID: 1758027050752
+2025-09-16 20:50:50.753 | LSN:00000606 | SYSTEM       | TXN:1758027050752 |                 | SQL执行开始 | INFO:SQL: DROP SHARD users
+2025-09-16 20:50:50.756 | LSN:00000607 | SYSTEM       | TXN:1758027050752 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD users
+2025-09-16 20:50:50.757 | LSN:00000608 | TXN_COMMIT   | TXN:1758027050752 |                 | 事务提交 | INFO:事务ID: 1758027050752
+2025-09-16 20:51:14.050 | LSN:00000609 | TXN_START    | TXN:1758027074047 |                 | 事务开始 | INFO:事务ID: 1758027074047
+2025-09-16 20:51:14.052 | LSN:00000610 | SELECT       | TXN:1758027074047 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
+2025-09-16 20:51:14.180 | LSN:00000611 | SELECT       | TXN:1758027074047 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
+2025-09-16 20:51:14.181 | LSN:00000612 | TXN_COMMIT   | TXN:1758027074047 |                 | 事务提交 | INFO:事务ID: 1758027074047
+2025-09-16 20:51:52.539 | LSN:00000613 | TXN_START    | TXN:1758027112538 |                 | 事务开始 | INFO:事务ID: 1758027112538
+2025-09-16 20:51:52.553 | LSN:00000614 | SYSTEM       | TXN:1758027112538 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 20:51:52.577 | LSN:00000615 | SYSTEM       | TXN:1758027112538 |                 | SQL解析失败 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 20:51:52.664 | LSN:00000616 | TXN_ABORT    | TXN:1758027112538 |                 | 事务回滚 | INFO:事务ID: 1758027112538
+2025-09-16 20:51:52.669 | LSN:00000617 | TXN_START    | TXN:1758027112669 |                 | 事务开始 | INFO:事务ID: 1758027112669
+2025-09-16 20:51:52.670 | LSN:00000618 | SYSTEM       | TXN:1758027112669 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (3)
+2025-09-16 20:51:52.676 | LSN:00000619 | SYSTEM       | TXN:1758027112669 |                 | SQL解析失败 | INFO:SQL: CREATE SHARD demo_products BY supplier USING RANGE (3)
+2025-09-16 20:51:52.720 | LSN:00000620 | TXN_ABORT    | TXN:1758027112669 |                 | 事务回滚 | INFO:事务ID: 1758027112669
+2025-09-16 20:52:07.558 | LSN:00000609 | TXN_START    | TXN:1758027127558 |                 | 事务开始 | INFO:事务ID: 1758027127558
+2025-09-16 20:52:07.558 | LSN:00000610 | SELECT       | TXN:1758027127558 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
+2025-09-16 20:52:07.691 | LSN:00000611 | SELECT       | TXN:1758027127558 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
+2025-09-16 20:52:07.692 | LSN:00000612 | TXN_COMMIT   | TXN:1758027127558 |                 | 事务提交 | INFO:事务ID: 1758027127558
+2025-09-16 20:52:09.320 | LSN:00000613 | TXN_START    | TXN:1758027129320 |                 | 事务开始 | INFO:事务ID: 1758027129320
+2025-09-16 20:52:09.321 | LSN:00000614 | SYSTEM       | TXN:1758027129320 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD users BY id USING HASH (4)
+2025-09-16 20:52:09.342 | LSN:00000615 | SYSTEM       | TXN:1758027129320 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD users BY id USING HASH (4)
+2025-09-16 20:52:09.343 | LSN:00000616 | TXN_COMMIT   | TXN:1758027129320 |                 | 事务提交 | INFO:事务ID: 1758027129320
+2025-09-16 20:53:00.624 | LSN:00000621 | TXN_START    | TXN:1758027180622 |                 | 事务开始 | INFO:事务ID: 1758027180622
+2025-09-16 20:53:00.637 | LSN:00000622 | SYSTEM       | TXN:1758027180622 |                 | SQL执行开始 | INFO:SQL: DROP SHARD users
+2025-09-16 20:53:00.666 | LSN:00000623 | SYSTEM       | TXN:1758027180622 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD users
+2025-09-16 20:53:00.666 | LSN:00000624 | TXN_COMMIT   | TXN:1758027180622 |                 | 事务提交 | INFO:事务ID: 1758027180622
+2025-09-16 20:53:00.668 | LSN:00000625 | TXN_START    | TXN:1758027180668 |                 | 事务开始 | INFO:事务ID: 1758027180668
+2025-09-16 20:53:00.669 | LSN:00000626 | SYSTEM       | TXN:1758027180668 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD users BY id USING HASH (3)
+2025-09-16 20:53:00.728 | LSN:00000627 | SYSTEM       | TXN:1758027180668 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD users BY id USING HASH (3)
+2025-09-16 20:53:00.729 | LSN:00000628 | TXN_COMMIT   | TXN:1758027180668 |                 | 事务提交 | INFO:事务ID: 1758027180668
+2025-09-16 20:53:00.733 | LSN:00000629 | TXN_START    | TXN:1758027180733 |                 | 事务开始 | INFO:事务ID: 1758027180733
+2025-09-16 20:53:00.734 | LSN:00000630 | INSERT       | TXN:1758027180733 | users           | SQL执行开始 | INFO:SQL: INSERT INTO users (id, name, email, age) VALUES (999, 'Path Test User', 'test@example.com', 25)
+2025-09-16 20:53:00.745 | LSN:00000631 | INSERT       | TXN:1758027180733 | users           | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO users (id, name, email, age) VALUES (999, 'Path Test User', 'test@example.com', 25)
+2025-09-16 20:53:00.746 | LSN:00000632 | TXN_COMMIT   | TXN:1758027180733 |                 | 事务提交 | INFO:事务ID: 1758027180733
+2025-09-16 20:53:47.692 | LSN:00000633 | TXN_START    | TXN:1758027227690 |                 | 事务开始 | INFO:事务ID: 1758027227690
+2025-09-16 20:53:47.703 | LSN:00000634 | SYSTEM       | TXN:1758027227690 |                 | SQL执行开始 | INFO:SQL: DROP SHARD users
+2025-09-16 20:53:47.731 | LSN:00000635 | SYSTEM       | TXN:1758027227690 |                 | SQL执行失败 | DATA:NEW[删除分片失败，表 users 可能没有分片] | INFO:SQL: DROP SHARD users
+2025-09-16 20:53:47.801 | LSN:00000636 | TXN_ABORT    | TXN:1758027227690 |                 | 事务回滚 | INFO:事务ID: 1758027227690
+2025-09-16 20:53:47.803 | LSN:00000637 | TXN_START    | TXN:1758027227803 |                 | 事务开始 | INFO:事务ID: 1758027227803
+2025-09-16 20:53:47.804 | LSN:00000638 | SYSTEM       | TXN:1758027227803 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD users BY id USING HASH (3)
+2025-09-16 20:53:47.864 | LSN:00000639 | SYSTEM       | TXN:1758027227803 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD users BY id USING HASH (3)
+2025-09-16 20:53:47.865 | LSN:00000640 | TXN_COMMIT   | TXN:1758027227803 |                 | 事务提交 | INFO:事务ID: 1758027227803
+2025-09-16 20:53:47.872 | LSN:00000641 | TXN_START    | TXN:1758027227872 |                 | 事务开始 | INFO:事务ID: 1758027227872
+2025-09-16 20:53:47.873 | LSN:00000642 | INSERT       | TXN:1758027227872 | users           | SQL执行开始 | INFO:SQL: INSERT INTO users (id, name, email, age) VALUES (999, 'Path Test User', 'test@example.com', 25)
+2025-09-16 20:53:47.886 | LSN:00000643 | INSERT       | TXN:1758027227872 | users           | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO users (id, name, email, age) VALUES (999, 'Path Test User', 'test@example.com', 25)
+2025-09-16 20:53:47.888 | LSN:00000644 | TXN_COMMIT   | TXN:1758027227872 |                 | 事务提交 | INFO:事务ID: 1758027227872
+2025-09-16 20:54:00.934 | LSN:00000645 | TXN_START    | TXN:1758027240930 |                 | 事务开始 | INFO:事务ID: 1758027240930
+2025-09-16 20:54:00.950 | LSN:00000646 | SELECT       | TXN:1758027240930 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 20:54:01.093 | LSN:00000647 | SELECT       | TXN:1758027240930 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 20:54:01.094 | LSN:00000648 | TXN_COMMIT   | TXN:1758027240930 |                 | 事务提交 | INFO:事务ID: 1758027240930
+2025-09-16 20:54:38.444 | LSN:00000649 | TXN_START    | TXN:1758027278444 |                 | 事务开始 | INFO:事务ID: 1758027278444
+2025-09-16 20:54:38.445 | LSN:00000650 | SELECT       | TXN:1758027278444 | student         | SQL执行开始 | INFO:SQL: SELECT * FROM student
+2025-09-16 20:54:38.564 | LSN:00000651 | SELECT       | TXN:1758027278444 | student         | SQL执行成功 | DATA:NEW[返回 2 条记录] | INFO:SQL: SELECT * FROM student
+2025-09-16 20:54:38.565 | LSN:00000652 | TXN_COMMIT   | TXN:1758027278444 |                 | 事务提交 | INFO:事务ID: 1758027278444
+2025-09-16 20:54:46.358 | LSN:00000653 | TXN_START    | TXN:1758027286358 |                 | 事务开始 | INFO:事务ID: 1758027286358
+2025-09-16 20:54:46.359 | LSN:00000654 | SELECT       | TXN:1758027286358 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
+2025-09-16 20:54:46.476 | LSN:00000655 | SELECT       | TXN:1758027286358 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
+2025-09-16 20:54:46.477 | LSN:00000656 | TXN_COMMIT   | TXN:1758027286358 |                 | 事务提交 | INFO:事务ID: 1758027286358
+2025-09-16 20:55:00.551 | LSN:00000657 | TXN_START    | TXN:1758027300551 |                 | 事务开始 | INFO:事务ID: 1758027300551
+2025-09-16 20:55:00.552 | LSN:00000658 | SYSTEM       | TXN:1758027300551 |                 | SQL执行开始 | INFO:SQL: DROP SHARD demo_products
+2025-09-16 20:55:00.555 | LSN:00000659 | SYSTEM       | TXN:1758027300551 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD demo_products
+2025-09-16 20:55:00.555 | LSN:00000660 | TXN_COMMIT   | TXN:1758027300551 |                 | 事务提交 | INFO:事务ID: 1758027300551
+2025-09-16 20:55:38.095 | LSN:00000661 | TXN_START    | TXN:1758027338093 |                 | 事务开始 | INFO:事务ID: 1758027338093
+2025-09-16 20:55:38.099 | LSN:00000662 | SELECT       | TXN:1758027338093 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
+2025-09-16 20:55:38.220 | LSN:00000663 | SELECT       | TXN:1758027338093 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
+2025-09-16 20:55:38.221 | LSN:00000664 | TXN_COMMIT   | TXN:1758027338093 |                 | 事务提交 | INFO:事务ID: 1758027338093
+2025-09-16 20:56:40.088 | LSN:00000665 | TXN_START    | TXN:1758027400088 |                 | 事务开始 | INFO:事务ID: 1758027400088
+2025-09-16 20:56:40.089 | LSN:00000666 | DROP_TABLE   | TXN:1758027400088 | users           | SQL执行开始 | INFO:SQL: DROP TABLE users
+2025-09-16 20:56:40.092 | LSN:00000667 | DROP_TABLE   | TXN:1758027400088 | users           | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP TABLE users
+2025-09-16 20:56:40.092 | LSN:00000668 | TXN_COMMIT   | TXN:1758027400088 |                 | 事务提交 | INFO:事务ID: 1758027400088
+2025-09-16 20:56:59.023 | LSN:00000669 | TXN_START    | TXN:1758027419023 |                 | 事务开始 | INFO:事务ID: 1758027419023
+2025-09-16 20:56:59.023 | LSN:00000670 | CREATE_TABLE | TXN:1758027419023 | users           | SQL执行开始 | INFO:SQL: CREATE TABLE users (
+    id INT PRIMARY KEY,
+    name VARCHAR(50),
+    email VARCHAR(100),
+    age INT,
+    city VARCHAR(50)
+);
+2025-09-16 20:56:59.064 | LSN:00000671 | CREATE_TABLE | TXN:1758027419023 | users           | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE TABLE users (
+    id INT PRIMARY KEY,
+    name VARCHAR(50),
+    email VARCHAR(100),
+    age INT,
+    city VARCHAR(50)
+);
+2025-09-16 20:56:59.064 | LSN:00000672 | TXN_COMMIT   | TXN:1758027419023 |                 | 事务提交 | INFO:事务ID: 1758027419023
+2025-09-16 20:57:03.890 | LSN:00000673 | TXN_START    | TXN:1758027423890 |                 | 事务开始 | INFO:事务ID: 1758027423890
+2025-09-16 20:57:03.892 | LSN:00000674 | SELECT       | TXN:1758027423890 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
+2025-09-16 20:57:04.000 | LSN:00000675 | SELECT       | TXN:1758027423890 | users           | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM users
+2025-09-16 20:57:04.001 | LSN:00000676 | TXN_COMMIT   | TXN:1758027423890 |                 | 事务提交 | INFO:事务ID: 1758027423890
+2025-09-16 20:57:14.344 | LSN:00000677 | TXN_START    | TXN:1758027434343 |                 | 事务开始 | INFO:事务ID: 1758027434343
+2025-09-16 20:57:14.345 | LSN:00000678 | INSERT       | TXN:1758027434343 | users           | SQL执行开始 | INFO:SQL: INSERT INTO users VALUES (1, '张三', 'zhangsan@email.com', 25, '北京');
+INSERT INTO users VALUES (2, '李四', 'lisi@email.com', 30, '上海');
+INSERT INTO users VALUES (3, '王五', 'wangwu@email.com', 28, '广州');
+INSERT INTO users VALUES (4, '赵六', 'zhaoliu@email.com', 35, '深圳');
+INSERT INTO users VALUES (5, '钱七', 'qianqi@email.com', 22, '杭州');
+INSERT INTO users VALUES (6, '孙八', 'sunba@email.com', 29, '南京');
+INSERT INTO users VALUES (7, '周九', 'zhoujiu@email.com', 31, '武汉');
+INSERT INTO users VALUES (8, '吴十', 'wushi@email.com', 27, '成都');
+2025-09-16 20:57:14.363 | LSN:00000679 | INSERT       | TXN:1758027434343 | users           | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: INSERT INTO users VALUES (1, '张三', 'zhangsan@email.com', 25, '北京');
+INSERT INTO users VALUES (2, '李四', 'lisi@email.com', 30, '上海');
+INSERT INTO users VALUES (3, '王五', 'wangwu@email.com', 28, '广州');
+INSERT INTO users VALUES (4, '赵六', 'zhaoliu@email.com', 35, '深圳');
+INSERT INTO users VALUES (5, '钱七', 'qianqi@email.com', 22, '杭州');
+INSERT INTO users VALUES (6, '孙八', 'sunba@email.com', 29, '南京');
+INSERT INTO users VALUES (7, '周九', 'zhoujiu@email.com', 31, '武汉');
+INSERT INTO users VALUES (8, '吴十', 'wushi@email.com', 27, '成都');
+2025-09-16 20:57:14.363 | LSN:00000680 | TXN_COMMIT   | TXN:1758027434343 |                 | 事务提交 | INFO:事务ID: 1758027434343
+2025-09-16 20:57:27.822 | LSN:00000681 | TXN_START    | TXN:1758027447822 |                 | 事务开始 | INFO:事务ID: 1758027447822
+2025-09-16 20:57:27.822 | LSN:00000682 | SYSTEM       | TXN:1758027447822 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD users BY id USING HASH (2)
+2025-09-16 20:57:27.838 | LSN:00000683 | SYSTEM       | TXN:1758027447822 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD users BY id USING HASH (2)
+2025-09-16 20:57:27.839 | LSN:00000684 | TXN_COMMIT   | TXN:1758027447822 |                 | 事务提交 | INFO:事务ID: 1758027447822
+2025-09-16 20:57:51.985 | LSN:00000685 | TXN_START    | TXN:1758027471985 |                 | 事务开始 | INFO:事务ID: 1758027471985
+2025-09-16 20:57:51.986 | LSN:00000686 | SELECT       | TXN:1758027471985 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:57:52.096 | LSN:00000687 | SELECT       | TXN:1758027471985 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:57:52.097 | LSN:00000688 | TXN_COMMIT   | TXN:1758027471985 |                 | 事务提交 | INFO:事务ID: 1758027471985
+2025-09-16 20:57:55.821 | LSN:00000689 | TXN_START    | TXN:1758027475821 |                 | 事务开始 | INFO:事务ID: 1758027475821
+2025-09-16 20:57:55.822 | LSN:00000690 | SELECT       | TXN:1758027475821 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:57:55.936 | LSN:00000691 | SELECT       | TXN:1758027475821 | demo_products   | SQL执行成功 | DATA:NEW[返回 0 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:57:55.937 | LSN:00000692 | TXN_COMMIT   | TXN:1758027475821 |                 | 事务提交 | INFO:事务ID: 1758027475821
+2025-09-16 20:57:58.373 | LSN:00000693 | TXN_START    | TXN:1758027478373 |                 | 事务开始 | INFO:事务ID: 1758027478373
+2025-09-16 20:57:58.375 | LSN:00000694 | DROP_TABLE   | TXN:1758027478373 | demo_products   | SQL执行开始 | INFO:SQL: DROP TABLE demo_products
+2025-09-16 20:57:58.394 | LSN:00000695 | DROP_TABLE   | TXN:1758027478373 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP TABLE demo_products
+2025-09-16 20:57:58.394 | LSN:00000696 | TXN_COMMIT   | TXN:1758027478373 |                 | 事务提交 | INFO:事务ID: 1758027478373
+2025-09-16 20:58:09.592 | LSN:00000697 | TXN_START    | TXN:1758027489592 |                 | 事务开始 | INFO:事务ID: 1758027489592
+2025-09-16 20:58:09.593 | LSN:00000698 | CREATE_TABLE | TXN:1758027489592 | demo_products   | SQL执行开始 | INFO:SQL: CREATE TABLE demo_products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50),
+    price DECIMAL(10,2),
+    stock_quantity INT,
+    supplier VARCHAR(50),
+    created_date DATE
+);
+
+-- 1.2 插入测试数据
+INSERT INTO demo_products VALUES 
+(1, 'Laptop Pro', 'Electronics', 1299.99, 10, 'TechCorp', '2024-01-01'),
+(2, 'Wireless Mouse', 'Electronics', 29.99, 50, 'TechCorp', '2024-01-02'),
+(3, 'Programming Book', 'Books', 59.99, 25, 'BookHouse', '2024-01-03'),
+(4, 'Mechanical Keyboard', 'Electronics', 129.99, 15, 'TechCorp', '2024-01-04'),
+(5, 'Design Guidebook', 'Books', 49.99, 30, 'BookHouse', '2024-01-05'),
+(6, 'Gaming Monitor', 'Electronics', 299.99, 8, 'DisplayTech', '2024-01-06'),
+(7, 'Database Theory', 'Books', 79.99, 20, 'BookHouse', '2024-01-07'),
+(8, 'USB-C Hub', 'Electronics', 39.99, 35, 'TechCorp', '2024-01-08');
+2025-09-16 20:58:09.661 | LSN:00000699 | CREATE_TABLE | TXN:1758027489592 | demo_products   | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE TABLE demo_products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50),
+    price DECIMAL(10,2),
+    stock_quantity INT,
+    supplier VARCHAR(50),
+    created_date DATE
+);
+
+-- 1.2 插入测试数据
+INSERT INTO demo_products VALUES 
+(1, 'Laptop Pro', 'Electronics', 1299.99, 10, 'TechCorp', '2024-01-01'),
+(2, 'Wireless Mouse', 'Electronics', 29.99, 50, 'TechCorp', '2024-01-02'),
+(3, 'Programming Book', 'Books', 59.99, 25, 'BookHouse', '2024-01-03'),
+(4, 'Mechanical Keyboard', 'Electronics', 129.99, 15, 'TechCorp', '2024-01-04'),
+(5, 'Design Guidebook', 'Books', 49.99, 30, 'BookHouse', '2024-01-05'),
+(6, 'Gaming Monitor', 'Electronics', 299.99, 8, 'DisplayTech', '2024-01-06'),
+(7, 'Database Theory', 'Books', 79.99, 20, 'BookHouse', '2024-01-07'),
+(8, 'USB-C Hub', 'Electronics', 39.99, 35, 'TechCorp', '2024-01-08');
+2025-09-16 20:58:09.661 | LSN:00000700 | TXN_COMMIT   | TXN:1758027489592 |                 | 事务提交 | INFO:事务ID: 1758027489592
+2025-09-16 20:58:12.333 | LSN:00000701 | TXN_START    | TXN:1758027492333 |                 | 事务开始 | INFO:事务ID: 1758027492333
+2025-09-16 20:58:12.335 | LSN:00000702 | SELECT       | TXN:1758027492333 | demo_products   | SQL执行开始 | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:58:12.466 | LSN:00000703 | SELECT       | TXN:1758027492333 | demo_products   | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM demo_products
+2025-09-16 20:58:12.467 | LSN:00000704 | TXN_COMMIT   | TXN:1758027492333 |                 | 事务提交 | INFO:事务ID: 1758027492333
+2025-09-16 20:58:22.519 | LSN:00000705 | TXN_START    | TXN:1758027502519 |                 | 事务开始 | INFO:事务ID: 1758027502519
+2025-09-16 20:58:22.519 | LSN:00000706 | SYSTEM       | TXN:1758027502519 |                 | SQL执行开始 | INFO:SQL: CREATE SHARD demo_products BY product_id USING HASH (4)
+2025-09-16 20:58:22.532 | LSN:00000707 | SYSTEM       | TXN:1758027502519 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: CREATE SHARD demo_products BY product_id USING HASH (4)
+2025-09-16 20:58:22.532 | LSN:00000708 | TXN_COMMIT   | TXN:1758027502519 |                 | 事务提交 | INFO:事务ID: 1758027502519
+2025-09-16 20:58:35.121 | LSN:00000709 | TXN_START    | TXN:1758027515121 |                 | 事务开始 | INFO:事务ID: 1758027515121
+2025-09-16 20:58:35.123 | LSN:00000710 | SELECT       | TXN:1758027515121 | users           | SQL执行开始 | INFO:SQL: SELECT * FROM users
+2025-09-16 20:58:35.250 | LSN:00000711 | SELECT       | TXN:1758027515121 | users           | SQL执行成功 | DATA:NEW[返回 8 条记录] | INFO:SQL: SELECT * FROM users
+2025-09-16 20:58:35.250 | LSN:00000712 | TXN_COMMIT   | TXN:1758027515121 |                 | 事务提交 | INFO:事务ID: 1758027515121
+2025-09-16 20:58:40.278 | LSN:00000713 | TXN_START    | TXN:1758027520278 |                 | 事务开始 | INFO:事务ID: 1758027520278
+2025-09-16 20:58:40.279 | LSN:00000714 | SYSTEM       | TXN:1758027520278 |                 | SQL执行开始 | INFO:SQL: DROP SHARD users
+2025-09-16 20:58:40.283 | LSN:00000715 | SYSTEM       | TXN:1758027520278 |                 | SQL执行成功 | DATA:NEW[无数据返回] | INFO:SQL: DROP SHARD users
+2025-09-16 20:58:40.283 | LSN:00000716 | TXN_COMMIT   | TXN:1758027520278 |                 | 事务提交 | INFO:事务ID: 1758027520278

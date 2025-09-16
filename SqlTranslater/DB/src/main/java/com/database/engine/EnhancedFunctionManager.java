@@ -677,7 +677,7 @@ public class EnhancedFunctionManager extends FunctionManager {
     }
     
     /**
-     * 获取所有函数名 - 重写父类方法
+
      */
     @Override
     public Set<String> getAllFunctionNames() {

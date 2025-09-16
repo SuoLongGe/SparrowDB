@@ -3,6 +3,10 @@ package com.database.engine;
 import com.sqlcompiler.execution.*;
 import com.sqlcompiler.catalog.*;
 import com.sqlcompiler.ast.*;
+import com.database.engine.sharding.ShardManager;
+import com.database.engine.sharding.ShardStrategy;
+import com.database.engine.sharding.HashShardStrategy;
+import com.database.engine.sharding.RangeShardStrategy;
 import java.util.*;
 import java.util.Arrays;
 
@@ -338,6 +342,10 @@ public class Executor {
             return executeCall((CallPlan) plan);
         } else if (plan instanceof DropFunctionPlan) {
             return executeDropFunction((DropFunctionPlan) plan);
+        } else if (plan instanceof CreateShardPlan) {
+            return executeCreateShard((CreateShardPlan) plan);
+        } else if (plan instanceof DropShardPlan) {
+            return executeDropShard((DropShardPlan) plan);
         } else {
             return new ExecutionResult(false, "不支持的执行计划类型: " + plan.getPlanType(), null);
         }
@@ -436,16 +444,7 @@ public class Executor {
                 
                 // 构建记录Map并插入
                 Map<String, Object> record = buildRecordMap(valueList, insertColumns, tableInfo);
-                
-                // 检查是否为分片表，如果是则使用分片插入
-                boolean insertSuccess;
-                if (storageAdapter.isShardedTable(tableName)) {
-                    insertSuccess = storageAdapter.insertRecordToShard(tableName, record);
-                } else {
-                    insertSuccess = storageAdapter.insertRecord(tableName, record);
-                }
-                
-                if (!insertSuccess) {
+                if (!storageAdapter.insertRecord(tableName, record)) {
                     return new ExecutionResult(false, "插入记录失败", null);
                 }
                 
@@ -2010,6 +2009,101 @@ public class Executor {
             }
         } catch (Exception e) {
             throw new RuntimeException("类型转换错误: " + value + " -> " + dataType + ": " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 执行CREATE SHARD操作
+     */
+    private ExecutionResult executeCreateShard(CreateShardPlan plan) {
+        try {
+            String tableName = plan.getTableName();
+            String shardKeyColumn = plan.getShardKeyColumn();
+            String strategy = plan.getStrategy();
+            int shardCount = plan.getShardCount();
+            
+            // 检查表是否存在
+            if (!catalogManager.tableExists(tableName)) {
+                return new ExecutionResult(false, "表 '" + tableName + "' 不存在", null);
+            }
+            
+            // 检查列是否存在
+            TableInfo tableInfo = catalogManager.getTable(tableName);
+            boolean columnExists = false;
+            for (ColumnInfo column : tableInfo.getColumns()) {
+                if (column.getName().equalsIgnoreCase(shardKeyColumn)) {
+                    columnExists = true;
+                    break;
+                }
+            }
+            
+            if (!columnExists) {
+                return new ExecutionResult(false, "表 '" + tableName + "' 中不存在列 '" + shardKeyColumn + "'", null);
+            }
+            
+            // 获取分片管理器
+            ShardManager shardManager = storageAdapter.getShardManager();
+            if (shardManager == null) {
+                return new ExecutionResult(false, "分片管理器未初始化", null);
+            }
+            
+            // 创建分片
+            ShardStrategy shardStrategy = createShardStrategy(strategy);
+            boolean success = shardManager.createTableShards(tableName, shardKeyColumn, shardStrategy, shardCount);
+            
+            if (success) {
+                return new ExecutionResult(true, "成功为表 '" + tableName + "' 创建了 " + shardCount + " 个分片", null);
+            } else {
+                return new ExecutionResult(false, "创建分片失败", null);
+            }
+            
+        } catch (Exception e) {
+            return new ExecutionResult(false, "执行CREATE SHARD失败: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
+     * 执行DROP SHARD操作
+     */
+    private ExecutionResult executeDropShard(DropShardPlan plan) {
+        try {
+            String tableName = plan.getTableName();
+            
+            // 获取分片管理器
+            ShardManager shardManager = storageAdapter.getShardManager();
+            if (shardManager == null) {
+                return new ExecutionResult(false, "分片管理器未初始化", null);
+            }
+            
+            // 检查表是否有分片
+            if (!shardManager.hasShards(tableName)) {
+                return new ExecutionResult(false, "表 '" + tableName + "' 没有分片", null);
+            }
+            
+            // 删除分片
+            boolean success = shardManager.dropTableShards(tableName);
+            
+            if (success) {
+                return new ExecutionResult(true, "成功删除表 '" + tableName + "' 的分片", null);
+            } else {
+                return new ExecutionResult(false, "删除分片失败", null);
+            }
+            
+        } catch (Exception e) {
+            return new ExecutionResult(false, "执行DROP SHARD失败: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
+     * 创建分片策略对象
+     */
+    private ShardStrategy createShardStrategy(String strategyName) {
+        if ("HASH".equalsIgnoreCase(strategyName)) {
+            return new HashShardStrategy();
+        } else if ("RANGE".equalsIgnoreCase(strategyName)) {
+            return new RangeShardStrategy();
+        } else {
+            throw new IllegalArgumentException("不支持的分片策略: " + strategyName);
         }
     }
     
