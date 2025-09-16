@@ -1,3 +1,4 @@
+
 # Table Metadata
 TABLE_NAME=__system_columns__
 COLUMN_COUNT=9
@@ -21,3 +22,4 @@ auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|le
 auto_increment=false|not_null=false|unique=false|column_name=name|data_type=VARCHAR|length=50|default_value=false|table_name=dog|primary_key=false
 
 PAGE:2
+

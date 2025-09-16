@@ -1,3 +1,4 @@
+
 # Table Metadata
 TABLE_NAME=__system_tables__
 COLUMN_COUNT=4
@@ -57,3 +58,4 @@ create_time=1757990081712|constraint_count=0|column_count=5|table_name=users
 create_time=1757990081780|constraint_count=0|column_count=2|table_name=dog
 
 PAGE:2
+
