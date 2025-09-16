@@ -119,7 +119,14 @@ public class CatalogManager {
         tables.put(tableName, table);
         
         // 创建物理存储
-        return storageEngine.createTableStorage(tableName, table);
+        boolean result = storageEngine.createTableStorage(tableName, table);
+        
+        // 如果创建成功，更新系统列表
+        if (result) {
+            updateSystemColumnsTable(tableName, table);
+        }
+        
+        return result;
     }
     
     /**
@@ -203,5 +210,114 @@ public class CatalogManager {
         stats.put("foreign_key_constraints", table.getForeignKeyConstraints().size());
         
         return stats;
+    }
+    
+    /**
+     * 更新系统列表 - 当创建新表时调用
+     */
+    private void updateSystemColumnsTable(String tableName, TableInfo tableInfo) {
+        try {
+            // 确保系统列表存在
+            ensureSystemColumnsTableExists();
+            
+            // 获取系统列表文件路径
+            String systemColumnsPath = storageEngine.getDataDirectory() + File.separator + "__system_columns__.tbl";
+            File systemColumnsFile = new File(systemColumnsPath);
+            
+            // 读取现有内容
+            List<String> existingLines = new ArrayList<>();
+            boolean foundPageMarker = false;
+            
+            if (systemColumnsFile.exists()) {
+                try (BufferedReader reader = new BufferedReader(new FileReader(systemColumnsFile))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        existingLines.add(line);
+                        if (line.startsWith("PAGE:")) {
+                            foundPageMarker = true;
+                        }
+                    }
+                }
+            }
+            
+            // 如果没有找到PAGE标记，添加一个
+            if (!foundPageMarker) {
+                existingLines.add("");
+                existingLines.add("PAGE:1");
+            }
+            
+            // 写回文件，添加新表的列信息
+            try (PrintWriter writer = new PrintWriter(new FileWriter(systemColumnsFile))) {
+                // 写入现有内容
+                for (String line : existingLines) {
+                    writer.println(line);
+                }
+                
+                // 添加新表的列信息
+                for (ColumnInfo column : tableInfo.getColumns()) {
+                    boolean isPrimaryKey = tableInfo.getPrimaryKeyColumns().contains(column.getName());
+                    boolean isUnique = tableInfo.getUniqueConstraints().stream()
+                        .anyMatch(constraint -> constraint.getColumns().contains(column.getName()));
+                    
+                    String record = String.format(
+                        "auto_increment=%s|not_null=%s|unique=%s|column_name=%s|data_type=%s|length=%d|default_value=%s|table_name=%s|primary_key=%s",
+                        column.isAutoIncrement() ? "true" : "false",
+                        column.isNotNull() ? "true" : "false",
+                        isUnique ? "true" : "false",
+                        column.getName(),
+                        column.getDataType(),
+                        column.getLength(),
+                        column.getDefaultValue() != null ? column.getDefaultValue().toString() : "null",
+                        tableName,
+                        isPrimaryKey ? "true" : "false"
+                    );
+                    writer.println(record);
+                }
+                
+                writer.println(); // 空行结束
+            }
+            
+            System.out.println("✅ 已更新系统列表，添加表: " + tableName);
+            
+        } catch (Exception e) {
+            System.err.println("更新系统列表失败: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * 确保系统列表存在
+     */
+    private void ensureSystemColumnsTableExists() {
+        try {
+            String systemColumnsPath = storageEngine.getDataDirectory() + File.separator + "__system_columns__.tbl";
+            File systemColumnsFile = new File(systemColumnsPath);
+            
+            if (!systemColumnsFile.exists()) {
+                // 创建系统列表文件
+                try (PrintWriter writer = new PrintWriter(new FileWriter(systemColumnsFile))) {
+                    writer.println("# Table Metadata");
+                    writer.println("TABLE_NAME=__system_columns__");
+                    writer.println("COLUMN_COUNT=9");
+                    writer.println("COLUMN=table_name:VARCHAR:255");
+                    writer.println("COLUMN=column_name:VARCHAR:255");
+                    writer.println("COLUMN=data_type:VARCHAR:50");
+                    writer.println("COLUMN=length:INT:4");
+                    writer.println("COLUMN=not_null:BOOLEAN:1");
+                    writer.println("COLUMN=primary_key:BOOLEAN:1");
+                    writer.println("COLUMN=unique:BOOLEAN:1");
+                    writer.println("COLUMN=default_value:VARCHAR:255");
+                    writer.println("COLUMN=auto_increment:BOOLEAN:1");
+                    writer.println("# End Metadata");
+                    writer.println();
+                    writer.println("PAGE:1");
+                    writer.println();
+                }
+                System.out.println("✅ 已创建系统列表文件: " + systemColumnsPath);
+            }
+        } catch (Exception e) {
+            System.err.println("创建系统列表文件失败: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

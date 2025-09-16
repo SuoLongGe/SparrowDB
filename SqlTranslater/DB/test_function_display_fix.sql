@@ -32,3 +32,4 @@ USE main;
 
 -- 8. 测试调用main数据库中的函数
 SELECT test_main_func(4, 5) AS result2;
+
