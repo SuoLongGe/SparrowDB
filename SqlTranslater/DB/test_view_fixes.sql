@@ -45,3 +45,6 @@ DROP VIEW young_users;
 -- 10. 测试剩余视图
 SELECT * FROM adult_users;
 
+
+
+
