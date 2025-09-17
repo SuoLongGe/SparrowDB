@@ -724,7 +724,8 @@ public class StorageAdapter implements RollbackCallback {
                         continue;
                     }
                     
-                    if (inDataSection && line.startsWith("RECORD:")) {
+                    // 如果没有找到元数据头，直接处理RECORD:行
+                    if (line.startsWith("RECORD:")) {
                         String recordData = line.substring(7); // 移除"RECORD:"前缀
                         System.out.println("🔍 找到记录，行号: " + lineNum + ", 数据: " + recordData);
                         Map<String, Object> record = deserializeRecord(recordData);
@@ -751,8 +752,11 @@ public class StorageAdapter implements RollbackCallback {
             String tableFile = getTableFilePath(tableName);
             File file = new File(tableFile);
             if (!file.exists()) {
+                System.out.println("🔍 文件不存在: " + tableFile);
                 return false;
             }
+            
+            System.out.println("🔍 开始删除记录，目标记录: " + targetRecord);
             
             // 读取所有内容
             List<String> allLines = new ArrayList<>();
@@ -772,15 +776,19 @@ public class StorageAdapter implements RollbackCallback {
                     if (line.startsWith("# End Metadata")) {
                         writer.println(line);
                         inDataSection = true;
+                        System.out.println("🔍 找到数据段开始");
                         continue;
                     }
                     
-                    if (inDataSection && line.startsWith("RECORD:")) {
+                    // 如果没有找到元数据头，直接处理RECORD:行
+                    if (line.startsWith("RECORD:")) {
                         String recordData = line.substring(7);
                         Map<String, Object> currentRecord = deserializeRecord(recordData);
+                        System.out.println("🔍 检查记录: " + currentRecord);
                         
-                        if (currentRecord != null && recordsEqual(currentRecord, targetRecord) && !recordDeleted) {
+                        if (currentRecord != null && recordsEqual(currentRecord, targetRecord)) {
                             // 跳过此记录（删除）
+                            System.out.println("🔍 找到匹配记录，跳过删除");
                             recordDeleted = true;
                             continue;
                         }
@@ -790,9 +798,11 @@ public class StorageAdapter implements RollbackCallback {
                 }
             }
             
+            System.out.println("🔍 删除结果: " + recordDeleted);
             return recordDeleted;
         } catch (IOException e) {
             System.err.println("文件存储删除记录失败: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }

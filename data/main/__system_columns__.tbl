@@ -13,6 +13,7 @@ COLUMN=default_value:VARCHAR:255
 COLUMN=auto_increment:BOOLEAN:1
 # End Metadata
 PAGE:1
+auto_increment=false|not_null=false|unique=false|column_name=dept_id|data_type=INT|length=0|default_value=null|table_name=teachers|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=title|data_type=VARCHAR|length=20|default_value=null|table_name=teachers|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=salary|data_type=DECIMAL|length=10|default_value=null|table_name=teachers|primary_key=false
 auto_increment=false|not_null=false|unique=false|column_name=id|data_type=INT|length=0|default_value=null|table_name=test_integration|primary_key=false
